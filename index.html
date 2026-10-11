@@ -166,14 +166,18 @@ nav.tabs button.on{color:var(--accent)}
 .vk-sub{font-size:14px;opacity:.9}
 .vk-times{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:12px;text-align:center;font-size:11px}
 .vk-times div{background:rgba(255,255,255,.14);border-radius:10px;padding:6px 0;display:grid;gap:2px}
+.vk-rem{justify-self:start;margin-top:8px;background:rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:7px 12px;font-weight:600;font-size:13px}
 .vk-times b{font-size:13px;font-variant-numeric:tabular-nums}
-.vk-times .nx{background:rgba(255,255,255,.32)}
+.vk-times .nx{background:rgba(255,255,255,.14);outline:1.5px dashed rgba(255,255,255,.7)}
+.vk-times .cur{background:#fff;text-shadow:none;box-shadow:0 4px 14px rgba(0,0,0,.25);transform:scale(1.06)}
 .soz{background:color-mix(in srgb,var(--accent) 14%,var(--surface));border-radius:18px;padding:16px;display:grid;gap:6px}
 .soz-t{font:500 18px/1.45 var(--f-disp);text-wrap:pretty}
 .amel .chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:var(--accent-ink)}
 .amel.ok .chk{background:var(--accent);border-color:var(--accent)}
 .amel.ok b{color:var(--muted);text-decoration:line-through}
 details>summary::-webkit-details-marker{display:none}
+.bedir{display:flex;flex-wrap:wrap;gap:6px}
+.bedir span{background:var(--surface2);border-radius:999px;padding:5px 10px;font-size:13px}
 .mk{font-size:12px;color:var(--accent);flex:none;font-weight:700}
 .mk.done{color:var(--good)}
 textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-height:84px;resize:vertical}
@@ -231,6 +235,7 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const ytShort=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q+" kısa kesit")+"&sp=EgIYAQ%253D%253D";
 const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
 const p3=n=>String(n).padStart(3,"0");
 const fmt=s=>{if(!isFinite(s)||s<0)return"--:--";s=Math.floor(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+":"+String(m).padStart(2,"0"):m)+":"+String(x).padStart(2,"0")};
@@ -342,8 +347,6 @@ const RADYO=[
  {n:"Saad el-Gâmidî",d:"24 saat tilavet",u:QR+"saad_alghamdi"},
  {n:"Ahmed el-Acemî",d:"24 saat tilavet",u:QR+"ahmad_alajmy"},
  {n:"Karışık Kurrâlar",d:"Farklı hâfızlardan",u:QR+"mix"},
- {n:"Sabah Ezkârı",d:"Arapça sabah zikirleri",u:QR+"athkar_sabah"},
- {n:"Akşam Ezkârı",d:"Arapça akşam zikirleri",u:QR+"athkar_masa"},
  {n:"Rukye-i Şer'iyye",d:"Şifa âyetleri",u:QR+"roqiah"}
 ];
 
@@ -471,7 +474,7 @@ const notesFor=k=>NOTES.filter(n=>n.key===k).sort((a,b)=>(a.t||0)-(b.t||0));
 function toggleFav(info){if(FAV[info.key])delete FAV[info.key];else FAV[info.key]={ctx:info.ctx,title:info.title,sub:info.sub,date:Date.now()};saveLib();toast(FAV[info.key]?"Favorilere eklendi":"Favorilerden çıkarıldı")}
 function addNote(info,t,text){NOTES.push({id:"n"+Date.now(),key:info.key,ctx:info.ctx,title:info.title,sub:info.sub,t:t,text:text,date:Date.now()});saveLib();toast("Not kaydedildi")}
 function addRecent(t){if(!t.ctx)return;RECENT=RECENT.filter(r=>r.key!==t.key);RECENT.unshift({key:t.key,ctx:t.ctx,title:t.title,sub:t.sub,date:Date.now()});RECENT=RECENT.slice(0,40);saveLib()}
-function playQueue(list,i){Q=list;qi=i;lockStop(true);loadCur(true)}
+function playQueue(list,i){Q=list;qi=i;lockStop(true);if(guardOn){guardOn=false;zau.pause();zau.removeAttribute("src")}loadCur(true)}
 function loadCur(autoplay){
   const t=Q[qi];if(!t)return;pendingRetry=false;srcIdx=0;curKey=t.key||null;
   au.src=t.src[0];au.playbackRate=t.live?1:rate;
@@ -569,6 +572,7 @@ function cycleSleep(){
 /* Parça üreticiler */
 const kariObj=()=>KARI.find(k=>k.id===kari)||KARI[0];
 const sureTrack=(n,kid)=>{const k=KARI.find(x=>x.id===kid)||kariObj();return{title:n+". "+SURE_TR[n-1]+" Sûresi",sub:k.n,src:k.s(n),art:makeArt(SURE_AR[n-1],"Kur'ân-ı Kerîm",168),key:"q_"+k.id+"_"+n,ctx:{type:"sure",n,kari:k.id},group:"Kur'ân-ı Kerîm"}};
+const ayahTracks=(list,name)=>list.map(([su,a])=>{const g=gAyah(su,a);return{title:name,sub:SURE_TR[su-1]+" "+su+"/"+a+" · el-Afâsî",src:[`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${g}.mp3`,`https://everyayah.com/data/Alafasy_128kbps/${p3(su)}${p3(a)}.mp3`,`https://cdn.islamic.network/quran/audio/64/ar.alafasy/${g}.mp3`],art:makeArt("دعاء",name.slice(0,24),150),group:"Dua"}});
 const siyerTrack=(S,n)=>({title:(S.id==="asr"?"Bölüm ":"Ders ")+n+(S.titles[n-1]?" · "+S.titles[n-1]:""),sub:S.n+" · "+(S.who||"Muhammed Emin Yıldırım"),src:[S.u(n)].concat(S.alt?S.alt(n):[]),art:makeArt(String(n),S.n.replace(" Dersleri",""),190),key:"s_"+S.id+"_"+n,ctx:{type:"siyer",id:S.id,n},series:S.id,ep:n,group:"Siyer Vakfı"});
 const radioTrack=(r,i)=>({title:r.n,sub:r.d,src:[r.u],art:makeArt("راديو",r.n,30),live:true,key:"r_"+i,ctx:{type:"radio",i},group:"Canlı Radyo"});
 const RADIO_Q=()=>RADYO.map(radioTrack);
@@ -604,7 +608,7 @@ function silentURL(){
   silentUrl=URL.createObjectURL(new Blob([b],{type:"audio/wav"}));return silentUrl;
 }
 function lockStart(){
-  au.pause();zau.src=silentURL();zau.loop=true;
+  if(guardOn){guardOn=false}au.pause();zau.src=silentURL();zau.loop=true;
   zau.play().then(()=>{lockOn=true;msZikir();lockMeta();renderView();toast("Kilit ekranı zikri açık")}).catch(()=>toast("Başlatılamadı, tekrar dokun"));
 }
 function lockStop(silent){if(!lockOn)return;lockOn=false;zau.pause();zau.removeAttribute("src");try{zau.load()}catch(e){}msPlayer();if(Q[qi])updateMini();if(!silent)renderView()}
@@ -651,10 +655,13 @@ const progHTML=k=>{const p=POS[k],d=DUR[k];return p&&d?`<div class="bar2"><i sty
 const ACC={bugun:["#e9a23b","#a8650f"],zikir:["#3fbf8f","#1d7a57"],dinle:["#5aa9e6","#2368a8"],kutuphane:["#c792ea","#7b3fb0"],kulliyat:["#ef7a8f","#b23a54"]};
 const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches};
 function setAccent(){let c=ACC[tab]||ACC.bugun;if(tab==="bugun"){try{const r=VAKIT_RENK[curVakit().v];c=[r[1],r[0]]}catch(e){}}document.documentElement.style.setProperty("--accent",isDark()?c[0]:c[1])}
+const HUES=[200,150,38,265,330,15,190,110,220,350];
+function tintCards(){let i=0;document.querySelectorAll("#view .cards > .card").forEach(c=>{if(c.style.background)return;const h=HUES[i++%HUES.length];c.style.background=`color-mix(in srgb,hsl(${h} 65% 50%) ${isDark()?18:12}%,var(--surface))`;const t=c.querySelector(".tag");if(t)t.style.color=`hsl(${h} 70% ${isDark()?66:34}%)`});
+  let j=0;document.querySelectorAll("#view [data-hoca]").forEach(b=>{const h=HUES[j++%HUES.length];b.style.background=`color-mix(in srgb,hsl(${h} 65% 50%) ${isDark()?24:16}%,var(--surface))`})}
 function renderView(){
   $("#pageTitle").textContent=TITLES[tab];document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
   setAccent();const v=$("#view");v.innerHTML=({bugun:vBugun,zikir:vZikir,dinle:vDinle,kutuphane:vKutup,kulliyat:vKulliyat})[tab]();
-  ({bugun:bBugun,zikir:bZikir,dinle:bDinle,kutuphane:bKutup,kulliyat:bKulliyat})[tab]();renderTotal();
+  ({bugun:bBugun,zikir:bZikir,dinle:bDinle,kutuphane:bKutup,kulliyat:bKulliyat})[tab]();renderTotal();tintCards();
 }
 
 /* --- Zikir --- */
@@ -757,7 +764,7 @@ function bDinle(){
 }
 
 /* --- Sohbetler: hoca arama --- */
-const HOCALAR=["Risale-i Nur sesli","Zübeyir Gündüzalp","Muhammed Emin Yıldırım","Nureddin Yıldız","Hayati İnanç","Ebubekir Sifil","Fatma Bayram","Halil İbrahim Genç","Abdurrahman Ateş","Nouman Ali Khan","Mufti Menk","Omar Suleiman","Hamza Yusuf","Yasir Qadhi"];
+const HOCALAR=["Muhammed Emin Yıldırım","Mehmet Yıldız","Abdullah İmamoğlu","Alparslan Kuytul","Nureddin Yıldız","Risale-i Nur sesli","Zübeyir Gündüzalp","Fatma Bayram","Halil İbrahim Genç","Abdurrahman Ateş","Nouman Ali Khan","Mufti Menk","Omar Suleiman","Hamza Yusuf","Yasir Qadhi"];
 let SET=store.get("mk_set",{piKey:"",piSecret:"",yt:""});
 let FOLLOW=store.get("mk_follow",[]);
 let sohQ="",sohRes=[],sohYT=null,sohLoading=false,sohErr="",openPod=null,epLoading=false,epErr="",podSort="new",epQ="";
@@ -803,8 +810,9 @@ function vSohbet(){
   if(sohLoading)body=`<div class="empty">“${esc(sohQ)}” aranıyor…</div>`;
   else if(sohErr)body=`<div class="empty">${esc(sohErr)}</div>`;
   else if(sohQ){body=`<h2>Sesli sohbetler</h2>${sohRes.length?`<div class="list">${sohRes.map(podRow).join("")}</div>`:`<div class="empty">Bu isimle sesli sohbet bulunamadı. Adını farklı yazmayı dene (ör. “Nurettin” / “Nureddin”).</div>`}
-    <h2>YouTube</h2>${sohYT&&sohYT.items?`<div class="list">${sohYT.items.map(v=>`<a class="row" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=${esc(v.id)}"><span class="t"><b>${v.t}</b><span>${v.ch} · ${new Date(v.d).toLocaleDateString("tr-TR")}</span></span><span class="go">İzle ›</span></a>`).join("")}</div>`:`${sohYT&&sohYT.err?`<div class="empty">${esc(sohYT.err)}</div>`:""}<a class="pill ghost" target="_blank" rel="noopener" href="${yt(sohQ+" sohbet")}">YouTube'da “${esc(sohQ)}” ara ›</a>`}`}
+    <h2>YouTube</h2>${sohYT&&sohYT.items?`<div class="list">${sohYT.items.map(v=>`<a class="row" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=${esc(v.id)}"><span class="t"><b>${v.t}</b><span>${v.ch} · ${new Date(v.d).toLocaleDateString("tr-TR")}</span></span><span class="go">İzle ›</span></a>`).join("")}</div>`:`${sohYT&&sohYT.err?`<div class="empty">${esc(sohYT.err)}</div>`:""}<div class="ctrl"><a class="pill ghost" target="_blank" rel="noopener" href="${yt(sohQ+" sohbet")}">YouTube'da “${esc(sohQ)}” ara ›</a><a class="pill ghost" target="_blank" rel="noopener" href="${ytShort(sohQ)}">Kısa kesitler ›</a></div>`}`}
   else body=`<h2>Hızlı arama</h2><div class="ctrl">${HOCALAR.map(h=>`<button class="pill" data-hoca="${esc(h)}">${esc(h)}</button>`).join("")}</div>
+    <h2>Kısa kesitler (video)</h2><div class="ctrl">${HOCALAR.filter(h=>!/Risale/.test(h)).map(h=>`<a class="pill ghost" target="_blank" rel="noopener" href="${ytShort(h)}">▶ ${esc(h)}</a>`).join("")}</div>
     ${vFollow()}
     <div class="note">Herhangi bir hocanın adını yaz: Türkiye'den ya da dünyanın her yerinden. Sesli sohbetleri ekran kapalıyken çalar; kaldığın yer, not ve favori burada da çalışır.</div>`;
   return bar+`<div style="margin-top:12px">${body}</div>`;
@@ -884,6 +892,7 @@ function bindDua(root){
 }
 
 /* --- Namaz vakitleri --- */
+const VAKIT_LBL={seher:"",sabah:"İmsak",kusluk:"Güneş",ogle:"Öğle",ikindi:"İkindi",aksam:"Akşam",yatsi:"Yatsı"};
 const VAKIT_AD={seher:"Seher",sabah:"Sabah",kusluk:"Kuşluk",ogle:"Öğle",ikindi:"İkindi",aksam:"Akşam",yatsi:"Gece"};
 const VAKIT_RENK={seher:["#2b2a6b","#6a4c93"],sabah:["#c2502e","#d98b2b"],kusluk:["#b86e12","#1f7f73"],ogle:["#1f5f9e","#3f86c9"],ikindi:["#a8541a","#c7832b"],aksam:["#a8302a","#6d3680"],yatsi:["#152a4a","#2f4f7f"]};
 let TIMES=store.get("mk_times",null),timesLoading=false;
@@ -950,6 +959,7 @@ const SOZLER=[
 const BENNA=["Ezanı duyduğunda, hâlin ne olursa olsun namaza kalk.","Kur'an'ı oku, üzerinde düşün ya da dinle; Allah'ı an. Vaktini faydasız işlere harcama.","Arapçayı doğru konuşmaya gayret et; o İslâm'ın şiarlarındandır.","Hiçbir konuda çok tartışma; tartışma hayır getirmez.","Çok gülme; Allah'a bağlı kalp ağırbaşlı ve vakurdur.","Şakayı huy edinme; mücadele eden bir ümmet ciddiyet ister.","Sesini dinleyenin ihtiyacından fazla yükseltme; bu hem kabalıktır hem incitir.","Gıybetten ve kimseyi kırıcı konuşmaktan sakın; yalnızca hayrı konuş.","Karşılaştığın kardeşlerinle tanış, sen de kendini onlara tanıt; tanışmak kardeşliğin ilk adımıdır.","Vazifeler vaktimizden fazladır; vaktini iyi kullanmakta kardeşine yardım et, işin varsa en kısa yoldan bitir."];
 const ESMA=[["الله", "Allah", "Bütün güzel isimlerin sahibi, tek ilah"], ["الرحمن", "er-Rahmân", "Dünyada bütün yaratılmışlara merhamet eden"], ["الرحيم", "er-Rahîm", "Âhirette mü'minlere merhamet eden"], ["الملك", "el-Melik", "Mülkün gerçek sahibi"], ["القدوس", "el-Kuddûs", "Her eksiklikten uzak"], ["السلام", "es-Selâm", "Kullarını selamete çıkaran"], ["المؤمن", "el-Mü'min", "Güven veren"], ["المهيمن", "el-Müheymin", "Gözetip koruyan"], ["العزيز", "el-Azîz", "İzzet sahibi, mağlup edilemeyen"], ["الجبار", "el-Cebbâr", "Dilediğini yaptıran, kırıkları onaran"], ["المتكبر", "el-Mütekebbir", "Büyüklükte eşi olmayan"], ["الخالق", "el-Hâlık", "Yaratan"], ["البارئ", "el-Bâri'", "Kusursuz ve uyumlu yaratan"], ["المصور", "el-Musavvir", "Şekil veren"], ["الغفار", "el-Gaffâr", "Çok bağışlayan"], ["القهار", "el-Kahhâr", "Her şeye galip gelen"], ["الوهاب", "el-Vehhâb", "Karşılıksız bağışta bulunan"], ["الرزاق", "er-Rezzâk", "Rızık veren"], ["الفتاح", "el-Fettâh", "Kapıları açan, hükmeden"], ["العليم", "el-Alîm", "Her şeyi bilen"], ["القابض", "el-Kâbıd", "Daraltan"], ["الباسط", "el-Bâsıt", "Genişleten"], ["الخافض", "el-Hâfıd", "Alçaltan"], ["الرافع", "er-Râfi'", "Yükselten"], ["المعز", "el-Muizz", "İzzet veren"], ["المذل", "el-Müzill", "Zillete düşüren"], ["السميع", "es-Semî'", "Her şeyi işiten"], ["البصير", "el-Basîr", "Her şeyi gören"], ["الحكم", "el-Hakem", "Hükmeden"], ["العدل", "el-Adl", "Mutlak adalet sahibi"], ["اللطيف", "el-Latîf", "Lütfu ince, her şeyden haberdar"], ["الخبير", "el-Habîr", "Her şeyin iç yüzünü bilen"], ["الحليم", "el-Halîm", "Yumuşak davranan, cezada acele etmeyen"], ["العظيم", "el-Azîm", "Pek yüce"], ["الغفور", "el-Gafûr", "Bağışlaması bol"], ["الشكور", "eş-Şekûr", "Az amele çok karşılık veren"], ["العلي", "el-Aliyy", "Pek yüksek"], ["الكبير", "el-Kebîr", "Pek büyük"], ["الحفيظ", "el-Hafîz", "Koruyan"], ["المقيت", "el-Mukît", "Her canlının gıdasını veren"], ["الحسيب", "el-Hasîb", "Hesaba çeken, kuluna yeten"], ["الجليل", "el-Celîl", "Celâl ve azamet sahibi"], ["الكريم", "el-Kerîm", "Pek cömert"], ["الرقيب", "er-Rakîb", "Gözetleyen"], ["المجيب", "el-Mucîb", "Dualara karşılık veren"], ["الواسع", "el-Vâsi'", "İlmi ve rahmeti geniş"], ["الحكيم", "el-Hakîm", "Her işi hikmetli"], ["الودود", "el-Vedûd", "Kullarını seven, sevilen"], ["المجيد", "el-Mecîd", "Şanı yüce"], ["الباعث", "el-Bâis", "Ölüleri dirilten"], ["الشهيد", "eş-Şehîd", "Her şeye şahit"], ["الحق", "el-Hakk", "Varlığı gerçek olan"], ["الوكيل", "el-Vekîl", "Kendisine dayanılan"], ["القوي", "el-Kaviyy", "Güçlü"], ["المتين", "el-Metîn", "Sarsılmaz"], ["الولي", "el-Veliyy", "Dost ve yardımcı"], ["الحميد", "el-Hamîd", "Övülmeye layık"], ["المحصي", "el-Muhsî", "Her şeyi sayan"], ["المبدئ", "el-Mübdi'", "Yoktan var eden"], ["المعيد", "el-Muîd", "Yeniden dirilten"], ["المحيي", "el-Muhyî", "Hayat veren"], ["المميت", "el-Mümît", "Öldüren"], ["الحي", "el-Hayy", "Diri"], ["القيوم", "el-Kayyûm", "Her şeyi ayakta tutan"], ["الواجد", "el-Vâcid", "Dilediğini bulan"], ["الماجد", "el-Mâcid", "Şanı büyük"], ["الواحد", "el-Vâhid", "Tek"], ["الصمد", "es-Samed", "Her şeyin O'na muhtaç olduğu"], ["القادر", "el-Kâdir", "Gücü yeten"], ["المقتدر", "el-Muktedir", "Kudreti sonsuz"], ["المقدم", "el-Mukaddim", "Öne geçiren"], ["المؤخر", "el-Muahhir", "Geri bırakan"], ["الأول", "el-Evvel", "Başlangıcı olmayan"], ["الآخر", "el-Âhir", "Sonu olmayan"], ["الظاهر", "ez-Zâhir", "Varlığı apaçık"], ["الباطن", "el-Bâtın", "Zatı gizli"], ["الوالي", "el-Vâlî", "Bütün kâinatı yöneten"], ["المتعالي", "el-Müteâlî", "Yüceler yücesi"], ["البر", "el-Berr", "İyiliği bol"], ["التواب", "et-Tevvâb", "Tevbeleri kabul eden"], ["المنتقم", "el-Müntekım", "Suçluları cezalandıran"], ["العفو", "el-Afüvv", "Affı çok"], ["الرؤوف", "er-Raûf", "Çok şefkatli"], ["مالك الملك", "Mâlikü'l-mülk", "Mülkün ebedî sahibi"], ["ذو الجلال والإكرام", "Zü'l-celâli ve'l-ikrâm", "Celâl ve ikram sahibi"], ["المقسط", "el-Muksit", "Adaletle hükmeden"], ["الجامع", "el-Câmi'", "Dilediğini bir araya getiren"], ["الغني", "el-Ganiyy", "Hiçbir şeye muhtaç olmayan"], ["المغني", "el-Muğnî", "Zengin kılan"], ["المانع", "el-Mâni'", "Dilemediğini engelleyen"], ["الضار", "ed-Dârr", "Zarar verecek şeyleri de yaratan"], ["النافع", "en-Nâfi'", "Fayda veren"], ["النور", "en-Nûr", "Nur veren, aydınlatan"], ["الهادي", "el-Hâdî", "Hidayet veren"], ["البديع", "el-Bedî'", "Eşsiz yaratan"], ["الباقي", "el-Bâkî", "Varlığı sonsuz"], ["الوارث", "el-Vâris", "Her şey yok olunca kalan"], ["الرشيد", "er-Reşîd", "Doğru yolu gösteren"], ["الصبور", "es-Sabûr", "Çok sabırlı"]];
 const SIYER_ILAHI=[["Tevhid Bahri", "Mevlid-i Şerif · Kurtuluş Reçetesi"], ["Velâdet Bahri", "Efendimizin doğumu · Ammar Acarlıoğlu"], ["Merhaba Bahri", "Mevlid-i Şerif · Ammar Acarlıoğlu"], ["Miraç Bahri", "Mevlid-i Şerif · Ammar Acarlıoğlu"], ["Münâcât Bahri", "Mevlid-i Şerif · Ammar Acarlıoğlu"], ["Bir Tanedir Muhammed", "Siyer TV"], ["Güllerin Güzeli Geldi", "Siyer TV"], ["Bir Anneden Bir Anneye", "Siyer TV"], ["En Güzel Dede", "Siyer TV"], ["Çocukları Severdi Peygamber Efendimiz", "Siyer TV"], ["Hoşgeldin Ramazan", "Siyer TV"]];
+const BEDIR=["Hz. Muhammed Mustafa ﷺ", "Ebû Bekir es-Sıddîk", "Ömer b. Hattâb", "Osman b. Affân", "Ali b. Ebî Tâlib", "Hamza b. Abdülmuttalib", "Zübeyr b. Avvâm", "Talha b. Ubeydullah", "Abdurrahman b. Avf", "Sa'd b. Ebî Vakkâs", "Saîd b. Zeyd", "Ebû Ubeyde b. Cerrâh", "Mus'ab b. Umeyr", "Zeyd b. Hârise", "Ammâr b. Yâsir", "Bilâl-i Habeşî", "Abdullah b. Mes'ûd", "Mikdâd b. Esved", "Ubeyde b. Hâris", "Osman b. Maz'ûn", "Ebû Seleme", "Abdullah b. Cahş", "Ukkâşe b. Mihsan", "Ebû Huzeyfe b. Utbe", "Sâlim Mevlâ Ebî Huzeyfe", "Zeyd b. Hattâb", "Hâtıb b. Ebî Belteâ", "Sa'd b. Muâz", "Ubeyy b. Ka'b", "Muâz b. Cebel", "Ubâde b. Sâmit", "Ebû Eyyûb el-Ensârî", "Ebû Talha el-Ensârî", "Hubâb b. Münzir", "Muâz b. Afrâ", "Muavviz b. Afrâ", "Abdullah b. Revâha", "Muhammed b. Mesleme", "Ebû Dücâne", "Hâris b. Sürâka", "Umeyr b. Hümâm"];
 const gunSoz=()=>{const d=new Date(),n=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);return SOZLER[n%SOZLER.length]};
 
 /* --- Yol modu --- */
@@ -961,6 +971,48 @@ function yolStart(){
 function share(){const data={title:"Maneviyat Külliyatı",text:"Zikir, Kur'ân, Siyer dersleri ve sohbetler. Ekran kapalıyken dinlenir.",url:location.href};
   if(navigator.share){navigator.share(data).catch(()=>{});return}
   try{navigator.clipboard.writeText(location.href).then(()=>toast("Bağlantı kopyalandı"),()=>toast(location.href))}catch(e){toast(location.href)}}
+
+/* --- Sesli evrad (âyet kayıtlarıyla, ekran kapalıyken çalar) --- */
+const SUR=n=>Array.from({length:AYET[n-1]},(_,i)=>[n,i+1]);
+function evradQueue(kind){
+  const parts=[["Âyetü'l-Kürsî",[[2,255]],1],["İhlâs",SUR(112),3],["Felak",SUR(113),3],["Nâs",SUR(114),3],["Haşr 22-24",[[59,22],[59,23],[59,24]],1],["Hasbiyallâh (Tevbe 129)",[[9,129]],1]];
+  if(kind==="aksam")parts.splice(1,0,["Âmenerrasûlü",[[2,285],[2,286]],1]);
+  const out=[];parts.forEach(([n,ay,k])=>{for(let j=1;j<=k;j++)out.push(...ayahTracks(ay,(kind==="aksam"?"Akşam":"Sabah")+" evradı · "+n+(k>1?" ("+j+"/"+k+")":"")).map(t=>(t.group=(kind==="aksam"?"Akşam":"Sabah")+" Evradı",t)))});
+  return out;
+}
+
+/* --- Vakit hatırlatıcı + kilit ekranında vecize --- */
+let guardOn=false,chimeUrl=null,chimeBusy=false;const FIRED=new Set();
+function makeChime(){if(chimeUrl)return chimeUrl;const sr=22050,dur=2.6,n=Math.floor(sr*dur),b=new ArrayBuffer(44+n*2),v=new DataView(b);const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+  w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){const t=i/sr;let x=0;[[0,659.25],[0.55,880],[1.1,987.77]].forEach(([s0,f])=>{if(t>=s0){const tt=t-s0;x+=Math.sin(2*Math.PI*f*tt)*Math.exp(-tt*2.4)*.32+Math.sin(4*Math.PI*f*tt)*Math.exp(-tt*4)*.06}});v.setInt16(44+i*2,Math.max(-1,Math.min(1,x))*30000,true)}
+  chimeUrl=URL.createObjectURL(new Blob([b],{type:"audio/wav"}));return chimeUrl}
+function webChime(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume();[[0,659.25],[.55,880],[1.1,987.77]].forEach(([d,f])=>{const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+d;o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+1.6);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+1.7)})}catch(e){}}
+function chime(){
+  if((guardOn||lockOn)&&!chimeBusy&&au.paused){chimeBusy=true;zau.loop=false;zau.src=makeChime();zau.play().catch(()=>{});zau.onended=()=>{zau.onended=null;chimeBusy=false;zau.src=silentURL();zau.loop=true;zau.play().catch(()=>{});if(guardOn)guardMeta(true);else lockMeta()};}
+  else webChime();
+}
+function guardStart(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}
+  if(lockOn)lockStop(true);au.pause();zau.src=silentURL();zau.loop=true;
+  zau.play().then(()=>{guardOn=true;SET.remind=true;store.set("mk_set",SET);guardHandlers();guardMeta(true);toast("Hatırlatıcı açık · ekranı kilitleyebilirsin");if(tab==="bugun")renderView()}).catch(()=>toast("Başlatılamadı, tekrar dokun"));
+  try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){}
+}
+function guardStop(){if(!guardOn)return;guardOn=false;SET.remind=false;store.set("mk_set",SET);if(!lockOn){zau.pause();zau.removeAttribute("src")}msPlayer();toast("Hatırlatıcı kapandı")}
+function guardHandlers(){if(!("mediaSession" in navigator))return;const ms=navigator.mediaSession,set=(a,f)=>{try{ms.setActionHandler(a,f)}catch(e){}};
+  const keep=()=>{zau.play().catch(()=>{});try{ms.playbackState="playing"}catch(e){}};
+  set("play",keep);set("pause",()=>{guardStop();if(tab==="bugun")renderView()});set("nexttrack",()=>{vecizeI++;guardMeta(true);keep()});set("previoustrack",()=>{vecizeI=Math.max(0,vecizeI-1);guardMeta(true);keep()});set("seekto",null);}
+let vecizeI=Math.floor(Math.random()*100),lastMeta=0;
+function guardMeta(force){if(!guardOn||!("mediaSession" in navigator))return;if(!force&&Date.now()-lastMeta<55000)return;lastMeta=Date.now();
+  const {v,next}=curVakit(),mins=Math.max(0,Math.round((next[1]-new Date())/60000)),k=mins>=60?Math.floor(mins/60)+" sa "+(mins%60)+" dk":mins+" dk";
+  if(!force)vecizeI++;const z=SOZLER[vecizeI%SOZLER.length];
+  try{navigator.mediaSession.metadata=new MediaMetadata({title:next[0]+" vaktine "+k,artist:z.t+" — "+z.s,album:VAKIT_AD[v]+" vakti · Maneviyat",artwork:[{src:makeArt(next[0],k,200),sizes:"512x512",type:"image/png"}]});navigator.mediaSession.playbackState="playing"}catch(e){}}
+function vakitTick(){
+  try{const {next}=curVakit(),mins=(next[1]-new Date())/60000,day=todayKey();
+    [10,5].forEach(th=>{const key=day+next[0]+th;if(mins<=th&&mins>th-1.2&&!FIRED.has(key)){FIRED.add(key);if(SET.remind||guardOn||lockOn||!au.paused){chime();toast("🔔 "+next[0]+" vaktine "+th+" dakika");try{if("Notification" in window&&Notification.permission==="granted")new Notification(next[0]+" vaktine "+th+" dakika",{body:gunSoz().t,icon:document.querySelector('link[rel="apple-touch-icon"]').href})}catch(e){}}}});
+    guardMeta(false);
+  }catch(e){}
+}
+setInterval(vakitTick,15000);
 
 /* --- Mübarek günler --- */
 let HIJ=null;
@@ -997,12 +1049,13 @@ function vBugun(){
   const card=`<div class="vakit" style="background:linear-gradient(135deg,${c1},${c2})">
     <div class="vk-top"><span>ŞU AN</span><span>${esc((SET.city||"İstanbul"))}${approx?" · yaklaşık":""}</span></div>
     <div class="vk-ad">${VAKIT_AD[v]} vakti</div><div class="vk-sub">${esc(next[0])} vaktine ${kalan}</div>
-    <div class="vk-times">${list.map(([n,d])=>`<div class="${n===next[0]?"nx":""}"><span>${n}</span><b>${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</b></div>`).join("")}</div></div>`;
+    <button id="remindBtn" class="vk-rem">${guardOn?"🔔 Vakit hatırlatıcı açık · kapat":"🔕 Vakitten 10 ve 5 dk önce hatırlat"}</button>
+    <div class="vk-times">${list.map(([n,d])=>`<div class="${n===VAKIT_LBL[v]?"cur":n===next[0]?"nx":""}" style="${n===VAKIT_LBL[v]?"color:"+c1:""}"><span>${n}</span><b>${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</b></div>`).join("")}</div></div>`;
   const seg=`<div class="seg" style="margin-top:14px">${[["vakit","Bu vakit"],["amel","Amellerim"],["dualar","Tüm dualar"]].map(([k,l])=>`<button data-bseg="${k}" class="${bugSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
   let body="";
   if(bugSeg==="vakit"){const s=gunSoz();
     body=`<div class="soz"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">GÜNÜN SÖZÜ</div><div class="soz-t">${esc(s.t)}</div><div class="small muted">${esc(s.s)}</div></div>
-    <div class="ctrl" style="margin:12px 0"><button class="pill acc" id="yolBtn">🚌 Yol modunu başlat</button>${v==="sabah"||v==="kusluk"?`<button class="pill" data-radiolive="${RADYO.findIndex(r=>r.u.includes("athkar_sabah"))}">Sabah ezkârını dinle</button>`:""}${v==="aksam"||v==="yatsi"?`<button class="pill" data-radiolive="${RADYO.findIndex(r=>r.u.includes("athkar_masa"))}">Akşam ezkârını dinle</button>`:""}${v==="ogle"||v==="ikindi"?`<button class="pill" id="tesbihatBtn">Namaz tesbihatı</button>`:""}${v==="seher"?`<button class="pill" id="seherPlay">Seher tilaveti</button>`:""}${v==="yatsi"?`<button class="pill" id="mulkBtn">Mülk sûresi</button>`:""}</div>
+    <div class="ctrl" style="margin:12px 0"><button class="pill acc" id="yolBtn">🚌 Yol modunu başlat</button>${v==="sabah"||v==="kusluk"||v==="seher"?`<button class="pill" data-evrad="sabah">🎧 Sabah evradını dinle</button>`:""}${v==="ikindi"||v==="aksam"||v==="yatsi"?`<button class="pill" data-evrad="aksam">🎧 Akşam evradını dinle</button>`:""}${v==="ogle"||v==="ikindi"?`<button class="pill" id="tesbihatBtn">Namaz tesbihatı</button>`:""}${v==="seher"?`<button class="pill" id="seherPlay">Seher tilaveti</button>`:""}${v==="yatsi"?`<button class="pill" id="mulkBtn">Mülk sûresi</button>`:""}</div>
     <div class="note" style="margin:0 0 12px">${esc(VAKIT_NOT[v])}</div>
     ${VAKIT_DUA[v].map(([s,i])=>duaCard(DUALAR[s][i],s+"|"+i)).join("")}`}
   else if(bugSeg==="amel"){const a=amelToday(),cnt=AMEL.filter(([k])=>a[k]).length;
@@ -1021,6 +1074,8 @@ function bBugun(){
   document.querySelectorAll("[data-amel]").forEach(b=>b.onclick=()=>{const k=todayKey();AM[k]=AM[k]||{};AM[k][b.dataset.amel]=AM[k][b.dataset.amel]?0:1;store.set("mk_amel",AM);renderView()});
   document.querySelectorAll("[data-radiolive]").forEach(b=>b.onclick=()=>playQueue(RADIO_Q(),+b.dataset.radiolive));
   const yb=$("#yolBtn");if(yb)yb.onclick=yolStart;
+  document.querySelectorAll("[data-evrad]").forEach(b=>b.onclick=()=>{playQueue(evradQueue(b.dataset.evrad),0);toast("Sesli evrad başladı · ekranı kilitleyebilirsin")});
+  const rb=$("#remindBtn");if(rb)rb.onclick=()=>{guardOn?guardStop():guardStart();renderView()};
   const tb=$("#tesbihatBtn");if(tb)tb.onclick=()=>{zs.chain=true;zs.cur="subhan";TESBIHAT.forEach(id=>zs.counts[id]=0);saveZ();tab="zikir";renderView();window.scrollTo(0,0)};
   const sp=$("#seherPlay");if(sp)sp.onclick=()=>{playQueue(LISTELER[0].s.map(n=>sureTrack(n)).map(t=>(t.group="Seher",t)),0)};
   const mb=$("#mulkBtn");if(mb)mb.onclick=()=>playQueue([sureTrack(67)],0);
@@ -1033,6 +1088,9 @@ function bBugun(){
 function vKulliyat(){
   const seg=`<div class="seg">${[["soz","Sözler"],["esma","Esmâ"],["ilahi","İlahiler"],["film","Film"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
   if(kulSeg==="soz")return seg+`<h2 style="margin-top:4px">Âyetler, hadisler, Yunus Emre</h2>${SOZLER.map(x=>`<div class="soz" style="margin-bottom:10px"><div class="soz-t">${esc(x.t)}</div><div class="small muted">${esc(x.s)}</div></div>`).join("")}
+   <h2>Ashâb-ı Bedir</h2><div class="bigcard" style="background:color-mix(in srgb,hsl(38 70% 50%) 16%,var(--surface))"><div class="muted small">Bedir'de bulunan 313 sahabînin en bilinenleri. İsimleri anıldığında “radıyallâhu anhüm” denir. Tam listenin okunuşunu aşağıdan dinleyebilirsin.</div>
+   <div class="bedir">${BEDIR.map(n=>`<span>${esc(n)}</span>`).join("")}</div>
+   <div class="ctrl"><a class="pill acc" target="_blank" rel="noopener" href="${yt("Esmâ-i Ashâb-ı Bedir okunuşu")}">▶ Esmâ-i Ashâb-ı Bedir</a><button class="pill" data-qs="Ashab-ı Bedir">🎧 Sesli ara</button></div></div>
    <h2>Hasan el-Bennâ'nın on tavsiyesi</h2><div class="list">${BENNA.map((t,i)=>`<div class="nrow"><span class="ts">${i+1}</span><span class="tx">${esc(t)}</span></div>`).join("")}</div>
    <h2>Risale-i Nur Külliyatı</h2><div class="bigcard"><div class="muted small">Külliyatın tamamı ücretsiz okunabiliyor ve sesli dinlenebiliyor. Vecizeleri buraya tek tek yazmadım; eserler hâlâ telif koruması altında. Aşağıdan doğrudan okuyabilir ya da sesli derslerini dinleyebilirsin.</div>
    <div class="ctrl"><a class="pill acc" href="https://www.erisale.com" target="_blank" rel="noopener">Külliyatı oku (erisale.com)</a><button class="pill" data-qs="Risale-i Nur sesli">🎧 Sesli Risale-i Nur</button><button class="pill" data-qs="Risale-i Nur dersleri">🎧 Risale dersleri</button></div></div>
@@ -1056,6 +1114,7 @@ function bKulliyat(){
 }
 
 /* ===================== Başlat ===================== */
+document.addEventListener("touchend",()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}},{once:true});
 try{$("#logo").src=document.querySelector('link[rel="apple-touch-icon"]').href}catch(e){}
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;store.set("mk_tab",tab);renderView();window.scrollTo(0,0)});
 renderView();
