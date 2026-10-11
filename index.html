@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maneviyat">
+<meta name="theme-color" content="#0e1517">
+<title>Maneviyat Külliyatı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Figtree:wght@400;500;600;700&family=Literata:opsz,wght@7..72,500;7..72,600&display=swap">
+<style>
+/* Layout: tek sütun mobil uygulama — üstte başlık, ortada sekme içeriği, altta mini çalar + sekme çubuğu */
+:root{
+  --bg:#0e1517; --surface:#152125; --surface2:#1c2b30; --line:#26383e;
+  --fg:#ebe7dc; --muted:#93a3a3; --accent:#d8b06a; --accent-ink:#1a1408; --good:#7cc6a0;
+  --f-ar:"Amiri","Geeza Pro","Times New Roman",serif;
+  --f-disp:"Literata",Georgia,serif;
+  --f-body:"Figtree",-apple-system,system-ui,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#f2f5f4; --surface:#ffffff; --surface2:#e8eeec; --line:#d3dcda;
+  --fg:#13201f; --muted:#5b6b69; --accent:#94661c; --accent-ink:#ffffff; --good:#2f8a5c; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#f2f5f4; --surface:#ffffff; --surface2:#e8eeec; --line:#d3dcda;
+  --fg:#13201f; --muted:#5b6b69; --accent:#94661c; --accent-ink:#ffffff; --good:#2f8a5c; color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit}
+[hidden]{display:none!important}
+.app{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 150px)}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-block:6px 14px}
+header.top h1{font:600 26px/1.15 var(--f-disp);margin:0;text-wrap:balance}
+header.top .sub{color:var(--muted);font-size:13px}
+.hijri{font-size:12px;color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
+.seg{display:flex;gap:6px;background:var(--surface);padding:4px;border-radius:12px;margin-bottom:14px;overflow-x:auto}
+.seg button{flex:1;padding:9px 10px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);white-space:nowrap}
+.seg button.on{background:var(--surface2);color:var(--fg)}
+h2{font:600 19px/1.25 var(--f-disp);margin:22px 0 10px}
+h3{font-size:15px;margin:0 0 4px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.ar{font-family:var(--f-ar);direction:rtl;line-height:2;font-size:24px}
+
+/* Zikir */
+.zcard{background:var(--surface);border-radius:22px;padding:18px 16px 16px;display:grid;gap:10px;text-align:center;user-select:none;-webkit-user-select:none}
+.zcard .ar{font-size:30px;line-height:1.7}
+.zcard .read{font-weight:600}
+.zcard .mean{font-size:13px;color:var(--muted);max-width:44ch;margin:0 auto}
+.tap{position:relative;width:min(70vw,250px);aspect-ratio:1;margin:6px auto 0;border-radius:50%;display:grid;place-items:center;touch-action:manipulation;cursor:pointer;background:radial-gradient(circle at 50% 40%,var(--surface2),var(--surface) 70%)}
+.tap svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.tap .num{font:600 64px/1 var(--f-disp);font-variant-numeric:tabular-nums}
+.tap .of{font-size:13px;color:var(--muted);margin-top:4px}
+.tap:active{transform:scale(.985)}
+.tap.done .num{color:var(--good)}
+.zrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.pill{padding:9px 14px;border-radius:999px;background:var(--surface2);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.pill.acc{background:var(--accent);color:var(--accent-ink)}
+.pill.ghost{background:transparent;border:1px solid var(--line)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;margin:12px -16px 0;padding-inline:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 13px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:14px;text-align:left}
+.chip b{display:block;font-weight:600}
+.chip span{font-size:12px;color:var(--muted)}
+.chip.on{border-color:var(--accent)}
+.lockbox{background:var(--surface);border:1px solid var(--accent);border-radius:16px;padding:14px;margin-top:14px;font-size:14px}
+.lockbox ol{margin:6px 0 0;padding-left:20px}
+.stats{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:90px;margin-top:8px}
+.stats div{display:grid;gap:4px;justify-items:center;font-size:11px;color:var(--muted);height:100%;align-content:end}
+.stats i{display:block;width:100%;max-width:26px;border-radius:6px 6px 2px 2px;background:var(--accent);opacity:.85;min-height:3px}
+.kpis{display:flex;gap:10px;flex-wrap:wrap}
+.kpi{flex:1;min-width:120px;background:var(--surface);border-radius:14px;padding:12px}
+.kpi b{font:600 22px var(--f-disp);display:block;font-variant-numeric:tabular-nums}
+
+/* Listeler */
+.list{display:grid;gap:2px;background:var(--surface);border-radius:16px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface);text-align:left;width:100%;text-decoration:none}
+.row + .row{border-top:1px solid var(--line)}
+.row .no{width:30px;flex:none;font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;text-align:center}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.row .t span{font-size:12.5px;color:var(--muted)}
+.row .ar{font-size:20px;line-height:1.3}
+.row.playing b{color:var(--accent)}
+.row .go{color:var(--muted);font-size:13px;flex:none}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.card{background:var(--surface);border-radius:16px;padding:14px;text-align:left;display:grid;gap:4px;align-content:start;text-decoration:none}
+.card b{font-weight:600}
+.card span{font-size:12.5px;color:var(--muted)}
+.card .tag{justify-self:start;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+.card .tag.yt{color:var(--muted)}
+.bigcard{background:var(--surface);border-radius:18px;padding:16px;display:grid;gap:8px;text-align:left;width:100%}
+.bigcard .ttl{font:600 18px/1.25 var(--f-disp)}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input[type=search],input[type=text],input[type=number]{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+.note{font-size:13px;color:var(--muted);background:var(--surface);border-radius:14px;padding:12px 14px;margin-top:10px}
+.note b{color:var(--fg)}
+.grid160{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}
+.grid160 a{background:var(--surface);border-radius:10px;padding:9px 0;text-align:center;text-decoration:none;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px}
+
+/* Dua kartları */
+.dua{background:var(--surface);border-radius:18px;padding:16px;display:grid;gap:8px;margin-bottom:10px}
+.dua .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.dua .cnt{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+.dua .ar{font-size:23px;text-align:right}
+.dua .read{font-style:italic;font-size:14px}
+.dua .mean{font-size:14px;color:var(--muted)}
+.dua .src{font-size:12px;color:var(--muted)}
+
+/* Mini çalar ve sekmeler */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.mini{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:8px 12px 6px}
+.mini .art{width:42px;height:42px;border-radius:10px;flex:none;background:var(--surface2);background-size:cover}
+.mini .t{flex:1;min-width:0;text-align:left}
+.mini .t b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .t span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:none}
+.ib svg{width:24px;height:24px;fill:currentColor}
+.ib.big{width:68px;height:68px;background:var(--accent);color:var(--accent-ink)}
+.ib.big svg{width:32px;height:32px}
+.mprog{height:2px;background:var(--line);max-width:640px;margin:0 auto}
+.mprog i{display:block;height:100%;width:0;background:var(--accent)}
+nav.tabs{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{display:grid;justify-items:center;gap:2px;padding:7px 0 8px;font-size:11.5px;font-weight:600;color:var(--muted)}
+nav.tabs button svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button.on{color:var(--accent)}
+
+.sheet{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 10px) 20px calc(env(safe-area-inset-bottom,0px) + 18px);overflow-y:auto}
+.sheet .bar{display:flex;justify-content:space-between;align-items:center}
+.sheet .bigart{width:min(78vw,340px);aspect-ratio:1;border-radius:24px;margin:18px auto 10px;background:var(--surface2);background-size:cover;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.sheet .ttl{font:600 21px/1.3 var(--f-disp);text-align:center;margin-top:8px;text-wrap:balance}
+.sheet .who{text-align:center;color:var(--muted);font-size:14px}
+.seek{width:100%;margin-top:18px;accent-color:var(--accent)}
+.times{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pctrl{display:flex;justify-content:center;align-items:center;gap:22px;margin:14px 0}
+.opts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.qlist{margin-top:18px}
+.modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.5);display:grid;place-items:end center;padding:16px}
+.modal .box{background:var(--surface);border-radius:20px;padding:18px;width:100%;max-width:480px;display:grid;gap:10px;margin-bottom:env(safe-area-inset-bottom,0px)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 140px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:80;max-width:88vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="hijri" id="hijri"></div>
+      <h1 id="pageTitle">Zikir</h1>
+    </div>
+    <div class="sub" id="todayTot"></div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<audio id="au" preload="metadata" playsinline></audio>
+<audio id="zau" preload="auto" playsinline loop></audio>
+
+<div class="dock">
+  <div class="mprog"><i id="mprog"></i></div>
+  <div class="mini" id="mini" hidden>
+    <button class="art" id="miniArt" aria-label="Çalarlayı aç"></button>
+    <button class="t" id="miniOpen"><b id="miniT"></b><span id="miniS"></span></button>
+    <button class="ib" id="miniPlay" aria-label="Oynat/Duraklat"></button>
+    <button class="ib" id="miniNext" aria-label="Sonraki"></button>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="zikir" class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="17.5" cy="8.5" r="2"/><circle cx="17.5" cy="15.5" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="6.5" cy="15.5" r="2"/><circle cx="6.5" cy="8.5" r="2"/></svg>Zikir</button>
+    <button data-tab="dinle"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="5" height="7" rx="2"/><rect x="16" y="14" width="5" height="7" rx="2"/></svg>Dinle</button>
+    <button data-tab="dua"><svg viewBox="0 0 24 24"><path d="M12 3c2 3 2 6 0 9-2-3-2-6 0-9z"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>Dua</button>
+    <button data-tab="kulliyat"><svg viewBox="0 0 24 24"><path d="M4 5h5v15H4zM10 5h5v15h-5z"/><path d="M16 6l4-1 2 14-4 1z"/></svg>Külliyat</button>
+  </nav>
+</div>
+
+<div class="sheet" id="sheet" hidden></div>
+<div class="modal" id="modal" hidden><div class="box" id="modalBox"></div></div>
+
+<script>
+"use strict";
+/* ===================== Yardımcılar ===================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+const p3=n=>String(n).padStart(3,"0");
+const fmt=s=>{if(!isFinite(s)||s<0)return"--:--";s=Math.floor(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+":"+String(m).padStart(2,"0"):m)+":"+String(x).padStart(2,"0")};
+const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+let toastT;function toast(m){let t=$(".toast");if(!t){t=document.createElement("div");t.className="toast";document.body.appendChild(t)}t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+const IC={
+ play:'<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>',
+ pause:'<svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>',
+ next:'<svg viewBox="0 0 24 24"><path d="M6 6l9 6-9 6zM16 6h2.5v12H16z"/></svg>',
+ prev:'<svg viewBox="0 0 24 24"><path d="M18 6l-9 6 9 6zM5.5 6H8v12H5.5z"/></svg>',
+ down:'<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+ b15:'<svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>',
+ f15:'<svg viewBox="0 0 24 24"><path d="M12 5V2l5 4-5 4V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z"/></svg>'
+};
+
+/* ===================== Veri: Kur'an ===================== */
+const SURE_TR="Fâtiha|Bakara|Âl-i İmrân|Nisâ|Mâide|En'âm|A'râf|Enfâl|Tevbe|Yûnus|Hûd|Yûsuf|Ra'd|İbrâhîm|Hicr|Nahl|İsrâ|Kehf|Meryem|Tâhâ|Enbiyâ|Hac|Mü'minûn|Nûr|Furkân|Şuarâ|Neml|Kasas|Ankebût|Rûm|Lokmân|Secde|Ahzâb|Sebe'|Fâtır|Yâsîn|Sâffât|Sâd|Zümer|Mü'min|Fussilet|Şûrâ|Zuhruf|Duhân|Câsiye|Ahkâf|Muhammed|Fetih|Hucurât|Kâf|Zâriyât|Tûr|Necm|Kamer|Rahmân|Vâkıa|Hadîd|Mücâdele|Haşr|Mümtehine|Saf|Cuma|Münâfikûn|Teğâbün|Talâk|Tahrîm|Mülk|Kalem|Hâkka|Meâric|Nûh|Cin|Müzzemmil|Müddessir|Kıyâmet|İnsan|Mürselât|Nebe'|Nâziât|Abese|Tekvîr|İnfitâr|Mutaffifîn|İnşikâk|Bürûc|Târık|A'lâ|Ğâşiye|Fecr|Beled|Şems|Leyl|Duhâ|İnşirâh|Tîn|Alak|Kadir|Beyyine|Zilzâl|Âdiyât|Kâria|Tekâsür|Asr|Hümeze|Fîl|Kureyş|Mâûn|Kevser|Kâfirûn|Nasr|Tebbet|İhlâs|Felak|Nâs".split("|");
+const SURE_AR="الفاتحة البقرة آل_عمران النساء المائدة الأنعام الأعراف الأنفال التوبة يونس هود يوسف الرعد إبراهيم الحجر النحل الإسراء الكهف مريم طه الأنبياء الحج المؤمنون النور الفرقان الشعراء النمل القصص العنكبوت الروم لقمان السجدة الأحزاب سبأ فاطر يس الصافات ص الزمر غافر فصلت الشورى الزخرف الدخان الجاثية الأحقاف محمد الفتح الحجرات ق الذاريات الطور النجم القمر الرحمن الواقعة الحديد المجادلة الحشر الممتحنة الصف الجمعة المنافقون التغابن الطلاق التحريم الملك القلم الحاقة المعارج نوح الجن المزمل المدثر القيامة الإنسان المرسلات النبأ النازعات عبس التكوير الانفطار المطففين الانشقاق البروج الطارق الأعلى الغاشية الفجر البلد الشمس الليل الضحى الشرح التين العلق القدر البينة الزلزلة العاديات القارعة التكاثر العصر الهمزة الفيل قريش الماعون الكوثر الكافرون النصر المسد الإخلاص الفلق الناس".split(" ").map(s=>s.replace("_"," "));
+const AYET=[7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6];
+const OFF=[0];for(let i=0;i<114;i++)OFF.push(OFF[i]+AYET[i]);
+const gAyah=(s,a)=>OFF[s-1]+a;
+const isn=(ed,n)=>[`https://cdn.islamic.network/quran/audio-surah/128/${ed}/${n}.mp3`,`https://cdn.islamic.network/quran/audio-surah/64/${ed}/${n}.mp3`];
+const mq=(srv,path,n)=>`https://${srv}.mp3quran.net/${path}/${p3(n)}.mp3`;
+const KARI=[
+ {id:"afs",n:"Mişari Râşid el-Afâsî",s:n=>[mq("server8","afs",n),...isn("ar.alafasy",n),`https://cdn.mp3quran.net/audio/mishary-alafasy/r1/${p3(n)}.mp3`]},
+ {id:"basit",n:"Abdulbâsıt Abdussamed (Murattal)",s:n=>[mq("server7","basit",n),...isn("ar.abdulbasitmurattal",n)]},
+ {id:"basitm",n:"Abdulbâsıt Abdussamed (Mücevved)",s:n=>[mq("server13","basit_mjwd",n),...isn("ar.abdulbasitmujawwad",n)]},
+ {id:"husary",n:"Mahmûd Halîl el-Husarî",s:n=>[mq("server13","husr",n),...isn("ar.husary",n),`https://cdn.mp3quran.net/audio/mahmoud-husary/r1/${p3(n)}.mp3`]},
+ {id:"minsh",n:"Muhammed Sıddîk el-Minşâvî",s:n=>[mq("server10","minsh",n),...isn("ar.minshawi",n),`https://cdn.mp3quran.net/audio/muhammad-minshawi/r1/${p3(n)}.mp3`]},
+ {id:"minshm",n:"el-Minşâvî (Mücevved)",s:n=>[...isn("ar.minshawimujawwad",n),mq("server10","minsh/Almusshaf-Al-Mojawwad",n)]},
+ {id:"maher",n:"Mâhir el-Muaykılî",s:n=>[mq("server12","maher",n),...isn("ar.mahermuaiqly",n),`https://cdn.mp3quran.net/audio/maher-muaiqly/r1/${p3(n)}.mp3`]},
+ {id:"sudais",n:"Abdurrahman es-Sudeys",s:n=>[mq("server11","sds",n),...isn("ar.abdurrahmaansudais",n)]},
+ {id:"shur",n:"Suûd eş-Şüreym",s:n=>[mq("server7","shur",n),...isn("ar.saoodshuraym",n)]},
+ {id:"gmd",n:"Saad el-Gâmidî",s:n=>[mq("server7","s_gmd",n)]},
+ {id:"ajm",n:"Ahmed el-Acemî",s:n=>[mq("server10","ajm",n),...isn("ar.ahmedajamy",n)]},
+ {id:"yasser",n:"Yâsir ed-Devserî",s:n=>[mq("server11","yasser",n),...isn("ar.yasseraldossari",n)]},
+ {id:"qtm",n:"Nâsır el-Katâmî",s:n=>[mq("server6","qtm",n),...isn("ar.nasseralqatami",n)]},
+ {id:"frs",n:"Fâris Abbâd",s:n=>[mq("server8","frs_a",n),...isn("ar.faresabbad",n)]},
+ {id:"abkr",n:"İdrîs Ebker",s:n=>[`https://cdn.mp3quran.net/audio/idrees-abkar/r1/${p3(n)}.mp3`,mq("server6","abkr",n)]},
+ {id:"ilhan",n:"İlhan Tok",s:n=>[...isn("ar.ilhantok",n)]}
+];
+const LISTELER=[
+ {n:"Seher Listesi",d:"Müzzemmil, Mülk, Yâsîn, Vâkıa, Rahmân",s:[73,67,36,56,55]},
+ {n:"Cuma",d:"Kehf ve Cuma sûreleri",s:[18,62]},
+ {n:"Yatmadan Önce",d:"Mülk, Secde, İhlâs, Felak, Nâs",s:[67,32,112,113,114]},
+ {n:"Kısa Sûreler",d:"Duhâ'dan Nâs'a",s:Array.from({length:22},(_,i)=>93+i)},
+ {n:"Hatim",d:"Fâtiha'dan Nâs'a 114 sûre",s:Array.from({length:114},(_,i)=>i+1)}
+];
+
+/* ===================== Veri: Siyer Vakfı ===================== */
+const ENBIYA_T=["Yenilenmek Veya Yenilmek","Nasıl Dayandın Ya Resûlullah? (sas)","Neden Kur’an Tarihten Bu Kadar Bahseder?","Sîret-i Nebî’nin Sîret-i Enbiyâ İle İlişkisi","Kavramlar, Kaynaklar ve Usul Açısından Siret-i Enbiyâ","İlklerin İlki Hz. Âdem (as)","İmtihanlar ve Düşmanlıklar Arasında Hz. Âdem (as)","İlk Hata ve İlk Tevbe (Hz. Âdem)","Nimet Yurdundan Zahmet Yurduna Hz. Âdem (as)","Makamı Yüksek Bir Nebi Hz. İdrîs (as)","İnsanlığın İkinci Babası Hz. Nûh (as)","Tebliğde Israr ve İstikrarın Örneği Hz. Nûh (as)","Tepkiler ve İmtihanlar Karşısında Hz. Nûh (as)","Tuğyan ve Tufan Arasında Bir Peygamber: Hz. Nûh (as)","Âlemler İçinde Nûh’a Selâm Olsun!","Âd Kavmine Gönderilen Kardeşleri Hz. Hûd (as)","Hz. Hûd’un (as) Hayatında Değişmeyen İki Gündem Tevhid ve Tebliğ","Hz. Hûd’un (as) Haber Verdiği Rahmet ve Azap","İbretlerle Dolu Bir Kavim: Semûd Kavmi","Tevhidden Şirke Şirkten Tevhide Semûd Kavmi","Allah’ın (cc) Arzında Allah’ın (cc) Devesi (Hz. Salih)","Kurulan ve Bozulan Tuzaklar (Hz. Salih)","Nebevî Bakış (5 Gözlük)","En Güzel Örneklikte Zirve Bir Peygamber Hz. İbrâhim (as)","İbrâhimî Dinler mi İbrâhimî Yol mu?","Hz. İbrahim'in (as) Hayatından Bâki Hakikatler, Fâni Şahsiyetler","Hz. İbrahim'den Âleme Yayılan Merhamet Mesajları","Putlarla Mücadelede Hz. İbrahim (as) Örnekliği","Tevhidi ve Tebliği Hz. İbrâhim'den (as) Öğrenmek","Kavuşmak İçin Terk Etmenin Örneği Hz. İbrâhim (as)","İmtihanlar ve Mücadeleler Arasında Hz. İbrâhim (as)","Hz. İbrâhim'in (as) İnsanlığa Mirasları","Kâbe'nin İhyası ve Hz. İbrâhim'in Sofrası","Hz. İbrâhim'den İki Hastalığa İlaç (Cimrilik ve Vesvese)","Hz. İbrâhim'den İnanç Noktasındaki Vesveselere Devalar","Hz. İbrâhim'in (as) Duaları ve Evrensel Mesajları","Halîm Bir Peygamber Hz. İsmâil (as)","Evlat, Eş, Baba ve Dede Olarak Hz. İsmâil (as)","Resûlullah (sas), Atası Hz. İsmâil'i (as) Anlatıyor!","Âlim Bir Peygamber Hz. İshak (as)","Müheymin Olan Kur'ân Hz. İshak'ı Anlatıyor!","Müjde İle Gelen Hz. İshak'ın (as) Müjdeleri","Âlemlere Üstün Kılınan Bir Peygamber Hz. Lût (as)","Hüküm ve İlim Verilen Bir Peygamber Hz. Lût (as)","Selâm Olsun Seçilmiş Bir Kul Olan Hz. Lût'a (as)","İnsanlığa İbret Olarak Gösterilen Bir Kavim Lût Kavmi","Sınırları İhlal Eden Bir Kavim Lût Kavmi","Dünü ve Bugünü İle Lût Kavminin Ameli","Hz. Lût'un (as) Kavminin Kazananları ve Kaybedenleri","Muhteşem Bir Sermaye: Peygamberler Tarihi","Bir Umut Muallimi Olarak Hz. Ya'kûb","İsrâîloğulları'nın Atası Hz. Ya'kûb","Hz. Yakub'un Hayatı ve Çağları Aşan Vasiyeti","Şifa Vesilesi; Yusuf Suresi","Hz. Yusuf'un Rüyası ve Kardeşleriyle İmtihanları","Kaybederek Kazanmanın Örneği Hz. Yusuf","Kuyudan Pazara Pazardan Saraya Hz. Yusuf","Hz. Yusuf'un (as) Arkadan Yırtılan Gömleği","Hz. Yûsuf'un Saraydan Zindana Yolculuğu","Hz. Yûsuf İle Gülistana Dönen Zindan","Devlet Yönetiminde Hz. Yûsuf Örnekliği","Hz. Yûsuf (as) Ekonomiyi Nasıl Korudu?","Hz. Yûsuf'un (as) Bize Öğrettiği Yöntemler","Hz. Yûsuf'un (as) Kardeşleriyle Buluşması","Hz. Yûsuf'a (as) Öğretilen Plan","Hz. Yûsuf'un Gayreti Hz. Ya'kûb'un Hasreti","Kardeşliği Hz. Yusuf'tan Öğrenmek","Hz. Yûsuf'un Sona Eren Hasreti ve En Büyük Hedefi","Allah'a Yönelişin Zirve Hali Hz. Eyyub","Sabır Medresesi'nin Muallimi Hz. Eyyûb","Hz. Eyyub'un (as) İlaçları","Hayırların Öncüsü Bir Peygamber Hz. Zülkifl","Hz. Zülkifl'den Nasibimize Düşenler","Emaneti Hz. Şuayb'tan Öğrenmek","Hz. Şuayb'ın Eksik Ölçüp Tartanlarla Mücadelesi","Hz. Şuayb'ın Adaleti Emreden Namazı","İsrailoğulları'ndan Bana Ne!","Kur'an'ın En Fazla Anlattığı Peygamber Hz. Musa (as)","Peygamberimizin (sas) Dünyasında Hz. Mûsâ (as)"];
+const AHLAK_T=["Neden Muhteşem Ahlâk?","Ahlâkın Temeli Kur’an","Babamız Hz. İbrahim’in Sünneti Kurban ve Bunun Ahlâkı","Arşın Gölgesindeki Tüccar","Ticaretten Medeniyete Medine Pazarı","Bir Tüccar Olarak Hz. Peygamber (sas)","Tüccarlara Kur’an’dan ve Sünnetten Altın Kurallar","Elindeki Değil Belindeki Kamçı; Borç","Sahip Olma Değil Şahit Olma Dünyası","Peygamberimizin (sas) Düşman Olduğu Kişi","Peygamberimizin (sas) Öptüğü Eller","El-Latif İsminin Gölgesinde Latife","Dünyadaki Cennet; Aile","Cennetin Şubesi Evler","İbret Alınacak Evler","Evden Cennete Uzanan Köprü; Anne","Kur’an ve Sünnet Çerçevesinde Anne","Hakkı Ödenmeyecek Bir Hazine; Baba","Ana Babaya İhsan mı, İtaat mi?","Rahman’dan Bir Bağ; Sıla-i Rahim","Akraba İle Münasebette Peygamber Örnekliği","Vahyin Emin Meleğinden Mühim Bir Tavsiye; Komşuluk Hakkı","Saadet Asrı’nın Rehberliğinde Komşuluk","İmtihanların En Ağırı; Çocuk","El-Vehhab Olan Allah’ın En Güzel Bahşişi; Çocuk","Çocuklar İçin Fiili Bir Dua İsim Koyma","Nebevî Medrese’de Çocuk Terbiyesi","En Güzel Babadan Çocuk Eğitimi Dersleri","Çocuk Terbiyesinde İki Önemli Azık; Muhabbet ve Merhamet","Çocuklara Vurulması Gereken En Mühim Aşı","Cehennem Siperi ve Cennet Müjdesi; Kız Çocuğu","Sahabe’nin Örnekliğinde Çocuk Eğitimi","Gözlerin Aydınlığı Namaz ve Çocuk","Melekleri İmrendiren Şeytanları Uzaklaştıran Meclisler","Ey Resulullah’ın (sas) Vasiyetleri; Yusuflar, Meryemler, Mus’ablar, Esmalar…","Değer ve Sorumlulukları Açısından Evlilik","Nikâhta Keramet, Nikâhsızlıkta Felaket Vardır","Nikâhta Keramet, Nikâh Sağlam Bir Teminat, Ağır Bir Söz","Saadet Asrının Örnekliğinde Düğün","Evliliğin İlk Ayları, Gelin Kaynana Savaşları","Dünyanın En Kıymetli Hazinesi; Salih ve Saliha Eş","Nebevî Medrese’den İdeal Eş Olmanın Örnekleri","Saadet Asrında Aile Modelleri ve Çok Eşlilik Meselesi","Evlilik Kader Midir, Yoksa İrade Midir?","Hz. Peygamber’i (sas) Savunmada Nebevî Örneklik","Nimet İçerisinde Mahrumiyet, Mahrumiyet İçerisinde Nimet","Şakası Olmayan Amel; Talak","Emrin Başım Üstüne; Tesettür Ahlakı","Tesettürün Ruhu Örten Boyutu","Şekil ve Muhteva Yönünden Tesettür","Ben Örtünmekle Emrolundum! Erkeğin Tesettürü","Mahrem, Namahrem ve Mahremiyet","İmanın Ahlakı Olur mu?","Ne Tatlı Bir Nimetsin Sen Ey İman!","Hepimiz Aynı Geminin Yolcularıyız","Değişmeyen Hakikat Tevhid","Çok İyi Bil ki Allah’tan Başka İlah Yoktur!","Kur’anî Bir Kavram Olarak Tağut","Akıbet Karartan Hâl Küçük Şirk Riya","Riyanın Devası İhlas; İhlasın Kaynağı İhsan","“5 Damla” (Mücadele Ahlakı)","Mücadelenin Eşsiz Kahramanı Hz. Hüseyin","İhtilaf Rahmet, Tefrika Zahmettir","Nübüvvet Mektebi’nden İhtilaf Ahlâkının Örnekleri","En Güzel Örneklerden İhtilaf Ahlakı Dersleri","Eleştirmek Hem Hak, Hem Vazife! Ama Nasıl?","Hakkın Hatırı İçin Münazara","İlmin İzzeti ve Namusu İçin Münazara","İfsad Edilen Ekinler, Bozulan Nesiller","Kavramlar Çerçevesinde Beslenme Ahlakı","Medeniyet İnşasında Yeme İçme Kültürü","Medine Sofralarından Günümüz Sofralarına Mesajlar","Sünnette Koruyucu Hekimlik Ve İçme Adabı","Gafletten Nimete Uyku (Uyku Ahlakı)","İlahî Bir İkram Rüya ve Rüya Fıkhı (Rüya Ahlakı)","Rüyaların En Güzeli, Değerlisi, Bereketlisi"];
+const SIYER=[
+ {id:"enbiya",n:"Sîret-i Enbiyâ Dersleri",d:"Hz. Âdem'den başlayarak peygamberler tarihi",count:177,titles:ENBIYA_T,u:n=>`https://suffameclisleri.com/podcast/sireti-enbiya/${n}.mp3`,sp:"https://open.spotify.com/show/2mAv9iONNsDIwhwpH0rIsL"},
+ {id:"ahlak",n:"Muhteşem Ahlâk Dersleri",d:"Kur'an ve Sünnet ışığında ahlâk; aile, ticaret, iman",count:100,titles:AHLAK_T,u:n=>`https://suffameclisleri.com/podcast/muhtesem-ahlak/muhtesem-ahlak-${n}.mp3`,sp:"https://open.spotify.com/show/6pdWmyaLxjB6s75ixmapg7"}
+];
+const SIYER_VIDEO=[
+ {n:"Sîret-i İnsan",d:"Siyer TV video arşivi",u:"https://www.siyertv.com/kategori/sireti-insan/"},
+ {n:"Sîret-i Nebî Dersleri",d:"Muhammed Emin Yıldırım",u:yt("Muhammed Emin Yıldırım Siret-i Nebi dersleri")},
+ {n:"Sîret-i Resûl",d:"YouTube araması",u:yt("Siyer Vakfı Siret-i Resul")},
+ {n:"Sîret-i Enbiyâ (Video)",d:"Siyer TV video arşivi",u:"https://www.siyertv.com/kategori/sireti-enbiya/"},
+ {n:"Mümtaz Hanımlar",d:"Siyer Vakfı Hanımlar",u:yt("Siyer Vakfı Mümtaz Hanımlar")},
+ {n:"Muhammed Emin Yıldırım Arşivi",d:"Tüm dersler",u:"https://www.siyertv.com/muhammed-emin-yildirim-arsivi/"},
+ {n:"Sahabe İklimi",d:"Siyer TV",u:"https://www.siyertv.com/sahabe-iklimi/"},
+ {n:"82 İl 82 Sahabi",d:"Siyer TV",u:"https://www.siyertv.com/kategori/82-il-82-sahabi/"},
+ {n:"Ehlibeyt Mektebi",d:"Siyer TV",u:"https://www.siyertv.com/kategori/ehlibeyt-mektebi/"},
+ {n:"Nebevî Miras",d:"Siyer TV",u:"https://www.siyertv.com/kategori/nebevi-miras/"},
+ {n:"Öteki Hayat",d:"Siyer TV",u:"https://www.siyertv.com/kategori/oteki-hayat/"},
+ {n:"Hadis Kahramanları",d:"Siyer TV",u:"https://www.siyertv.com/kategori/hadis-kahramanlari/"},
+ {n:"Risaletin Kahramanları",d:"Siyer TV",u:"https://www.siyertv.com/kategori/risaletin-kahramanlari/"},
+ {n:"O'nun ﷺ İzinde",d:"Siyer TV",u:"https://www.siyertv.com/onun-sas-izinde/"},
+ {n:"Samed Medresesi",d:"Siyer TV",u:"https://www.siyertv.com/samed-medresesi/"},
+ {n:"Siyer Mektebi",d:"Siyer TV",u:"https://www.siyertv.com/siyer-mektebi/"},
+ {n:"Suffa Meclisleri",d:"Siyer TV",u:"https://www.siyertv.com/kategori/suffa-meclisleri/"},
+ {n:"Sesli Kitaplar",d:"Siyer TV",u:"https://www.siyertv.com/sesli-kitap/"}
+];
+
+/* ===================== Veri: Radyolar ===================== */
+const QR="https://backup.qurango.net/radio/";
+const RADYO=[
+ {n:"Diyanet Radyo",d:"Canlı · sohbet, tiyatro, ilahi",u:"https://eustr73.mediatriple.net/videoonlylive/mtikoimxnztxlive/broadcast_5e3c1171d7d2a.smil/playlist.m3u8"},
+ {n:"Diyanet Kur'an Radyo",d:"Canlı · 24 saat tilavet",u:"https://eustr73.mediatriple.net/videoonlylive/mtikoimxnztxlive/broadcast_5e3c14192aa92.smil/playlist.m3u8"},
+ {n:"Radyo İlahi",d:"Canlı · ilahi ve kaside",u:"https://anadolu.liderhost.com.tr:10994/;"},
+ {n:"Afâsî Radyosu",d:"24 saat Mişari el-Afâsî",u:QR+"mishary_alafasi"},
+ {n:"Abdulbâsıt (Mücevved)",d:"24 saat tilavet",u:QR+"abdulbasit_abdulsamad_mojawwad"},
+ {n:"Abdulbâsıt (Murattal)",d:"24 saat tilavet",u:QR+"abdulbasit_abdulsamad"},
+ {n:"Minşâvî (Mücevved)",d:"24 saat tilavet",u:QR+"mohammed_siddiq_alminshawi_mojawwad"},
+ {n:"Husarî",d:"24 saat tilavet",u:QR+"mahmoud_khalil_alhussary"},
+ {n:"Sudeys",d:"24 saat tilavet",u:QR+"abdulrahman_alsudaes"},
+ {n:"Şüreym",d:"24 saat tilavet",u:QR+"saud_alshuraim"},
+ {n:"Saad el-Gâmidî",d:"24 saat tilavet",u:QR+"saad_alghamdi"},
+ {n:"Ahmed el-Acemî",d:"24 saat tilavet",u:QR+"ahmad_alajmy"},
+ {n:"Karışık Kurrâlar",d:"Farklı hâfızlardan",u:QR+"mix"},
+ {n:"Sabah Ezkârı",d:"Arapça sabah zikirleri",u:QR+"athkar_sabah"},
+ {n:"Akşam Ezkârı",d:"Arapça akşam zikirleri",u:QR+"athkar_masa"},
+ {n:"Rukye-i Şer'iyye",d:"Şifa âyetleri",u:QR+"roqiah"}
+];
+
+/* ===================== Veri: Zikirler ===================== */
+const ZIKIR_BASE=[
+ {id:"subhan",ar:"سُبْحَانَ اللّٰهِ",r:"Sübhânallâh",m:"Allah her türlü eksiklikten uzaktır.",t:33},
+ {id:"hamd",ar:"اَلْحَمْدُ لِلّٰهِ",r:"Elhamdülillâh",m:"Hamd yalnızca Allah'adır.",t:33},
+ {id:"ekber",ar:"اَللّٰهُ أَكْبَرُ",r:"Allâhu Ekber",m:"Allah en büyüktür.",t:33},
+ {id:"tevhid",ar:"لَا إِلٰهَ إِلَّا اللّٰهُ",r:"Lâ ilâhe illallâh",m:"Allah'tan başka ilah yoktur.",t:100},
+ {id:"istigfar",ar:"أَسْتَغْفِرُ اللّٰهَ",r:"Estağfirullâh",m:"Allah'tan bağışlanma dilerim.",t:100},
+ {id:"salavat",ar:"اَللّٰهُمَّ صَلِّ عَلٰى سَيِّدِنَا مُحَمَّدٍ",r:"Allâhümme salli alâ seyyidinâ Muhammed",m:"Allah'ım, Efendimiz Muhammed'e salât eyle.",t:100},
+ {id:"bihamdihi",ar:"سُبْحَانَ اللّٰهِ وَبِحَمْدِهِ",r:"Sübhânallâhi ve bihamdihî",m:"Allah'ı hamd ile tesbih ederim.",t:100},
+ {id:"azim",ar:"سُبْحَانَ اللّٰهِ الْعَظِيمِ",r:"Sübhânallâhi'l-azîm",m:"Yüce Allah her eksiklikten uzaktır.",t:100},
+ {id:"havle",ar:"لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللّٰهِ",r:"Lâ havle ve lâ kuvvete illâ billâh",m:"Güç ve kuvvet yalnızca Allah'tandır.",t:100},
+ {id:"hasbuna",ar:"حَسْبُنَا اللّٰهُ وَنِعْمَ الْوَكِيلُ",r:"Hasbünallâhu ve ni'me'l-vekîl",m:"Allah bize yeter, O ne güzel vekildir.",t:100},
+ {id:"latif",ar:"يَا لَطِيفُ",r:"Yâ Latîf",m:"Ey lütfu ince ve sonsuz olan.",t:129},
+ {id:"hayy",ar:"يَا حَيُّ يَا قَيُّومُ",r:"Yâ Hayyu Yâ Kayyûm",m:"Ey diri olan, ey her şeyi ayakta tutan.",t:100},
+ {id:"yunus",ar:"لَا إِلٰهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ",r:"Lâ ilâhe illâ ente sübhâneke innî küntü mine'z-zâlimîn",m:"Senden başka ilah yok; seni tenzih ederim, ben haksızlık edenlerden oldum. (Yûnus aleyhisselâmın duası)",t:100},
+ {id:"vahdehu",ar:"لَا إِلٰهَ إِلَّا اللّٰهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلٰى كُلِّ شَيْءٍ قَدِيرٌ",r:"Lâ ilâhe illallâhu vahdehû lâ şerîke leh, lehü'l-mülkü ve lehü'l-hamdü ve hüve alâ külli şey'in kadîr",m:"Allah'tan başka ilah yoktur; O tektir, ortağı yoktur. Mülk O'nundur, hamd O'nadır, O her şeye gücü yetendir.",t:10}
+];
+const TESBIHAT=["subhan","hamd","ekber","vahdehu"];
+
+/* ===================== Veri: Dualar ===================== */
+const DUALAR={
+ sabah:[
+  {n:"Âyetü'l-Kürsî",c:"Sabah-akşam 1",ar:"اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ",r:"Allâhü lâ ilâhe illâ hüve'l-hayyü'l-kayyûm, lâ te'huzühû sinetün ve lâ nevm, lehû mâ fi's-semâvâti ve mâ fi'l-ard, men zellezî yeşfeu indehû illâ bi-iznih, ya'lemü mâ beyne eydîhim ve mâ halfehüm, ve lâ yühîtûne bi-şey'in min ilmihî illâ bimâ şâ', vesia kürsiyyühü's-semâvâti ve'l-ard, ve lâ yeûdühû hıfzuhümâ ve hüve'l-aliyyü'l-azîm.",m:"Allah, O'ndan başka ilah olmayan, diri ve her şeyi ayakta tutandır. O'nu ne uyuklama ne uyku tutar. Göklerde ve yerde ne varsa O'nundur. O'nun izni olmadan katında kim şefaat edebilir? Kulların önündekini ve arkasındakini bilir; O'nun dilediği kadarı dışında ilminden hiçbir şeyi kavrayamazlar. Kürsüsü gökleri ve yeri kuşatmıştır; onları korumak O'na ağır gelmez. O yücedir, büyüktür.",src:"Bakara 2/255",ay:[[2,255]],z:{t:1}},
+  {n:"İhlâs, Felak, Nâs",c:"Sabah-akşam 3'er",ar:"قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ ۞ قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِن شَرِّ مَا خَلَقَ ۝ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ ۞ قُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ",r:"Kul hüvallâhü ehad, Allâhü's-samed, lem yelid ve lem yûled, ve lem yekün lehû küfüven ehad. — Kul eûzü bi-rabbi'l-felak... — Kul eûzü bi-rabbi'n-nâs...",m:"Allah birdir, her şey O'na muhtaçtır, doğurmamış ve doğurulmamıştır, hiçbir şey O'na denk değildir. Sabahın Rabbine, yarattıklarının şerrinden; insanların Rabbine, sinsi vesvesecinin şerrinden sığınırım.",src:"Kur'an 112-114 · Ebû Dâvûd, Tirmizî",ay:[[112,1],[112,2],[112,3],[112,4],[113,1],[113,2],[113,3],[113,4],[113,5],[114,1],[114,2],[114,3],[114,4],[114,5],[114,6]],z:{t:3}},
+  {n:"Âmenerrasûlü",c:"Yatsıdan sonra",ar:"آمَنَ الرَّسُولُ بِمَا أُنزِلَ إِلَيْهِ مِن رَّبِّهِ وَالْمُؤْمِنُونَ ۚ كُلٌّ آمَنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ لَا نُفَرِّقُ بَيْنَ أَحَدٍ مِّن رُّسُلِهِ ۚ وَقَالُوا سَمِعْنَا وَأَطَعْنَا ۖ غُفْرَانَكَ رَبَّنَا وَإِلَيْكَ الْمَصِيرُ ۝ لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا اكْتَسَبَتْ ۗ رَبَّنَا لَا تُؤَاخِذْنَا إِن نَّسِينَا أَوْ أَخْطَأْنَا ۚ رَبَّنَا وَلَا تَحْمِلْ عَلَيْنَا إِصْرًا كَمَا حَمَلْتَهُ عَلَى الَّذِينَ مِن قَبْلِنَا ۚ رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِ ۖ وَاعْفُ عَنَّا وَاغْفِرْ لَنَا وَارْحَمْنَا ۚ أَنتَ مَوْلَانَا فَانصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ",r:"Âmene'r-resûlü bimâ ünzile ileyhi min rabbihî ve'l-mü'minûn... Rabbenâ lâ tüâhiznâ in nesînâ ev ahta'nâ... Ve'fü annâ, vağfir lenâ, verhamnâ, ente mevlânâ fensurnâ ale'l-kavmi'l-kâfirîn.",m:"Peygamber ve mü'minler Rabbinden indirilene iman etti. Allah kimseye gücünün üstünde yük yüklemez. Rabbimiz, unutur ya da hata edersek bizi sorumlu tutma; bizi affet, bağışla, bize merhamet et. Sen bizim Mevlâmızsın.",src:"Bakara 2/285-286",ay:[[2,285],[2,286]],z:{t:1}},
+  {n:"Seyyidü'l-İstiğfâr",c:"Sabah-akşam 1",ar:"اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",r:"Allâhümme ente rabbî lâ ilâhe illâ ente, halaktenî ve ene abdük, ve ene alâ ahdike ve va'dike mestete'tü, eûzü bike min şerri mâ sana'tü, ebûu leke bi-ni'metike aleyye, ve ebûu bi-zenbî fağfir lî, fe-innehû lâ yağfiru'z-zünûbe illâ ente.",m:"Allah'ım, Sen benim Rabbimsin, Senden başka ilah yoktur. Beni Sen yarattın, ben Senin kulunum. Gücüm yettiğince ahdime ve vaadime bağlıyım. Yaptıklarımın şerrinden Sana sığınırım. Bana verdiğin nimetleri ve günahımı itiraf ederim; beni bağışla, günahları Senden başka bağışlayan yoktur.",src:"Buhârî, Deavât 2"},
+  {n:"Hasbiyallâh",c:"Sabah-akşam 7",ar:"حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ",r:"Hasbiyallâhü lâ ilâhe illâ hû, aleyhi tevekkeltü ve hüve rabbü'l-arşi'l-azîm.",m:"Allah bana yeter. O'ndan başka ilah yoktur. O'na tevekkül ettim; O, büyük Arş'ın Rabbidir.",src:"Tevbe 9/129 · Ebû Dâvûd",ay:[[9,129]],z:{t:7}},
+  {n:"Bismillâhillezî",c:"Sabah-akşam 3",ar:"بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ",r:"Bismillâhillezî lâ yedurru mea'smihî şey'ün fi'l-ardı ve lâ fi's-semâi ve hüve's-semîu'l-alîm.",m:"Adıyla anıldığında yerde ve gökte hiçbir şeyin zarar veremediği Allah'ın adıyla. O işitendir, bilendir.",src:"Ebû Dâvûd, Tirmizî",z:{t:3}},
+  {n:"Radîtü Billâhi Rabben",c:"Sabah-akşam 3",ar:"رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا",r:"Radîtü billâhi rabben, ve bi'l-İslâmi dînen, ve bi-Muhammedin sallallâhu aleyhi ve selleme nebiyyen.",m:"Rab olarak Allah'tan, din olarak İslâm'dan, peygamber olarak Hz. Muhammed'den razıyım.",src:"Ebû Dâvûd, Tirmizî",z:{t:3}},
+  {n:"Asbahnâ",c:"Sabah",ar:"أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ",r:"Asbahnâ ve asbaha'l-mülkü lillâh, ve'l-hamdü lillâh, lâ ilâhe illallâhu vahdehû lâ şerîke leh. (Akşam: Emseynâ ve emse'l-mülkü lillâh...)",m:"Sabaha erdik, mülk de Allah'ın olarak sabaha erdi. Hamd Allah'adır. Allah'tan başka ilah yoktur, O tektir, ortağı yoktur.",src:"Müslim, Zikir 75"},
+  {n:"Afv ve Âfiyet",c:"Sabah-akşam",ar:"اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ",r:"Allâhümme innî es'elüke'l-afve ve'l-âfiyete fi'd-dünyâ ve'l-âhira.",m:"Allah'ım, dünyada ve âhirette Senden af ve âfiyet dilerim.",src:"Ebû Dâvûd, İbn Mâce",z:{t:3}},
+  {n:"Yâ Hayyu Yâ Kayyûm",c:"Sabah-akşam",ar:"يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ، وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ",r:"Yâ Hayyu yâ Kayyûm, bi-rahmetike esteğîs, aslih lî şe'nî küllehû, ve lâ tekilnî ilâ nefsî tarfete ayn.",m:"Ey diri ve her şeyi ayakta tutan! Rahmetinle yardım dilerim. Bütün işlerimi düzelt, beni göz açıp kapayıncaya kadar bile nefsime bırakma.",src:"Hâkim, Müstedrek",z:{t:7}},
+  {n:"Sübhânallâhi ve Bihamdihî",c:"Günde 100",ar:"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",r:"Sübhânallâhi ve bihamdihî.",m:"Allah'ı hamd ile tesbih ederim. Günde yüz kez söyleyenin hataları deniz köpüğü kadar olsa da bağışlanır.",src:"Buhârî, Deavât 65",zid:"bihamdihi"},
+  {n:"Tevhîd",c:"Günde 10 / 100",ar:"لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",r:"Lâ ilâhe illallâhu vahdehû lâ şerîke leh, lehü'l-mülkü ve lehü'l-hamdü ve hüve alâ külli şey'in kadîr.",m:"Allah'tan başka ilah yoktur; O tektir, ortağı yoktur. Mülk O'nundur, hamd O'nadır, O her şeye kadirdir.",src:"Buhârî, Müslim",zid:"vahdehu"}
+ ],
+ seher:[
+  {n:"Seher Vaktinin Kıymeti",c:"Gecenin son üçte biri",r:"",m:"Rabbimiz her gece, gecenin son üçte biri kaldığında dünya semâsına iner ve buyurur: “Bana dua eden yok mu, duasını kabul edeyim; benden isteyen yok mu, vereyim; benden bağışlanma dileyen yok mu, bağışlayayım.”",src:"Buhârî, Teheccüd 14 · Müslim, Müsâfirîn 168 (meal)"},
+  {n:"Seherlerde İstiğfar Edenler",c:"Âyet",ar:"وَبِالْأَسْحَارِ هُمْ يَسْتَغْفِرُونَ",r:"Ve bi'l-eshâri hüm yestağfirûn.",m:"Onlar seher vakitlerinde bağışlanma dilerlerdi.",src:"Zâriyât 51/18",ay:[[51,17],[51,18]],zid:"istigfar"},
+  {n:"Âl-i İmrân'ın Son Âyetleri",c:"Gece kalkınca",ar:"إِنَّ فِي خَلْقِ السَّمَاوَاتِ وَالْأَرْضِ وَاخْتِلَافِ اللَّيْلِ وَالنَّهَارِ لَآيَاتٍ لِّأُولِي الْأَلْبَابِ",r:"İnne fî halki's-semâvâti ve'l-ardı vahtilâfi'l-leyli ve'n-nehâri le-âyâtin li-uli'l-elbâb...",m:"Göklerin ve yerin yaratılışında, gece ile gündüzün birbiri ardınca gelişinde akıl sahipleri için deliller vardır. Efendimiz (s.a.v.) gece uyanınca bu âyetleri okurdu.",src:"Âl-i İmrân 3/190-194 · Buhârî",ay:[[3,190],[3,191],[3,192],[3,193],[3,194]]},
+  {n:"Seher İstiğfârı",c:"70 / 100",ar:"أَسْتَغْفِرُ اللّٰهَ الْعَظِيمَ الَّذِي لَا إِلٰهَ إِلَّا هُوَ الْحَيَّ الْقَيُّومَ وَأَتُوبُ إِلَيْهِ",r:"Estağfirullâhe'l-azîm ellezî lâ ilâhe illâ hüve'l-hayye'l-kayyûme ve etûbü ileyh.",m:"Kendisinden başka ilah olmayan, diri ve her şeyi ayakta tutan yüce Allah'tan bağışlanma diler, O'na tevbe ederim.",src:"Ebû Dâvûd, Tirmizî",z:{t:70}},
+  {n:"Yûnus Aleyhisselâmın Duası",c:"Sıkıntı anında",ar:"لَا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ",r:"Lâ ilâhe illâ ente sübhâneke innî küntü mine'z-zâlimîn.",m:"Senden başka ilah yoktur. Seni tenzih ederim. Ben gerçekten kendine zulmedenlerden oldum.",src:"Enbiyâ 21/87",zid:"yunus"}
+ ],
+ kuran:[
+  {n:"Rabbenâ Âtinâ",c:"Her dua sonunda",ar:"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",r:"Rabbenâ âtinâ fi'd-dünyâ haseneten ve fi'l-âhireti haseneten ve kınâ azâbe'n-nâr.",m:"Rabbimiz, bize dünyada da iyilik ver, âhirette de iyilik ver ve bizi ateş azabından koru.",src:"Bakara 2/201",ay:[[2,201]]},
+  {n:"Rabbenağfirlî",c:"Namaz sonu",ar:"رَبَّنَا اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ يَوْمَ يَقُومُ الْحِسَابُ",r:"Rabbenağfir lî ve li-vâlideyye ve li'l-mü'minîne yevme yekûmü'l-hisâb.",m:"Rabbimiz, hesap gününde beni, anne babamı ve mü'minleri bağışla.",src:"İbrâhîm 14/41",ay:[[14,41]]},
+  {n:"Rabbişrah Lî Sadrî",c:"Derse, işe başlarken",ar:"رَبِّ اشْرَحْ لِي صَدْرِي ۝ وَيَسِّرْ لِي أَمْرِي ۝ وَاحْلُلْ عُقْدَةً مِّن لِّسَانِي ۝ يَفْقَهُوا قَوْلِي",r:"Rabbi'şrah lî sadrî, ve yessir lî emrî, vahlul ukdeten min lisânî, yefkahû kavlî.",m:"Rabbim, göğsümü aç, işimi kolaylaştır, dilimdeki düğümü çöz ki sözümü anlasınlar.",src:"Tâhâ 20/25-28",ay:[[20,25],[20,26],[20,27],[20,28]]},
+  {n:"Haşr Sûresinin Sonu",c:"Sabah-akşam",ar:"هُوَ اللَّهُ الَّذِي لَا إِلَٰهَ إِلَّا هُوَ ۖ عَالِمُ الْغَيْبِ وَالشَّهَادَةِ ۖ هُوَ الرَّحْمَٰنُ الرَّحِيمُ ۝ هُوَ اللَّهُ الَّذِي لَا إِلَٰهَ إِلَّا هُوَ الْمَلِكُ الْقُدُّوسُ السَّلَامُ الْمُؤْمِنُ الْمُهَيْمِنُ الْعَزِيزُ الْجَبَّارُ الْمُتَكَبِّرُ ۚ سُبْحَانَ اللَّهِ عَمَّا يُشْرِكُونَ ۝ هُوَ اللَّهُ الْخَالِقُ الْبَارِئُ الْمُصَوِّرُ ۖ لَهُ الْأَسْمَاءُ الْحُسْنَىٰ ۚ يُسَبِّحُ لَهُ مَا فِي السَّمَاوَاتِ وَالْأَرْضِ ۖ وَهُوَ الْعَزِيزُ الْحَكِيمُ",r:"Hüvallâhüllezî lâ ilâhe illâ hû, âlimü'l-gaybi ve'ş-şehâdeh, hüve'r-rahmânü'r-rahîm...",m:"O, kendisinden başka ilah olmayan Allah'tır; görüleni ve görülmeyeni bilir, Rahmân ve Rahîm'dir. Melik, Kuddûs, Selâm, Mü'min, Müheymin, Azîz, Cebbâr, Mütekebbir'dir. Hâlık, Bârî, Musavvir'dir; en güzel isimler O'nundur.",src:"Haşr 59/22-24",ay:[[59,22],[59,23],[59,24]]},
+  {n:"Salavât-ı İbrâhîmiyye",c:"Her zaman",ar:"اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ إِنَّكَ حَمِيدٌ مَجِيدٌ",r:"Allâhümme salli alâ Muhammedin ve alâ âli Muhammed, kemâ salleyte alâ İbrâhîme ve alâ âli İbrâhîm, inneke hamîdün mecîd.",m:"Allah'ım, İbrâhim'e ve âline salât ettiğin gibi Muhammed'e ve âline de salât eyle. Sen övülmeye lâyıksın, şanı yücesin.",src:"Buhârî, Müslim",zid:"salavat"}
+ ]
+};
+
+/* ===================== Veri: Külliyat ===================== */
+const ILAHI_SANAT=[
+ ["Mustafa Özcan Güneşdoğdu","Tasavvuf mûsikisi"],["Ahmet Özhan","İlahi ve kaside"],["Kâni Karaca","Klasik ilahi"],["Mustafa Demirci","Tasavvufi eserler"],["Grup Seyran","Gençlik ilahileri"],["Hasan Dursun","İlahiler"],["Abdurrahman Önül","İlahiler"],["Mehmet Emin Ay","Tilavet ve ilahi"],["Fatih Koca","Tasavvuf mûsikisi"],["Grup Yürüyüş","Marş ve ilahiler"],["Sami Yusuf","Neşîd"],["Maher Zain","Neşîd"],["Mesut Kurtis","Neşîd"],["Harris J","Neşîd"],["Ahmed Bukhatir","Neşîd"],["Mishary Alafasy Neşîd","Arapça neşîd"]
+];
+const ILAHI_ESER=["Tala'al Bedru Aleyna","Medine'ye Varamadım","Ya Rasulallah Ya Habiballah","Hasbi Rabbi Cellallah","Mevlam Bir Çok Dert Vermiş","Allah Emrin Tutalım","Dost Senden Ayrı Kalalı","İşte Geldim Kapına","Gel Gör Beni Aşk Neyledi","Dertli Dolap Yunus Emre","Uyan Ey Gözlerim Gafletten Uyan","Kâbe'de Hacılar Hu Derler","Muhammed'in Bir Kuzusu","Ya Nebi Selam Aleyke","Rahmatun Lil Alameen","Kaside-i Bürde","Esmaül Hüsna İlahisi","Mevlid-i Şerif Velâdet Bahri","Salâtü Selâm İlahisi","Sen Gelmez Oldun","Ey Gönül Ne Durursun","Gönül Hastalanma","Ben Yürürüm Yane Yane","Seni Seven Âşıkların"];
+const FILMLER=[
+ {n:"Çağrı",y:"1976",d:"Mustafa Akkad'ın Hz. Peygamber dönemini anlatan klasiği",q:"Çağrı 1976 Mustafa Akkad Türkçe"},
+ {n:"Hz. Muhammed: Allah'ın Elçisi",y:"2015",d:"Mecîd Mecîdî, Efendimizin çocukluğu",q:"Hz. Muhammed Allah'ın Elçisi film Türkçe"},
+ {n:"Çöl Aslanı Ömer Muhtar",y:"1981",d:"Libya direnişinin önderi",q:"Çöl Aslanı Ömer Muhtar film Türkçe"},
+ {n:"Bilal: Yeni Bir Kahramanın Doğuşu",y:"2015",d:"Hz. Bilal'in hayatı, animasyon",q:"Bilal Yeni Bir Kahramanın Doğuşu Türkçe"},
+ {n:"Hz. Meryem",y:"2000",d:"Hz. Meryem ve Hz. İsa'nın doğumu",q:"Hz. Meryem filmi Türkçe dublaj"},
+ {n:"Hz. Süleyman Krallığı",y:"2010",d:"Hz. Süleyman ve Belkıs",q:"Hz. Süleyman filmi Türkçe dublaj"},
+ {n:"Son Peygamber (Animasyon)",y:"2004",d:"Çocuklar için siyer",q:"Muhammad The Last Prophet Türkçe"},
+ {n:"Hac Yolculuğu (Le Grand Voyage)",y:"2004",d:"Baba ile oğlun Mekke yolculuğu",q:"Le Grand Voyage Hac Yolculuğu film"},
+ {n:"Malcolm X",y:"1992",d:"Malcolm X'in hayatı ve haccı",q:"Malcolm X film Türkçe"},
+ {n:"Kâbe ve Mescid-i Nebevî Belgeselleri",y:"TRT",d:"Mekke ve Medine belgeselleri",q:"TRT Belgesel Mekke Medine"}
+];
+const DIZILER=[
+ {n:"Hz. Ömer",y:"2012 · 30 bölüm",d:"Hz. Ömer ve Asr-ı Saadet",q:"Hz. Ömer dizisi 1. bölüm Türkçe"},
+ {n:"Hz. Yusuf",y:"2008",d:"Hz. Yusuf'un hayatı",q:"Hz. Yusuf dizisi 1. bölüm Türkçe dublaj"},
+ {n:"Yunus Emre: Aşkın Yolculuğu",y:"TRT",d:"Yunus Emre'nin manevi yolculuğu",q:"Yunus Emre Aşkın Yolculuğu 1. bölüm"},
+ {n:"Diriliş Ertuğrul",y:"TRT",d:"Kayı Boyu ve Ertuğrul Gazi",q:"Diriliş Ertuğrul 1. bölüm"},
+ {n:"Kuruluş Osman",y:"ATV",d:"Osman Gazi",q:"Kuruluş Osman 1. bölüm"},
+ {n:"Payitaht Abdülhamid",y:"TRT",d:"Sultan II. Abdülhamid",q:"Payitaht Abdülhamid 1. bölüm"},
+ {n:"Uyanış: Büyük Selçuklu",y:"TRT",d:"Melikşah dönemi",q:"Uyanış Büyük Selçuklu 1. bölüm"},
+ {n:"Alparslan: Büyük Selçuklu",y:"TRT",d:"Alparslan ve Malazgirt",q:"Alparslan Büyük Selçuklu 1. bölüm"},
+ {n:"Kudüs Fatihi Selahaddin Eyyubi",y:"TRT",d:"Selahaddin Eyyubi",q:"Kudüs Fatihi Selahaddin Eyyubi 1. bölüm"},
+ {n:"Barbaroslar: Akdeniz'in Kılıcı",y:"TRT",d:"Oruç ve Hızır Reis",q:"Barbaroslar Akdeniz'in Kılıcı 1. bölüm"},
+ {n:"Mehmetçik Kûtulamâre",y:"TRT",d:"Kûtülamâre zaferi",q:"Mehmetçik Kutülamare 1. bölüm"}
+];
+
+/* ===================== Durum ===================== */
+let tab=store.get("mk_tab","zikir");
+let dinleSeg=store.get("mk_dseg","kuran");
+let duaSeg="sabah", kulSeg="asr";
+let kari=store.get("mk_kari","afs");
+let openSeries=null;
+let ZIKIR=ZIKIR_BASE.concat(store.get("mk_custom",[]));
+let zs=store.get("mk_zs",{cur:"subhan",counts:{},targets:{},chain:false});
+let hist=store.get("mk_hist",{});
+const saveZ=()=>{store.set("mk_zs",zs);store.set("mk_hist",hist)};
+const zCur=()=>ZIKIR.find(z=>z.id===zs.cur)||ZIKIR[0];
+const zTarget=z=>zs.targets[z.id]||z.t;
+
+/* ===================== Tarih (Hicrî) ===================== */
+try{$("#hijri").textContent=new Intl.DateTimeFormat("tr-TR-u-ca-islamic-umalqura",{day:"numeric",month:"long",year:"numeric"}).format(new Date())+" · "+new Date().toLocaleDateString("tr-TR",{weekday:"long",day:"numeric",month:"long"})}catch(e){$("#hijri").textContent=new Date().toLocaleDateString("tr-TR",{weekday:"long",day:"numeric",month:"long"})}
+
+/* ===================== Kapak görseli (kilit ekranı) ===================== */
+const ART_CACHE={};
+function makeArt(label,sub,hue){
+  const key=label+"|"+sub+"|"+hue;if(ART_CACHE[key])return ART_CACHE[key];
+  const c=document.createElement("canvas");c.width=c.height=512;const g=c.getContext("2d");
+  const gr=g.createLinearGradient(0,0,512,512);gr.addColorStop(0,`hsl(${hue},38%,16%)`);gr.addColorStop(1,`hsl(${hue+25},40%,8%)`);g.fillStyle=gr;g.fillRect(0,0,512,512);
+  g.lineWidth=3;g.strokeStyle="rgba(216,176,106,.5)";
+  g.save();g.translate(256,232);g.strokeRect(-120,-120,240,240);g.rotate(Math.PI/4);g.strokeRect(-120,-120,240,240);g.restore();
+  g.fillStyle="#ebe7dc";g.textAlign="center";g.textBaseline="middle";
+  g.font=label.length>4?"600 64px Literata,Georgia,serif":"600 110px Literata,Georgia,serif";g.fillText(label,256,232);
+  g.font="500 30px Figtree,system-ui,sans-serif";g.fillStyle="#d8b06a";g.fillText(sub,256,430);
+  const u=c.toDataURL("image/png");ART_CACHE[key]=u;return u;
+}
+
+/* ===================== Çalar ===================== */
+const au=$("#au"), zau=$("#zau");
+let Q=[],qi=-1,srcIdx=0,curKey=null,lastSave=0,sleepAt=0,sleepEnd=false,sleepTimer=null,rate=store.get("mk_rate",1);
+const POS=store.get("mk_pos",{});
+function playQueue(list,i){Q=list;qi=i;lockStop(true);loadCur(true)}
+function loadCur(autoplay){
+  const t=Q[qi];if(!t)return;srcIdx=0;curKey=t.key||null;
+  au.src=t.src[0];au.playbackRate=t.live?1:rate;
+  if(autoplay){au.play().catch(()=>toast("Oynatmak için ▶ tuşuna dokun"))}
+  if(t.series)store.set("mk_last_"+t.series,{n:t.ep});
+  updateMini();msPlayer();renderQueueHL();
+}
+au.addEventListener("loadedmetadata",()=>{const t=Q[qi];if(!t||t.live)return;au.playbackRate=rate;const p=curKey&&POS[curKey];if(p&&p>15&&au.duration&&p<au.duration-20){au.currentTime=p;toast("Kaldığın yerden: "+fmt(p))}});
+au.addEventListener("error",()=>{const t=Q[qi];if(!t||!au.src)return;if(srcIdx<t.src.length-1){srcIdx++;au.src=t.src[srcIdx];au.play().catch(()=>{})}else{toast(t.live?"Bu radyo şu an yayında değil":"Bu kayıt açılmadı, sonrakine geçiliyor");if(!t.live&&qi<Q.length-1)setTimeout(next,600)}});
+au.addEventListener("ended",()=>{if(curKey){delete POS[curKey];store.set("mk_pos",POS)}if(sleepEnd){sleepEnd=false;updateSheet();return}next()});
+au.addEventListener("timeupdate",()=>{
+  const d=au.duration,c=au.currentTime;$("#mprog").style.width=(isFinite(d)&&d>0?c/d*100:0)+"%";
+  if(curKey&&Date.now()-lastSave>5000&&c>5){POS[curKey]=Math.floor(c);store.set("mk_pos",POS);lastSave=Date.now()}
+  if(!$("#sheet").hidden){const s=$("#seek");if(s&&!s._drag){s.max=isFinite(d)?d:0;s.value=c}const a=$("#tCur"),b=$("#tDur");if(a){a.textContent=fmt(c);b.textContent=Q[qi]&&Q[qi].live?"CANLI":fmt(d)}}
+  if("mediaSession" in navigator&&navigator.mediaSession.setPositionState&&isFinite(d)&&d>0&&!lockOn){try{navigator.mediaSession.setPositionState({duration:d,playbackRate:au.playbackRate,position:Math.min(c,d)})}catch(e){}}
+});
+["play","pause"].forEach(ev=>au.addEventListener(ev,()=>{updateMini();updateSheet()}));
+function toggle(){if(!Q[qi])return;au.paused?au.play().catch(()=>{}):au.pause()}
+function next(){if(qi<Q.length-1){qi++;loadCur(true)}}
+function prev(){if(au.currentTime>5&&!(Q[qi]&&Q[qi].live)){au.currentTime=0;return}if(qi>0){qi--;loadCur(true)}}
+function updateMini(){
+  const t=Q[qi];$("#mini").hidden=!t;if(!t)return;
+  $("#miniT").textContent=t.title;$("#miniS").textContent=t.sub;
+  $("#miniArt").style.backgroundImage=`url(${t.art})`;
+  $("#miniPlay").innerHTML=au.paused?IC.play:IC.pause;$("#miniNext").innerHTML=IC.next;
+}
+function msPlayer(){
+  if(!("mediaSession" in navigator))return;const ms=navigator.mediaSession,t=Q[qi];if(!t)return;
+  try{ms.metadata=new MediaMetadata({title:t.title,artist:t.sub,album:"Maneviyat Külliyatı",artwork:[{src:t.art,sizes:"512x512",type:"image/png"}]})}catch(e){}
+  const set=(a,f)=>{try{ms.setActionHandler(a,f)}catch(e){}};
+  set("play",()=>au.play());set("pause",()=>au.pause());
+  set("previoustrack",prev);set("nexttrack",next);
+  set("seekto",d=>{if(d&&d.seekTime!=null)au.currentTime=d.seekTime});
+  set("seekbackward",null);set("seekforward",null);
+}
+$("#miniPlay").onclick=toggle;$("#miniNext").onclick=next;$("#miniOpen").onclick=openSheet;$("#miniArt").onclick=openSheet;
+
+/* Tam ekran çalar */
+function openSheet(){$("#sheet").hidden=false;renderSheet()}
+function renderSheet(){
+  const t=Q[qi];if(!t)return;const s=$("#sheet");
+  const sl=sleepAt?Math.max(0,Math.ceil((sleepAt-Date.now())/60000))+" dk":(sleepEnd?"Bölüm sonu":"Kapalı");
+  s.innerHTML=`<div class="bar"><button class="ib" id="shClose" aria-label="Kapat">${IC.down}</button><span class="small muted">${esc(t.group||"Şimdi çalıyor")}</span><span style="width:42px"></span></div>
+  <div class="bigart" style="background-image:url(${t.art})"></div>
+  <div class="ttl">${esc(t.title)}</div><div class="who">${esc(t.sub)}</div>
+  <input type="range" class="seek" id="seek" min="0" step="1" value="0" ${t.live?"disabled":""} aria-label="İlerleme">
+  <div class="times"><span id="tCur">0:00</span><span id="tDur">--:--</span></div>
+  <div class="pctrl">
+    <button class="ib" id="shB15" aria-label="15 sn geri" ${t.live?"disabled":""}>${IC.b15}</button>
+    <button class="ib" id="shPrev" aria-label="Önceki">${IC.prev}</button>
+    <button class="ib big" id="shPlay" aria-label="Oynat/Duraklat">${au.paused?IC.play:IC.pause}</button>
+    <button class="ib" id="shNext" aria-label="Sonraki">${IC.next}</button>
+    <button class="ib" id="shF15" aria-label="30 sn ileri" ${t.live?"disabled":""}>${IC.f15}</button>
+  </div>
+  <div class="opts">
+    <button class="pill ghost" id="shRate" ${t.live?"disabled":""}>Hız ${rate}×</button>
+    <button class="pill ghost" id="shSleep">Uyku: ${sl}</button>
+  </div>
+  <div class="qlist"><h2 style="margin-top:8px">Sıradakiler</h2><div class="list" id="qList">${Q.slice(Math.max(0,qi),qi+40).map((x,k)=>`<button class="row ${k===0?"playing":""}" data-qi="${qi+k}"><span class="no">${k===0?"♪":qi+k+1}</span><span class="t"><b>${esc(x.title)}</b><span>${esc(x.sub)}</span></span></button>`).join("")}</div></div>`;
+  $("#shClose").onclick=()=>s.hidden=true;$("#shPlay").onclick=toggle;$("#shPrev").onclick=prev;$("#shNext").onclick=next;
+  $("#shB15").onclick=()=>au.currentTime=Math.max(0,au.currentTime-15);$("#shF15").onclick=()=>au.currentTime=au.currentTime+30;
+  const sk=$("#seek");sk.oninput=()=>{sk._drag=true};sk.onchange=()=>{au.currentTime=+sk.value;sk._drag=false};
+  $("#shRate").onclick=()=>{const r=[0.75,1,1.25,1.5,1.75,2];rate=r[(r.indexOf(rate)+1)%r.length];au.playbackRate=rate;store.set("mk_rate",rate);renderSheet()};
+  $("#shSleep").onclick=cycleSleep;
+  s.querySelectorAll("[data-qi]").forEach(b=>b.onclick=()=>{qi=+b.dataset.qi;loadCur(true);renderSheet()});
+}
+function updateSheet(){if($("#sheet").hidden)return;const b=$("#shPlay");if(b)b.innerHTML=au.paused?IC.play:IC.pause;else renderSheet()}
+function renderQueueHL(){if(!$("#sheet").hidden)renderSheet();document.querySelectorAll(".row[data-key]").forEach(r=>r.classList.toggle("playing",r.dataset.key===curKey))}
+const SLEEPS=[0,15,30,45,60,"end"];let sleepIdx=0;
+function cycleSleep(){
+  sleepIdx=(sleepIdx+1)%SLEEPS.length;const v=SLEEPS[sleepIdx];clearTimeout(sleepTimer);sleepAt=0;sleepEnd=false;
+  if(v==="end"){sleepEnd=true;toast("Bu kayıt bitince duracak")}
+  else if(v){sleepAt=Date.now()+v*60000;sleepTimer=setTimeout(()=>{au.pause();sleepAt=0;sleepIdx=0;updateSheet()},v*60000);toast(v+" dakika sonra duracak")}
+  else toast("Uyku zamanlayıcısı kapalı");
+  renderSheet();
+}
+
+/* Parça üreticiler */
+const kariObj=()=>KARI.find(k=>k.id===kari)||KARI[0];
+const sureTrack=n=>{const k=kariObj();return{title:n+". "+SURE_TR[n-1]+" Sûresi",sub:k.n,src:k.s(n),art:makeArt(SURE_AR[n-1],"Kur'ân-ı Kerîm",168),key:"q_"+k.id+"_"+n,group:"Kur'ân-ı Kerîm"}};
+const ayahTracks=(list,name)=>list.map(([s,a])=>{const g=gAyah(s,a);return{title:name,sub:SURE_TR[s-1]+" "+s+"/"+a+" · el-Afâsî",src:[`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${g}.mp3`,`https://everyayah.com/data/Alafasy_128kbps/${p3(s)}${p3(a)}.mp3`],art:makeArt("دعاء",name,150),group:"Dua"}});
+const siyerTrack=(S,n)=>({title:"Ders "+n+(S.titles[n-1]?" · "+S.titles[n-1]:""),sub:S.n+" · Muhammed Emin Yıldırım",src:[S.u(n)],art:makeArt(String(n),S.n.replace(" Dersleri",""),190),key:"s_"+S.id+"_"+n,series:S.id,ep:n,group:"Siyer Vakfı"});
+const radioTrack=r=>({title:r.n,sub:r.d,src:[r.u],art:makeArt("راديو",r.n,30),live:true,group:"Canlı Radyo"});
+
+/* ===================== Kilit ekranı zikri ===================== */
+let lockOn=false,silentUrl=null;
+function silentURL(){
+  if(silentUrl)return silentUrl;const sr=8000,n=sr*2,b=new ArrayBuffer(44+n*2),v=new DataView(b);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+  w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++)v.setInt16(44+i*2,(Math.random()*6-3)|0,true);
+  silentUrl=URL.createObjectURL(new Blob([b],{type:"audio/wav"}));return silentUrl;
+}
+function lockStart(){
+  au.pause();zau.src=silentURL();zau.loop=true;
+  zau.play().then(()=>{lockOn=true;msZikir();lockMeta();renderView();toast("Kilit ekranı zikri açık")}).catch(()=>toast("Başlatılamadı, tekrar dokun"));
+}
+function lockStop(silent){if(!lockOn)return;lockOn=false;zau.pause();zau.removeAttribute("src");try{zau.load()}catch(e){}msPlayer();if(Q[qi])updateMini();if(!silent)renderView()}
+function msZikir(){
+  if(!("mediaSession" in navigator))return;const ms=navigator.mediaSession;const set=(a,f)=>{try{ms.setActionHandler(a,f)}catch(e){}};
+  const keep=()=>{zau.play().catch(()=>{});try{ms.playbackState="playing"}catch(e){}};
+  set("nexttrack",()=>{inc(1);keep()});set("previoustrack",()=>{inc(-1);keep()});
+  set("play",()=>{inc(1);keep()});set("pause",()=>{inc(1);keep()});
+  set("seekto",null);set("seekbackward",null);set("seekforward",null);
+}
+function lockMeta(){
+  if(!lockOn||!("mediaSession" in navigator))return;const z=zCur(),c=zs.counts[z.id]||0,t=zTarget(z);
+  try{navigator.mediaSession.metadata=new MediaMetadata({title:(c>=t?"✓ ":"")+c+" / "+t+"  ·  "+z.r,artist:"⏭ +1   ⏮ −1   ⏯ +1",album:"Zikirmatik",artwork:[{src:makeArt(String(c),z.r.length>22?z.r.slice(0,22)+"…":z.r,168),sizes:"512x512",type:"image/png"}]});navigator.mediaSession.playbackState="playing"}catch(e){}
+}
+
+/* ===================== Zikir sayacı ===================== */
+let actx=null;
+function tick(done){
+  if(store.get("mk_sound",true)===false||lockOn)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=done?660:1100;g.gain.setValueAtTime(.06,actx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+(done?.5:.05));o.connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+(done?.5:.06))}catch(e){}
+  if(navigator.vibrate)navigator.vibrate(done?[60,40,60]:8);
+}
+function inc(d){
+  const z=zCur(),t=zTarget(z);let c=(zs.counts[z.id]||0)+d;if(c<0)c=0;zs.counts[z.id]=c;
+  if(d>0){const k=todayKey();hist[k]=(hist[k]||0)+d}else if(d<0){const k=todayKey();hist[k]=Math.max(0,(hist[k]||0)+d)}
+  const done=d>0&&c===t;tick(done);
+  if(done&&zs.chain){const i=TESBIHAT.indexOf(z.id);if(i>-1&&i<TESBIHAT.length-1){setTimeout(()=>{zs.cur=TESBIHAT[i+1];zs.counts[zs.cur]=0;saveZ();lockMeta();if(tab==="zikir")renderView()},350)}else if(i===TESBIHAT.length-1){toast("Tesbihat tamamlandı. Allah kabul etsin.")}}
+  else if(done)toast("Hedefe ulaştın: "+t);
+  saveZ();lockMeta();if(tab==="zikir")paintCounter();renderTotal();
+}
+function paintCounter(){
+  const z=zCur(),c=zs.counts[z.id]||0,t=zTarget(z),el=$("#tapNum");if(!el)return;
+  el.textContent=c;$("#tapOf").textContent="/ "+t+(c>t?"  (+"+(c-t)+")":"");
+  const r=46,L=2*Math.PI*r,p=Math.min(1,(c%t||(c&&c>=t?t:0))/t);
+  $("#ringFg").style.strokeDasharray=L;$("#ringFg").style.strokeDashoffset=L*(1-(c>=t&&c%t===0?1:p));
+  $("#tap").classList.toggle("done",c>=t);
+}
+function renderTotal(){const v=hist[todayKey()]||0;const kt=$("#kpiToday");if(kt)kt.textContent=v.toLocaleString("tr-TR");$("#todayTot").textContent=v?("Bugün "+v.toLocaleString("tr-TR")+" zikir"):""}
+
+/* ===================== Görünümler ===================== */
+const TITLES={zikir:"Zikir",dinle:"Dinle",dua:"Dualar",kulliyat:"Külliyat"};
+function renderView(){
+  $("#pageTitle").textContent=TITLES[tab];document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  const v=$("#view");v.innerHTML=({zikir:vZikir,dinle:vDinle,dua:vDua,kulliyat:vKulliyat})[tab]();
+  ({zikir:bZikir,dinle:bDinle,dua:bDua,kulliyat:bKulliyat})[tab]();renderTotal();
+}
+
+/* --- Zikir --- */
+function vZikir(){
+  const z=zCur();
+  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");days.push({l:d.toLocaleDateString("tr-TR",{weekday:"short"}),v:hist[k]||0})}
+  const mx=Math.max(1,...days.map(d=>d.v));const week=days.reduce((a,b)=>a+b.v,0);
+  const all=Object.values(hist).reduce((a,b)=>a+b,0);
+  return `<div class="zcard">
+    <div class="ar">${esc(z.ar)}</div><div class="read">${esc(z.r)}</div><div class="mean">${esc(z.m)}</div>
+    <div class="tap" id="tap" role="button" tabindex="0" aria-label="Zikir say">
+      <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" stroke-width="3"/><circle id="ringFg" cx="50" cy="50" r="46" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"/></svg>
+      <div style="text-align:center;position:relative"><div class="num" id="tapNum">0</div><div class="of" id="tapOf"></div></div>
+    </div>
+    <div class="zrow">
+      <button class="pill" id="zMinus">−1</button>
+      <button class="pill" id="zReset">Sıfırla</button>
+      <button class="pill" id="zTarget">Hedef</button>
+      <button class="pill ${zs.chain?"acc":""}" id="zChain">Tesbihat ${zs.chain?"açık":"kapalı"}</button>
+    </div>
+    <button class="pill ${lockOn?"acc":"ghost"}" id="zLock" style="justify-self:center">${lockOn?"Kilit ekranı zikri açık · Kapat":"Ekran kapalıyken zikret"}</button>
+  </div>
+  ${lockOn?`<div class="lockbox"><b>Şimdi ekranı kilitleyebilirsin.</b> Kilit ekranındaki çalar kutusunda sayın görünür:<ol><li><b>⏭ İleri</b> veya <b>⏯ Oynat</b> tuşu: +1</li><li><b>⏮ Geri</b> tuşu: −1</li><li>Kulaklık (AirPods) çift dokunma: +1</li></ol><div class="small muted" style="margin-top:6px">Sesi kısık tutabilirsin; sessiz bir kayıt arka planda döner. Kontrol Merkezi'nde de aynı kutu çıkar.</div></div>`:""}
+  <div class="chips" id="chips">${ZIKIR.map(x=>`<button class="chip ${x.id===z.id?"on":""}" data-z="${x.id}"><b>${esc(x.r.length>26?x.r.slice(0,26)+"…":x.r)}</b><span>${(zs.counts[x.id]||0)} / ${zTarget(x)}</span></button>`).join("")}<button class="chip" id="zAdd"><b>+ Yeni zikir</b><span>Kendi virdin</span></button></div>
+  <h2>Zikir defterin</h2>
+  <div class="kpis"><div class="kpi"><span class="small muted">Bugün</span><b id="kpiToday">${(hist[todayKey()]||0).toLocaleString("tr-TR")}</b></div><div class="kpi"><span class="small muted">Son 7 gün</span><b>${week.toLocaleString("tr-TR")}</b></div><div class="kpi"><span class="small muted">Toplam</span><b>${all.toLocaleString("tr-TR")}</b></div></div>
+  <div class="stats" aria-label="Son 7 gün">${days.map(d=>`<div><i style="height:${Math.max(3,d.v/mx*64)}px"></i>${esc(d.l)}</div>`).join("")}</div>
+  <div class="note"><b>Ekran kapalıyken zikir nasıl çalışır?</b> iPhone, internet sayfalarının yan tuşu ve ses tuşlarını okumasına izin vermez. Bu yüzden sayaç, kilit ekranındaki müzik kontrollerine bağlandı. "Ekran kapalıyken zikret"e bas, ekranı kilitle, yan tuşla ekranı uyandır ve ⏭ tuşuna dokunarak say. Kulaklıkla göz açmadan da sayabilirsin.</div>
+  <div class="ctrl" style="margin-top:12px"><button class="pill ghost" id="zSound">Tık sesi: ${store.get("mk_sound",true)?"açık":"kapalı"}</button></div>`;
+}
+function bZikir(){
+  paintCounter();
+  const tap=$("#tap");tap.addEventListener("pointerdown",e=>{e.preventDefault();inc(1)});tap.addEventListener("keydown",e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();inc(1)}});
+  $("#zMinus").onclick=()=>inc(-1);
+  $("#zReset").onclick=()=>confirmBox("Sayaç sıfırlansın mı?",zCur().r+" için sayım 0 olacak. Günlük toplamın değişmez.","Sıfırla",()=>{zs.counts[zs.cur]=0;saveZ();lockMeta();renderView()});
+  $("#zTarget").onclick=targetBox;
+  $("#zChain").onclick=()=>{zs.chain=!zs.chain;if(zs.chain){zs.cur="subhan";TESBIHAT.forEach(id=>zs.counts[id]=0);toast("Namaz tesbihatı: 33 Sübhânallâh, 33 Elhamdülillâh, 33 Allâhu Ekber, tevhid")}saveZ();lockMeta();renderView()};
+  $("#zLock").onclick=()=>lockOn?lockStop():lockStart();
+  $("#zSound").onclick=()=>{store.set("mk_sound",!store.get("mk_sound",true));renderView()};
+  document.querySelectorAll("[data-z]").forEach(b=>b.onclick=()=>{zs.cur=b.dataset.z;saveZ();lockMeta();renderView()});
+  $("#zAdd").onclick=addBox;
+}
+function openModal(html,bind){$("#modalBox").innerHTML=html;$("#modal").hidden=false;bind&&bind()}
+function closeModal(){$("#modal").hidden=true}
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+function confirmBox(t,d,ok,fn){openModal(`<h3>${esc(t)}</h3><div class="muted small">${esc(d)}</div><div class="ctrl"><button class="pill acc" id="mOk">${esc(ok)}</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{$("#mOk").onclick=()=>{closeModal();fn()};$("#mNo").onclick=closeModal})}
+function targetBox(){const z=zCur();openModal(`<h3>Hedef sayı</h3><div class="ctrl">${[33,99,100,129,300,500,1000].map(n=>`<button class="pill" data-t="${n}">${n}</button>`).join("")}</div><input type="number" id="mT" inputmode="numeric" min="1" placeholder="Kendi sayın" value="${zTarget(z)}"><div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{
+  document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>$("#mT").value=b.dataset.t);
+  $("#mOk").onclick=()=>{const v=parseInt($("#mT").value,10);if(v>0){zs.targets[z.id]=v;saveZ();lockMeta()}closeModal();renderView()};$("#mNo").onclick=closeModal})}
+function addBox(pre){openModal(`<h3>Yeni zikir</h3><input type="text" id="mR" placeholder="Okunuşu (ör. Yâ Rahmân)" value="${esc(pre&&pre.r||"")}"><input type="text" id="mA" placeholder="Arapçası (isteğe bağlı)" dir="rtl" value="${esc(pre&&pre.ar||"")}"><input type="number" id="mT" inputmode="numeric" placeholder="Hedef sayı" value="${pre&&pre.t||100}"><div class="ctrl"><button class="pill acc" id="mOk">Ekle</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{
+  $("#mOk").onclick=()=>{const r=$("#mR").value.trim();if(!r){toast("Okunuşu yaz");return}const z={id:"c"+Date.now(),ar:$("#mA").value.trim(),r,m:pre&&pre.m||"Kendi virdin",t:parseInt($("#mT").value,10)||100};const cu=store.get("mk_custom",[]);cu.push(z);store.set("mk_custom",cu);ZIKIR=ZIKIR_BASE.concat(cu);zs.cur=z.id;saveZ();closeModal();tab="zikir";renderView();toast("Zikirmatiğe eklendi")};$("#mNo").onclick=closeModal})}
+
+/* --- Dinle --- */
+function vDinle(){
+  const seg=`<div class="seg">${[["kuran","Kur'ân"],["siyer","Siyer Vakfı"],["radyo","Radyolar"]].map(([k,l])=>`<button data-seg="${k}" class="${dinleSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  if(dinleSeg==="kuran")return seg+`
+   <label class="small muted" for="kariSel">Hâfız</label>
+   <select id="kariSel">${KARI.map(k=>`<option value="${k.id}" ${k.id===kari?"selected":""}>${esc(k.n)}</option>`).join("")}</select>
+   <h2>Hazır listeler</h2>
+   <div class="cards">${LISTELER.map((l,i)=>`<button class="card" data-list="${i}"><span class="tag">Liste · ${l.s.length} sûre</span><b>${esc(l.n)}</b><span>${esc(l.d)}</span></button>`).join("")}</div>
+   <h2>114 Sûre</h2>
+   <input type="search" id="sSearch" placeholder="Sûre ara: Yâsîn, Mülk, 36…" style="margin-bottom:10px">
+   <div class="list" id="sureList">${SURE_TR.map((n,i)=>`<button class="row" data-sure="${i+1}" data-key="q_${kari}_${i+1}"><span class="no">${i+1}</span><span class="t"><b>${esc(n)}</b><span>${AYET[i]} âyet</span></span><span class="ar">${SURE_AR[i]}</span></button>`).join("")}</div>`;
+  if(dinleSeg==="siyer"){
+    if(openSeries){const S=SIYER.find(s=>s.id===openSeries);const last=store.get("mk_last_"+S.id,null);
+      return seg+`<button class="pill ghost" id="sBack">‹ Siyer Vakfı</button>
+      <div class="bigcard" style="margin-top:12px"><span class="small" style="color:var(--accent);font-weight:700">MUHAMMED EMİN YILDIRIM</span><div class="ttl">${esc(S.n)}</div><div class="muted small">${esc(S.d)} · ${S.count} ders · ekran kapalıyken dinlenir</div>
+      <div class="ctrl">${last?`<button class="pill acc" id="sCont">Devam et · Ders ${last.n}</button>`:`<button class="pill acc" data-ep="1">Baştan başla</button>`}<a class="pill ghost" href="${S.sp}" target="_blank" rel="noopener">Spotify'da aç</a></div></div>
+      <input type="search" id="eSearch" placeholder="Ders ara: Yusuf, Musa, 42…" style="margin:12px 0 10px">
+      <div class="list" id="epList">${Array.from({length:S.count},(_,i)=>{const n=i+1,k="s_"+S.id+"_"+n,p=POS[k];return`<button class="row" data-ep="${n}" data-key="${k}"><span class="no">${n}</span><span class="t"><b>${esc(S.titles[i]||("Ders "+n))}</b><span>${p?"Kaldığın yer "+fmt(p):"Ders "+n}</span></span></button>`}).join("")}</div>`}
+    return seg+`<div class="cards">${SIYER.map(S=>{const last=store.get("mk_last_"+S.id,null);return`<button class="card" data-series="${S.id}" style="padding:16px"><span class="tag">Sesli · ${S.count} ders</span><b style="font:600 17px/1.25 var(--f-disp)">${esc(S.n)}</b><span>${esc(S.d)}</span>${last?`<span style="color:var(--accent)">Kaldığın yer: Ders ${last.n}</span>`:""}</button>`}).join("")}</div>
+    <div class="note">Bu iki seri doğrudan Siyer Vakfı'nın ses arşivinden çalar: ekranı kilitlesen de devam eder, kaldığın yeri hatırlar, bir ders bitince sonrakine geçer.</div>
+    <h2>Video arşivi</h2>
+    <div class="cards">${SIYER_VIDEO.map(v=>`<a class="card" href="${v.u}" target="_blank" rel="noopener"><span class="tag yt">${v.u.includes("youtube")?"YouTube":"Siyer TV"}</span><b>${esc(v.n)}</b><span>${esc(v.d)}</span></a>`).join("")}</div>
+    <div class="note"><b>Video dersleri arka planda dinlemek için:</b> YouTube'u uygulama yerine Safari'de aç, videoyu başlat, ekranı kilitle; kilit ekranında ▶ tuşuna bir kez bas. Çoğu zaman ses devam eder. YouTube Premium varsa uygulamada doğrudan çalışır.</div>`;
+  }
+  return seg+`<div class="cards">${RADYO.map((r,i)=>`<button class="card" data-radio="${i}"><span class="tag">Canlı</span><b>${esc(r.n)}</b><span>${esc(r.d)}</span></button>`).join("")}</div>
+   <div class="note">Radyolar canlı yayındır, ekran kapalıyken çalmaya devam eder. Diyanet yayınları iPhone Safari'de en iyi şekilde çalışır.</div>`;
+}
+function bDinle(){
+  document.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{dinleSeg=b.dataset.seg;store.set("mk_dseg",dinleSeg);openSeries=null;renderView()});
+  const ks=$("#kariSel");if(ks)ks.onchange=()=>{kari=ks.value;store.set("mk_kari",kari);renderView();toast(kariObj().n+" seçildi")};
+  document.querySelectorAll("[data-sure]").forEach(b=>b.onclick=()=>{const n=+b.dataset.sure;playQueue(Array.from({length:115-n},(_,i)=>sureTrack(n+i)),0)});
+  document.querySelectorAll("[data-list]").forEach(b=>b.onclick=()=>{const l=LISTELER[+b.dataset.list];playQueue(l.s.map(sureTrack).map(t=>(t.group=l.n,t)),0)});
+  const ss=$("#sSearch");if(ss)ss.oninput=()=>{const q=ss.value.trim().toLocaleLowerCase("tr");document.querySelectorAll("#sureList .row").forEach(r=>{const n=+r.dataset.sure;r.hidden=q&&!(SURE_TR[n-1].toLocaleLowerCase("tr").includes(q)||String(n)===q||SURE_AR[n-1].includes(q))})};
+  document.querySelectorAll("[data-series]").forEach(b=>b.onclick=()=>{openSeries=b.dataset.series;renderView();window.scrollTo(0,0)});
+  const sb=$("#sBack");if(sb)sb.onclick=()=>{openSeries=null;renderView()};
+  if(openSeries){const S=SIYER.find(s=>s.id===openSeries);const all=()=>Array.from({length:S.count},(_,i)=>siyerTrack(S,i+1));
+    document.querySelectorAll("[data-ep]").forEach(b=>b.onclick=()=>playQueue(all(),+b.dataset.ep-1));
+    const sc=$("#sCont");if(sc)sc.onclick=()=>{const l=store.get("mk_last_"+S.id,{n:1});playQueue(all(),l.n-1)};
+    const es=$("#eSearch");if(es)es.oninput=()=>{const q=es.value.trim().toLocaleLowerCase("tr");document.querySelectorAll("#epList .row").forEach(r=>{const n=+r.dataset.ep;r.hidden=q&&!(String(n)===q||(S.titles[n-1]||"").toLocaleLowerCase("tr").includes(q))})};
+  }
+  document.querySelectorAll("[data-radio]").forEach(b=>b.onclick=()=>{const i=+b.dataset.radio;playQueue(RADYO.map(radioTrack),i)});
+  renderQueueHL();
+}
+
+/* --- Dua --- */
+function vDua(){
+  const seg=`<div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher Vakti"],["kuran","Kur'an'dan"]].map(([k,l])=>`<button data-dseg="${k}" class="${duaSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  let top="";
+  if(duaSeg==="seher")top=`<div class="bigcard" style="margin-bottom:12px"><span class="small" style="color:var(--accent);font-weight:700">SEHER</span><div class="ttl">Gecenin son üçte biri</div><div class="muted small">İmsaktan önceki saatler. Seher listesini başlat, uyku zamanlayıcısını kur ve istiğfarı kilit ekranından say.</div><div class="ctrl"><button class="pill acc" id="seherPlay">Seher tilavetini başlat</button><button class="pill" id="seherZikir">İstiğfar 70</button></div></div>`;
+  return seg+top+DUALAR[duaSeg].map((d,i)=>`<div class="dua"><div class="head"><h3>${esc(d.n)}</h3><span class="cnt">${esc(d.c)}</span></div>
+   ${d.ar?`<div class="ar">${esc(d.ar)}</div>`:""}${d.r?`<div class="read">${esc(d.r)}</div>`:""}<div class="mean">${esc(d.m)}</div><div class="src">${esc(d.src)}</div>
+   ${(d.ay||d.z||d.zid)?`<div class="ctrl">${d.ay?`<button class="pill" data-ay="${i}">▶ Dinle</button>`:""}${(d.z||d.zid)?`<button class="pill ghost" data-zz="${i}">Zikirmatiğe al</button>`:""}</div>`:""}</div>`).join("")+
+   `<div class="note">Âyet okumaları Mişari el-Afâsî'nin sesindendir ve ekran kapalıyken de çalar.</div>`;
+}
+function bDua(){
+  document.querySelectorAll("[data-dseg]").forEach(b=>b.onclick=()=>{duaSeg=b.dataset.dseg;renderView()});
+  document.querySelectorAll("[data-ay]").forEach(b=>b.onclick=()=>{const d=DUALAR[duaSeg][+b.dataset.ay];playQueue(ayahTracks(d.ay,d.n),0)});
+  document.querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>{const d=DUALAR[duaSeg][+b.dataset.zz];
+    if(d.zid){zs.cur=d.zid;zs.counts[d.zid]=0;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();window.scrollTo(0,0);return}
+    let ex=ZIKIR.find(z=>z.r===d.r);if(!ex){ex={id:"d"+Date.now(),ar:d.ar||"",r:d.r||d.n,m:d.m,t:d.z.t};const cu=store.get("mk_custom",[]);cu.push(ex);store.set("mk_custom",cu);ZIKIR=ZIKIR_BASE.concat(cu)}
+    zs.cur=ex.id;zs.counts[ex.id]=0;zs.targets[ex.id]=d.z.t;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();window.scrollTo(0,0)});
+  const sp=$("#seherPlay");if(sp)sp.onclick=()=>{playQueue(LISTELER[0].s.map(sureTrack).map(t=>(t.group="Seher",t)),0)};
+  const sz=$("#seherZikir");if(sz)sz.onclick=()=>{zs.cur="istigfar";zs.counts.istigfar=0;zs.targets.istigfar=70;zs.chain=false;saveZ();tab="zikir";renderView();window.scrollTo(0,0)};
+}
+
+/* --- Külliyat --- */
+function vKulliyat(){
+  const seg=`<div class="seg">${[["asr","Asr-ı Saadet"],["ilahi","İlahiler"],["film","Film & Dizi"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  if(kulSeg==="asr")return seg+`<div class="bigcard"><span class="small" style="color:var(--accent);font-weight:700">DİYANET RADYO TİYATROSU</span><div class="ttl">Karanlıktan Aydınlığa Asr-ı Saadet</div><div class="muted small">Efendimizin (s.a.v.) ve ashabının hayatı, 160 bölüm. Bölüme dokununca YouTube'da o bölüm açılır. Diyanet Radyo'da yayın saatlerinde canlı da dinleyebilirsin.</div><div class="ctrl"><button class="pill acc" id="asrLive">Diyanet Radyo'yu canlı aç</button><a class="pill ghost" target="_blank" rel="noopener" href="${yt("Karanlıktan Aydınlığa Asr-ı Saadet Diyanet Radyo")}">Tüm seriyi YouTube'da ara</a></div></div>
+   <h2>Bölümler</h2>
+   <div class="grid160">${Array.from({length:160},(_,i)=>`<a target="_blank" rel="noopener" href="${yt("Karanlıktan Aydınlığa Asr-ı Saadet "+(i+1)+". Bölüm")}">${i+1}</a>`).join("")}</div>
+   <div class="note"><b>Ekran kapalıyken dinlemek için:</b> bölümü Safari'de aç (YouTube uygulamasında değil), oynat, ekranı kilitle ve kilit ekranında ▶ tuşuna bas.</div>`;
+  if(kulSeg==="ilahi")return seg+`<div class="cards"><button class="card" data-r="2"><span class="tag">Canlı · arka planda çalar</span><b>Radyo İlahi</b><span>Kesintisiz ilahi ve kaside</span></button><button class="card" data-r="0"><span class="tag">Canlı · arka planda çalar</span><b>Diyanet Radyo</b><span>İlahi, sohbet, tiyatro</span></button></div>
+   <h2>Sanatçılar</h2><div class="cards">${ILAHI_SANAT.map(([n,d])=>`<a class="card" target="_blank" rel="noopener" href="${yt(n+" ilahileri")}"><span class="tag yt">YouTube</span><b>${esc(n)}</b><span>${esc(d)}</span></a>`).join("")}</div>
+   <h2>Unutulmaz ilahiler</h2><div class="list">${ILAHI_ESER.map(n=>`<a class="row" target="_blank" rel="noopener" href="${yt(n+" ilahi")}"><span class="t"><b>${esc(n)}</b></span><span class="go">YouTube ›</span></a>`).join("")}</div>`;
+  return seg+`<h2 style="margin-top:4px">Filmler ve belgeseller</h2><div class="list">${FILMLER.map(f=>`<a class="row" target="_blank" rel="noopener" href="${yt(f.q)}"><span class="t"><b>${esc(f.n)}</b><span>${esc(f.y)} · ${esc(f.d)}</span></span><span class="go">İzle ›</span></a>`).join("")}</div>
+   <h2>Diziler</h2><div class="list">${DIZILER.map(f=>`<a class="row" target="_blank" rel="noopener" href="${yt(f.q)}"><span class="t"><b>${esc(f.n)}</b><span>${esc(f.y)} · ${esc(f.d)}</span></span><span class="go">İzle ›</span></a>`).join("")}</div>
+   <div class="note">TRT yapımlarının tamamı resmî olarak <a href="https://www.tabii.com" target="_blank" rel="noopener"><b>tabii</b></a> uygulamasında ve TRT'nin YouTube kanallarında ücretsiz yayında.</div>`;
+}
+function bKulliyat(){
+  document.querySelectorAll("[data-kseg]").forEach(b=>b.onclick=()=>{kulSeg=b.dataset.kseg;renderView()});
+  const al=$("#asrLive");if(al)al.onclick=()=>playQueue(RADYO.map(radioTrack),0);
+  document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>playQueue(RADYO.map(radioTrack),+b.dataset.r));
+}
+
+/* ===================== Başlat ===================== */
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;store.set("mk_tab",tab);renderView();window.scrollTo(0,0)});
+renderView();
+</script>
+</body>
+</html>
