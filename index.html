@@ -29,7 +29,8 @@
   --bg:#f2f5f4; --surface:#ffffff; --surface2:#e8eeec; --line:#d3dcda;
   --fg:#13201f; --muted:#5b6b69; --accent:#94661c; --accent-ink:#ffffff; --good:#2f8a5c; color-scheme:light}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%}
+html,body{margin:0;height:100%;overflow-x:hidden}
+html{-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -100,7 +101,7 @@ h3{font-size:15px;margin:0 0 4px}
 .bigcard{background:var(--surface);border-radius:18px;padding:16px;display:grid;gap:8px;text-align:left;width:100%}
 .bigcard .ttl{font:600 18px/1.25 var(--f-disp)}
 .ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-select,input[type=search],input[type=text],input[type=number]{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+select,input[type=search],input[type=text],input[type=number]{font:inherit;font-size:16px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
 .note{font-size:13px;color:var(--muted);background:var(--surface);border-radius:14px;padding:12px 14px;margin-top:10px}
 .note b{color:var(--fg)}
 .grid160{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}
@@ -156,9 +157,23 @@ nav.tabs button.on{color:var(--accent)}
 .pod .t span{font-size:12.5px;color:var(--muted)}
 .searchbar{display:flex;gap:8px}
 .searchbar input{flex:1;min-width:0}
+.vakit{border-radius:22px;padding:18px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.18);display:grid;gap:4px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.vk-top{display:flex;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.06em;opacity:.85}
+.vk-ad{font:600 30px/1.1 var(--f-disp);margin-top:6px}
+.vk-sub{font-size:14px;opacity:.9}
+.vk-times{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:12px;text-align:center;font-size:11px}
+.vk-times div{background:rgba(255,255,255,.14);border-radius:10px;padding:6px 0;display:grid;gap:2px}
+.vk-times b{font-size:13px;font-variant-numeric:tabular-nums}
+.vk-times .nx{background:rgba(255,255,255,.32)}
+.soz{background:color-mix(in srgb,var(--accent) 14%,var(--surface));border-radius:18px;padding:16px;display:grid;gap:6px}
+.soz-t{font:500 18px/1.45 var(--f-disp);text-wrap:pretty}
+.amel .chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:var(--accent-ink)}
+.amel.ok .chk{background:var(--accent);border-color:var(--accent)}
+.amel.ok b{color:var(--muted);text-decoration:line-through}
+details>summary::-webkit-details-marker{display:none}
 .mk{font-size:12px;color:var(--accent);flex:none;font-weight:700}
 .mk.done{color:var(--good)}
-textarea{font:inherit;color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-height:84px;resize:vertical}
+textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-height:84px;resize:vertical}
 .nrow{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;background:var(--surface)}
 .nrow + .nrow{border-top:1px solid var(--line)}
 .nrow .ts{flex:none;font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);font-size:13px;padding-top:1px;min-width:44px}
@@ -196,10 +211,10 @@ textarea{font:inherit;color:var(--fg);background:var(--surface2);border:1px soli
     <button class="ib" id="miniNext" aria-label="Sonraki"></button>
   </div>
   <nav class="tabs" id="tabs">
-    <button data-tab="zikir" class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="17.5" cy="8.5" r="2"/><circle cx="17.5" cy="15.5" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="6.5" cy="15.5" r="2"/><circle cx="6.5" cy="8.5" r="2"/></svg>Zikir</button>
+    <button data-tab="bugun"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Bugün</button>
+    <button data-tab="zikir"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="17.5" cy="8.5" r="2"/><circle cx="17.5" cy="15.5" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="6.5" cy="15.5" r="2"/><circle cx="6.5" cy="8.5" r="2"/></svg>Zikir</button>
     <button data-tab="dinle"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="5" height="7" rx="2"/><rect x="16" y="14" width="5" height="7" rx="2"/></svg>Dinle</button>
     <button data-tab="kutuphane"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Kütüphanem</button>
-    <button data-tab="dua"><svg viewBox="0 0 24 24"><path d="M12 3c2 3 2 6 0 9-2-3-2-6 0-9z"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>Dua</button>
     <button data-tab="kulliyat"><svg viewBox="0 0 24 24"><path d="M4 5h5v15H4zM10 5h5v15h-5z"/><path d="M16 6l4-1 2 14-4 1z"/></svg>Külliyat</button>
   </nav>
 </div>
@@ -266,12 +281,23 @@ const LISTELER=[
 /* ===================== Veri: Siyer Vakfı ===================== */
 const ENBIYA_T=["Yenilenmek Veya Yenilmek","Nasıl Dayandın Ya Resûlullah? (sas)","Neden Kur’an Tarihten Bu Kadar Bahseder?","Sîret-i Nebî’nin Sîret-i Enbiyâ İle İlişkisi","Kavramlar, Kaynaklar ve Usul Açısından Siret-i Enbiyâ","İlklerin İlki Hz. Âdem (as)","İmtihanlar ve Düşmanlıklar Arasında Hz. Âdem (as)","İlk Hata ve İlk Tevbe (Hz. Âdem)","Nimet Yurdundan Zahmet Yurduna Hz. Âdem (as)","Makamı Yüksek Bir Nebi Hz. İdrîs (as)","İnsanlığın İkinci Babası Hz. Nûh (as)","Tebliğde Israr ve İstikrarın Örneği Hz. Nûh (as)","Tepkiler ve İmtihanlar Karşısında Hz. Nûh (as)","Tuğyan ve Tufan Arasında Bir Peygamber: Hz. Nûh (as)","Âlemler İçinde Nûh’a Selâm Olsun!","Âd Kavmine Gönderilen Kardeşleri Hz. Hûd (as)","Hz. Hûd’un (as) Hayatında Değişmeyen İki Gündem Tevhid ve Tebliğ","Hz. Hûd’un (as) Haber Verdiği Rahmet ve Azap","İbretlerle Dolu Bir Kavim: Semûd Kavmi","Tevhidden Şirke Şirkten Tevhide Semûd Kavmi","Allah’ın (cc) Arzında Allah’ın (cc) Devesi (Hz. Salih)","Kurulan ve Bozulan Tuzaklar (Hz. Salih)","Nebevî Bakış (5 Gözlük)","En Güzel Örneklikte Zirve Bir Peygamber Hz. İbrâhim (as)","İbrâhimî Dinler mi İbrâhimî Yol mu?","Hz. İbrahim'in (as) Hayatından Bâki Hakikatler, Fâni Şahsiyetler","Hz. İbrahim'den Âleme Yayılan Merhamet Mesajları","Putlarla Mücadelede Hz. İbrahim (as) Örnekliği","Tevhidi ve Tebliği Hz. İbrâhim'den (as) Öğrenmek","Kavuşmak İçin Terk Etmenin Örneği Hz. İbrâhim (as)","İmtihanlar ve Mücadeleler Arasında Hz. İbrâhim (as)","Hz. İbrâhim'in (as) İnsanlığa Mirasları","Kâbe'nin İhyası ve Hz. İbrâhim'in Sofrası","Hz. İbrâhim'den İki Hastalığa İlaç (Cimrilik ve Vesvese)","Hz. İbrâhim'den İnanç Noktasındaki Vesveselere Devalar","Hz. İbrâhim'in (as) Duaları ve Evrensel Mesajları","Halîm Bir Peygamber Hz. İsmâil (as)","Evlat, Eş, Baba ve Dede Olarak Hz. İsmâil (as)","Resûlullah (sas), Atası Hz. İsmâil'i (as) Anlatıyor!","Âlim Bir Peygamber Hz. İshak (as)","Müheymin Olan Kur'ân Hz. İshak'ı Anlatıyor!","Müjde İle Gelen Hz. İshak'ın (as) Müjdeleri","Âlemlere Üstün Kılınan Bir Peygamber Hz. Lût (as)","Hüküm ve İlim Verilen Bir Peygamber Hz. Lût (as)","Selâm Olsun Seçilmiş Bir Kul Olan Hz. Lût'a (as)","İnsanlığa İbret Olarak Gösterilen Bir Kavim Lût Kavmi","Sınırları İhlal Eden Bir Kavim Lût Kavmi","Dünü ve Bugünü İle Lût Kavminin Ameli","Hz. Lût'un (as) Kavminin Kazananları ve Kaybedenleri","Muhteşem Bir Sermaye: Peygamberler Tarihi","Bir Umut Muallimi Olarak Hz. Ya'kûb","İsrâîloğulları'nın Atası Hz. Ya'kûb","Hz. Yakub'un Hayatı ve Çağları Aşan Vasiyeti","Şifa Vesilesi; Yusuf Suresi","Hz. Yusuf'un Rüyası ve Kardeşleriyle İmtihanları","Kaybederek Kazanmanın Örneği Hz. Yusuf","Kuyudan Pazara Pazardan Saraya Hz. Yusuf","Hz. Yusuf'un (as) Arkadan Yırtılan Gömleği","Hz. Yûsuf'un Saraydan Zindana Yolculuğu","Hz. Yûsuf İle Gülistana Dönen Zindan","Devlet Yönetiminde Hz. Yûsuf Örnekliği","Hz. Yûsuf (as) Ekonomiyi Nasıl Korudu?","Hz. Yûsuf'un (as) Bize Öğrettiği Yöntemler","Hz. Yûsuf'un (as) Kardeşleriyle Buluşması","Hz. Yûsuf'a (as) Öğretilen Plan","Hz. Yûsuf'un Gayreti Hz. Ya'kûb'un Hasreti","Kardeşliği Hz. Yusuf'tan Öğrenmek","Hz. Yûsuf'un Sona Eren Hasreti ve En Büyük Hedefi","Allah'a Yönelişin Zirve Hali Hz. Eyyub","Sabır Medresesi'nin Muallimi Hz. Eyyûb","Hz. Eyyub'un (as) İlaçları","Hayırların Öncüsü Bir Peygamber Hz. Zülkifl","Hz. Zülkifl'den Nasibimize Düşenler","Emaneti Hz. Şuayb'tan Öğrenmek","Hz. Şuayb'ın Eksik Ölçüp Tartanlarla Mücadelesi","Hz. Şuayb'ın Adaleti Emreden Namazı","İsrailoğulları'ndan Bana Ne!","Kur'an'ın En Fazla Anlattığı Peygamber Hz. Musa (as)","Peygamberimizin (sas) Dünyasında Hz. Mûsâ (as)"];
 const AHLAK_T=["Neden Muhteşem Ahlâk?","Ahlâkın Temeli Kur’an","Babamız Hz. İbrahim’in Sünneti Kurban ve Bunun Ahlâkı","Arşın Gölgesindeki Tüccar","Ticaretten Medeniyete Medine Pazarı","Bir Tüccar Olarak Hz. Peygamber (sas)","Tüccarlara Kur’an’dan ve Sünnetten Altın Kurallar","Elindeki Değil Belindeki Kamçı; Borç","Sahip Olma Değil Şahit Olma Dünyası","Peygamberimizin (sas) Düşman Olduğu Kişi","Peygamberimizin (sas) Öptüğü Eller","El-Latif İsminin Gölgesinde Latife","Dünyadaki Cennet; Aile","Cennetin Şubesi Evler","İbret Alınacak Evler","Evden Cennete Uzanan Köprü; Anne","Kur’an ve Sünnet Çerçevesinde Anne","Hakkı Ödenmeyecek Bir Hazine; Baba","Ana Babaya İhsan mı, İtaat mi?","Rahman’dan Bir Bağ; Sıla-i Rahim","Akraba İle Münasebette Peygamber Örnekliği","Vahyin Emin Meleğinden Mühim Bir Tavsiye; Komşuluk Hakkı","Saadet Asrı’nın Rehberliğinde Komşuluk","İmtihanların En Ağırı; Çocuk","El-Vehhab Olan Allah’ın En Güzel Bahşişi; Çocuk","Çocuklar İçin Fiili Bir Dua İsim Koyma","Nebevî Medrese’de Çocuk Terbiyesi","En Güzel Babadan Çocuk Eğitimi Dersleri","Çocuk Terbiyesinde İki Önemli Azık; Muhabbet ve Merhamet","Çocuklara Vurulması Gereken En Mühim Aşı","Cehennem Siperi ve Cennet Müjdesi; Kız Çocuğu","Sahabe’nin Örnekliğinde Çocuk Eğitimi","Gözlerin Aydınlığı Namaz ve Çocuk","Melekleri İmrendiren Şeytanları Uzaklaştıran Meclisler","Ey Resulullah’ın (sas) Vasiyetleri; Yusuflar, Meryemler, Mus’ablar, Esmalar…","Değer ve Sorumlulukları Açısından Evlilik","Nikâhta Keramet, Nikâhsızlıkta Felaket Vardır","Nikâhta Keramet, Nikâh Sağlam Bir Teminat, Ağır Bir Söz","Saadet Asrının Örnekliğinde Düğün","Evliliğin İlk Ayları, Gelin Kaynana Savaşları","Dünyanın En Kıymetli Hazinesi; Salih ve Saliha Eş","Nebevî Medrese’den İdeal Eş Olmanın Örnekleri","Saadet Asrında Aile Modelleri ve Çok Eşlilik Meselesi","Evlilik Kader Midir, Yoksa İrade Midir?","Hz. Peygamber’i (sas) Savunmada Nebevî Örneklik","Nimet İçerisinde Mahrumiyet, Mahrumiyet İçerisinde Nimet","Şakası Olmayan Amel; Talak","Emrin Başım Üstüne; Tesettür Ahlakı","Tesettürün Ruhu Örten Boyutu","Şekil ve Muhteva Yönünden Tesettür","Ben Örtünmekle Emrolundum! Erkeğin Tesettürü","Mahrem, Namahrem ve Mahremiyet","İmanın Ahlakı Olur mu?","Ne Tatlı Bir Nimetsin Sen Ey İman!","Hepimiz Aynı Geminin Yolcularıyız","Değişmeyen Hakikat Tevhid","Çok İyi Bil ki Allah’tan Başka İlah Yoktur!","Kur’anî Bir Kavram Olarak Tağut","Akıbet Karartan Hâl Küçük Şirk Riya","Riyanın Devası İhlas; İhlasın Kaynağı İhsan","“5 Damla” (Mücadele Ahlakı)","Mücadelenin Eşsiz Kahramanı Hz. Hüseyin","İhtilaf Rahmet, Tefrika Zahmettir","Nübüvvet Mektebi’nden İhtilaf Ahlâkının Örnekleri","En Güzel Örneklerden İhtilaf Ahlakı Dersleri","Eleştirmek Hem Hak, Hem Vazife! Ama Nasıl?","Hakkın Hatırı İçin Münazara","İlmin İzzeti ve Namusu İçin Münazara","İfsad Edilen Ekinler, Bozulan Nesiller","Kavramlar Çerçevesinde Beslenme Ahlakı","Medeniyet İnşasında Yeme İçme Kültürü","Medine Sofralarından Günümüz Sofralarına Mesajlar","Sünnette Koruyucu Hekimlik Ve İçme Adabı","Gafletten Nimete Uyku (Uyku Ahlakı)","İlahî Bir İkram Rüya ve Rüya Fıkhı (Rüya Ahlakı)","Rüyaların En Güzeli, Değerlisi, Bereketlisi"];
+const ARCH={"herkes": ["Herkes İçin Siyer/01. Neden, Nasıl ve Niçin Siyer (1. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/02. Nübüvvet Öncesi Dünya ve Mekke (2. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/03. Hz. Peygamber'in (sas) Doğumu ve Çocukluk Devresi (3. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/04. Gençliği ve Hz. Hatice (ra) İle Evliliği (4. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/05. Hira'daki Büyük Buluşma ve Vahyin Nazili (5. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/06. Vahyin İlk Günleri ve Nübüvvet Evine Etkileri (6. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/07. Özel Davet Yılları ve Darü'l-Erkam Süreci (7. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/08. Özelden Genele Davet ve Mekke'de Oluşan Tepkiler (8. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/09. Muhasara Günleri ve Ağır İmtihanlar (9. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/10. Hüzünlü Ayrılıklar ve Taif Yolculuğu (10. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/11. Rabbanî İltifat; İsra ve Miraç Yolculuğu (11. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/12. Mina Çadırlarından Yükselen Seda (12. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/13. Ufukta Yesrib Var! Hicret Stratejisi (13.Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/14. Yesrib Nurlanıyor (14. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/15. Yesrib Medine Oluyor, Mescid Toplumun Kalbi Kılınıyor (15. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/16. İman İle İnkarın İlk Büyük Buluşması Bedir (16. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/17. Hz. Âişe (ra) Annemizin Gelişi ve Medine'nin İlkleri (17. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/18. Mağlubiyetin Zaferi Uhud (18. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/19. Yeniden Şahlanışın Adı Hamrâülesed (19. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/20. Mustalikoğulları Gazvesi'nden Âleme Mesajlar (20. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/21. Küfrün Tek Millet Olduğu Savaş Hendek Gazvesi (21. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/22. Barış İle Gelen Müjde Hudeybiye (22. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/23. İhanet Merkezi Hayber (23. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/24. Bir Büyük Destanın Adı Mûte (24. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/25. Büyük Fetih ve Sona Eren Hasret Mekke'nin Fethi (25. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/26. Bir Mektep Olarak Huneyn (26. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/27. Bitmek Bilmeyen Davet Hırsı Heyetler Yılı (27. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/28. Zorluk Seferi Tebûk (28. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/29. İnsanlığa En Büyük Mesaj Veda Haccı (29. Bölüm)   Herkes İçin Siyer.mp3", "Herkes İçin Siyer/30. Medine'nin En Hüzünlü Günü Resûlullah'ın (sas) Vefatı (30. Bölüm)   Herkes İçin Siyer.mp3"], "nebevi": ["01. Sözlerin En Güzeli En Güzelin (sas) Sözleri   Muhammed Emin Yıldırım (Giriş).mp3", "02. Nebevî Mirasın Sadıklarından Olabilmek   Muhammed Emin Yıldırım (1. Ders).mp3", "03. Senden Razıyız Ya Resûlullah! (sas)   Muhammed Emin Yıldırım (2. Ders).mp3", "04. Okunan Ayetler, Öğretilen Hikmetler...   Muhammed Emin Yıldırım (3. Ders).mp3", "05. Sözlerimi Duyan, Duymayanlara Ulaştırsın!   Muhammed Emin Yıldırım (4. Ders).mp3", "06. Sahâbe'nin Dünyasında İki Azık Fedakârlık ve Sebat   Muhammed Emin Yıldırım (5. Ders).mp3", "07. Bereketlenen Zamanlar ve Zeminler   Muhammed Emin Yıldırım (6. Ders).mp3", "08. Hadisin Altın Çağı ve Bu Çağın Kahramanları   Muhammed Emin Yıldırım (7.Ders).mp3", "09. Hadislere Yaklaşımda İki Büyük Tehlike   Muhammed Emin Yıldırım (8. Ders).mp3", "10. Merhamete Mazhar Olmanın Yolu Peygambere İtaat Etmek   Muhammed Emin Yıldırım (9. Ders).mp3", "11. Allah'ı Sevmenin İspatı Peygambere İttiba   Muhammed Emin Yıldırım (10. Ders).mp3", "12. Tefrikanın Devası Değerlere İ'tisâm Sarılmak   Muhammed Emin Yıldırım (11. Ders).mp3", "13. Amellere Değer Katan Azık İhsan   Muhammed Emin Yıldırım (12. Ders).mp3", "14. Duygu, Düşünce ve Davranışlara Vurulan Peygamber Mührü İtidal   Muhammed Emin Yıldırım (13. Ders).mp3", "15. Sünnet Olmadan Denge Olmaz!   Muhammed Emin Yıldırım (14. Ders).mp3", "16. Güzel ve Önemli Bir Sünnet Sadelik   Muhammed Emin Yıldırım (15. Ders).mp3", "17. Sadeliği Yıkan ve Sonu Azap Olan Bir Hastalık Kibir   Muhammed Emin Yıldırım (16. Ders).mp3", "18. Müslümanlığımızın Kıvam Hali Vakar   Muhammed Emin Yıldırım (17. Ders).mp3", "19. Hakikate Hakkıyla Şahid Olmak   Muhammed Emin Yıldırım (18. Ders).mp3", "20. Temsil ve Tebliğde Doğru Davranışlar   Muhammed Emin Yıldırım (19. Ders).mp3", "21. Dini Hayatımızın En Önemli Azığı Heyecan   Muhammed Emin Yıldırım (20. Ders).mp3", "22. Müslüman Uyumludur!   Muhammed Emin Yıldırım (21. Ders).mp3", "23. Kurtuluş Faydasız İşleri Terk Etmekte   Muhammed Emin Yıldırım (22. Ders).mp3", "24. Kulluğun Zirvesi Allah'tan (cc) Razı Olmak   Muhammed Emin Yıldırım (23. Ders).mp3", "25. İlk ve En Önemli Dert İman    Muhammed Emin Yıldırım (24. Ders).mp3", "26. İmanın Esası ve Özü Tevhid   Muhammed Emin Yıldırım (25. Ders).mp3", "27. Hakiki Hürriyet Teslimiyet   Muhammed Emin Yıldırım (26. Ders).mp3", "28. Tevhidin ve Teslimiyetin Meyvesi Tevekkül    Muhammed Emin Yıldırım (27. Ders).mp3", "29. İmanın En önemli Ölçüsü Tazim    Muhammed Emin Yıldırım (28. Ders).mp3", "30. Sonuna Kadar Açık Kapı Tevbe    Muhammed Emin Yıldırım (29. Ders).mp3", "31. Çıkış Yolu Takva   Muhammed Emin Yıldırım (30. Ders).mp3", "32. Nebevî Miras'ta Kur'an Ayı Ramazan   Muhammed Emin Yıldırım (31. Ders).mp3"], "oteki": ["01. Gaye, Mahiyet ve Usulü Çerçevesinde Öteki Hayat   Muhammed Emin Yıldırım (1. Ders).mp3", "02. Bütün Dertlerin Dermanı Ahirete İman   Muhammed Emin Yıldırım (2. Ders).mp3", "03. Kurtuluş Ahirete Kesinkes İman Edebilmekte   Muhammed Emin Yıldırım (3. Ders).mp3", "04. Allah'ın Bir İhsanı ve Rahman'ın Bir Hediyesi Olarak Hastalık   Muhammed Emin Yıldırım (4. Ders).mp3", "05. Bir İmtihan, Bir Hak ve Bir Nasihat Olarak Hastalık   Muhammed Emin Yıldırım (5. Ders).mp3", "06. Muhakkak Sen de Öleceksin Onlar da Ölecek!   Muhammed Emin Yıldırım (6. Ders).mp3", "07. Ölüm Baygınlığı Geldiği Zaman!   Muhammed Emin Yıldırım (7. Ders).mp3", "08. Müminler Diyarına Yolculuk   Muhammed Emin Yıldırım (8. Ders).mp3", "09. Kabir Uzun Bir Yolculuğun İlk Kapısı   Muhammed Emin Yıldırım (9. Ders).mp3", "10. Dünya İle Ahiret Arasındaki Perde Berzah Âlemi   Muhammed Emin Yıldırım (10. Ders).mp3", "11. Kur'an ve Sünnet Işığında Kabir Azabı Meselesi   Muhammed Emin Yıldırım (11. Ders).mp3", "12. Yarın Kadar Yakın Bir Hakikat Kıyamet   Muhammed Emin Yıldırım (12. Ders).mp3", "13. Alamet ve Mesajları İle Kıyamet   Muhammed Emin Yıldırım (13. Ders).mp3", "14. Hayatı Bitiren ve Ebedi Hayatı Başlatan Bir Nefes Sûr   Muhammed Emin Yıldırım (14. Ders).mp3", "15. Büyük Gün, Hassas Hesap Mahşer   Muhammed Emin Yıldırım (15. Ders).mp3", "16. Hâkimi Allah (cc) Olan Büyük Mahkeme   Muhammed Emin Yıldırım (16. Ders).mp3", "17. Allah'ın (cc) Mümin Kullarına Büyük İkramı Şefaat   Muhammed Emin Yıldırım (17. Ders).mp3", "18. Hesap'tan Havuz'a, Havuz'dan Sırat'a Bir Yolculuk   Muhammed Emin Yıldırım (18. Ders).mp3", "19. Cehennem Yakıtı İnsanlar ve Taşlar Olan Azab Yurdu   Muhammed Emin Yıldırım (19. Ders).mp3", "20. Cennet Nimetlerle Donatılan Mükâfatlar Yurdu   Muhammed Emin Yıldırım (20.Ders).mp3", "21. Cenneti Anlamaya Hayaller Yeter mi   Muhammed Emin Yıldırım (21. Ders).mp3", "22. Öteki Hayatı Kazanmanın Büyük Bir Fırsatı Ramazan   Muhammed Emin Yıldırım (22. Ders).mp3"], "ehlibeyt": ["Ehlibeyt Mektebi - Muhammed Emin Yıldırım/01. Ehlibeyt'in Azığı Gözyaşı (1. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/02. Neden Ehlibeyt Dersleri (2. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/03. Hz. Peygamber’de (sas) Ehl-i Beyt Sevgisi (3. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/04. Sahabe'de Ehlibeyt Sevgisi (4. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/05. Ümmetin Ehlibeyt Sevgisi (5. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/06. Ehlibeyti Sevgide Ölçü (6. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/07. Kur'an'da Ehlibeyt (7. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/08. Kefaret ve Muhasebe (8. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/09. Ayetler Işığında Ehlibeyt (9. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/10. Mecazi Anlamda Ehlibeyt (10. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/11. Efendimiz'in (sas) Ehlibeyt Olarak Seçtikleri (11. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/12. Önemli Bir Sünnet Kardeşlik (12. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/13. Şeref ve Sorumluluk Çerçevesinde Ehlibeyt (13. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/14. İstikamet Misali Hz. Ali (r.a) (14. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/15. İlmin Kapısı Hz. Ali (r.a.) (15. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/16. Babasının Kızı Hz. Fatıma (r.a.) (16. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/17. Babasının Annesi Hz Fatıma (r.a.) (17. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/18. Hz. Ali'nin Hanımı Hz. Fatıma (r.a.) (18. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/19. Ehlibeyt'in Annesi Hz. Fatıma (r.a.) (19. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/20. Hikmet Pınarı Hz. Fatıma (r.a) (20. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/21. Efendimiz'in (sas) İki Gülü Hasan ile Hüseyin (r.a) (21. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/22. Hz. Peygamber (sas) Gaybi Bilir mi (22. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/23. Ehlibeyt Evinin Vahdet Kahramanı Hz. Hasan (r.a) (23. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/24. Şehitlerin Sertacı Hz. Hüseyin (r.a) (24. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/25. Ehlibeyt'in Büyük İmtihanı Kerbela (25. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/26. Kerbela'nın Şehitleri Ve Şahitleri (26. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/27. Şahitler Kervanı (27. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/28. Nebevi Veraset ve Namaz (28. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/29. Abidelerin Ziyneti İmam Zeynel Abidin (29. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/30. Doğru Zamanın ve Doğru Zeminin İmamı İmam Zeynelabidin (30. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/31. Gerçek Bir İmam Zeyd B. Ali (31. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/32. İmam Zeyd'in İlmi ve Mezhebi (32. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/33. Peygamber (sas) Mescidinin İmamı Muhammed El Bâkır (33. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/34. İlimleri Yarıp Derinliklerine Ulaşan Âlim Muhammed El Bâkır (34. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/35. Sıdk Neslinin Meyvesi İmam Caferi Sâdık (35. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/36. Zor Zamanların İmamı İmam Caferi Sâdık (36. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/37. İlim Devletinin Sultanı İmam Caferi Sâdık (37. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/38. Dört Mesele İmam Caferi Sâdık (38. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/39. Ehlibeyt Mektebi'nde Çocuk Eğitimi (39. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/40. Hakiki Pehlivan İmam Musa Kâzım (40. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/41. Salih Kul İmam Musa Kâzım (41. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/42. Rıza Makamının Rehberi İmam Ali Rıza (42. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/43. Cömertlik Rehberi İmam Muhammed el-Cevad (43. Ders).mp3", "Ehlibeyt Mektebi - Muhammed Emin Yıldırım/44. Güzel Dost İmam Ali el-Hadi (44. Ders).mp3"], "sahabi": ["82il 82 Sahabe/001_ Adana - Hz.Ebû Bekir Sadık Dost.mp3", "82il 82 Sahabe/002_ Samsun Hz. Esma bint Ebû Bekir Mücadele ve Vakar Örneği.mp3", "82il 82 Sahabe/003_ Malatya - Hz.Suheyb i Rumî Allah ile Ticaret Yapan Sahabi.mp3", "82il 82 Sahabe/004_ Gaziantep Hz.Cerir b. Abdullah Antep 'in Sakini.mp3", "82il 82 Sahabe/005_ Edirne - Hz.Es 'ad b.Zürare Saadetli Sahabi.mp3", "82il 82 Sahabe/006_ Hatay - Hz. Ebû Ubeyde b.Cerrah Ümmetin Emini.mp3", "82il 82 Sahabe/007_ Urfa Hz İyad b Ğanem Anadolu 'nun Fatihi.mp3", "82il 82 Sahabe/008_ hz_selmani_farisi.mp3", "82il 82 Sahabe/009_ Karaman - Hz.Bera b. Malik Şehadet Sevdalısı.mp3", "82il 82 Sahabe/010_hz_omer_b_hattab.mp3", "82il 82 Sahabe/011_hz_abdullah_b_cahs.mp3", "82il 82 Sahabe/012_hz_ebuzer_gifari.mp3", "82il 82 Sahabe/013_hz_cabir_b_abdullah.mp3", "82il 82 Sahabe/014_hz_abdullah_b_abbas.mp3", "82il 82 Sahabe/015_hz_ammar_b_yasir.mp3", "82il 82 Sahabe/016_ Muğla - Hz. Ebu Talha Bin Sehl İnfak Kahramanı.mp3", "82il 82 Sahabe/017_hz_abdullah_b_cafer.mp3", "82il 82 Sahabe/018_hz_ebud_derda.mp3", "82il 82 Sahabe/019_hz_osman_b_affan.mp3", "82il 82 Sahabe/020_ Aksaray - Hz. Saîd B. Zeyd Kabul Olunmuş Bir Dua.mp3", "82il 82 Sahabe/021_ Niğde - Hz Aîşe Efendimiz 'in (sas) Sevgilisi.mp3", "82il 82 Sahabe/022_ Ankara - Hz Hatice (R.A) Risalet Davasının Annesi.mp3", "82il 82 Sahabe/023_ Erzurum - Hz. Habib B. Mesleme Erzurum 'un Fatihi (R.A).mp3", "82il 82 Sahabe/024_ Mersin - Hz. Rümeysa Bint Milhan (R.A) Teslimiyet Kahramanı.mp3", "82il 82 Sahabe/025_ Sakarya - Hz Hubeyb B Adîy R A Sahabice Sevda.mp3", "82il 82 Sahabe/026_ Muş - Hz Abdullah B. Mes 'ûd (R.A) Tevhid Kalesi.mp3", "82il 82 Sahabe/027_ Antalya - Hz Ubade B. Sâmit (R.A) Kur 'ân Muallimi.mp3", "82il 82 Sahabe/028_ Erzincan - Hz Fatıma Bint Muhammed (RA) Babasının Kızı.mp3", "82il 82 Sahabe/029_ İzmir - Hz Mus 'ab B Ümeyr R A Zor İşlerin Adamı.mp3", "82il 82 Sahabe/030_ Elazığ Hz Hasan B. Ali (R.A) Dedesine Benzeyen Torun.mp3", "82il 82 Sahabe/031_ Uşak - Hz Miktad B. Amr (R.A) İslam 'ın Süvarisi.mp3", "82il 82 Sahabe/032_ Kırşehir - Hz Zeyd B Hattab R A Ömerce Bir Yiğitlik.mp3", "82il 82 Sahabe/033_ Nevşehir Hz Âtike Bint Zeyd (R.A) Şehitlerin Hanımı.mp3", "82il 82 Sahabe/034_ Ardahan Hz Huzeyfe B. Yemân Resullullah 'ın Sırdaşı.mp3", "82il 82 Sahabe/035_Hz. Ümmü Haram Bint Milhan (R.A.) Hala Sultan & Muhammed Emin Yıldırım Hoca.mp3", "82il 82 Sahabe/036_Hz Zeyneb B. Cahş (R.A) İnfak Kahramanı Annemiz & Muhammed Emin Yıldırım Hoca.mp3", "82il 82 Sahabe/037_Hz Sa 'd B. Muaz Arşı Titreten Sahabî & Muhammed Emin Yıldırım Hoca.mp3", "82il 82 Sahabe/038_Hz Amr B. Ma 'dikerib (R.A) Bin Kişiye Bedel Asker & Muhammed Emin Yıldırım Hoca.mp3", "82il 82 Sahabe/039_Hz Abdullah B. Revâha (R.A) Peygamber 'in (SAS) Şairi & Muhammed Emin Yıldırım Hoca.mp3", "82il 82 Sahabe/040_Hz Malik B. Teyyihan Medine 'nin Yiğidi & Muhammed Emin Yıldırım Hoca.mp3", "82il 82 Sahabe/041_Hz Hafsa Bint Ömer Peygamber 'in (sas) Nazlı Gülü & Muhammed Emin Yıldırım Hoca.mp3", "82il 82 Sahabe/042_Hz Safiyye Bint Abdulmuttalib İslam 'ın Kalesi & Muhammed Emin Yıldırım Hoca.mp3", "82il 82 Sahabe/043_Hz. Safvân B. Muattal (R.A) İffet Kahramanı _ Adıyaman.mp3", "82il 82 Sahabe/044_Hz. Şurahbil B. Hasene (R.A) Vahyin Emin Kâtibi _ Kilis.mp3", "82il 82 Sahabe/045_Hz. Abdullah B. Zübeyr (R.A) Mescit Güvercini _ Amasra.mp3", "82il 82 Sahabe/046_Hz. Ebû Eyyüb El Ensarî (R.A) İstanbul'un Fatihi _ İstanbul.mp3", "82il 82 Sahabe/047_Hz. Halid B. Velid (R.A.) Allah 'ın Kılıcı _ Diyarbakır.mp3", "82il 82 Sahabe/048_Hz. Zübeyr B. Avvam (R.A) Peygamber'in (SAS) Havarisi _ Tokat.mp3", "82il 82 Sahabe/049_Hz. Abdurrahman B. Avf (R.A) Rahmân'ın Tüccarı _ Siirt.mp3", "82il 82 Sahabe/050_Hz. Abdullah B. Ömer (R.A) Alim Sahabî _ Düzce.mp3", "82il 82 Sahabe/051_Hz. Erkam B. Ebî'l Erkam (R.A) Evini İslâm'a Açan Yiğit _ Aydın.mp3", "82il 82 Sahabe/052_Hz. Talha B. Ubeydullah (R.A) Yaşayan Şehit _ Sivas.mp3", "82il 82 Sahabe/053_hz_abdullah_cankiri.mp3", "82il 82 Sahabe/054_hz_ali_aslanlarin_aslani_tunceli.mp3", "82il 82 Sahabe/055_hz_huseyin_cennetin_cicegi_bingol.mp3"], "suffa": ["Akaid İlminin Değer ve Önemi   Muhammed Emin Yıldırım.mp3", "Allah'ın (cc) İsminin Anıldığı Evler   Muhammed Emin Yıldırım.mp3", "Bid'at Kavramının Anlaşılması   Muhammed Emin Yıldırım.mp3", "Cennet Bahçeleri Suffa Meclisleri   Muhammed Emin Yıldırım.mp3", "Ehli Sünnet ve Mezhep Kavramlarının Anlaşılması   Muhammed Emin Yıldırım.mp3", "Hayatın Nabzını Tutmak   Muhammed Emin Yıldırım.mp3", "Hz. Peygamber'in (sas) Muallimliği   Muhammed Emin Yıldırım.mp3", "Kardeşlik Meltemi Suffa Meclisleri   Muhammed Emin Yıldırım.mp3", "Kur’an Mualliminde Olması Gereken Vasıflar   Muhammed Emin Yıldırım.mp3", "Meclislerin Hakkı Nasıl Verilir   Muhammed Emin Yıldırım.mp3", "Nasıl Bir Muallim ve Nasıl Bir Talebe   Muhammed Emin Yıldırım.mp3", "Nebevî Bir Müjde ve İthaf   Muhammed Emin Yıldırım.mp3", "Rahman'ın Has Kulları   Muhammed Emin Yıldırım.mp3", "Sahabe'nin Rehberliğinde Muallimlik   Muhammed Emin Yıldırım.mp3", "Sahâbe Yokları Var Kılan Bir Nesil   Muhammed Emin Yıldırım.mp3", "Siyer Dersleri Bize Neler Öğretti   Muhammed Emin Yıldırım.mp3", "İlim Amel Dengesi   Muhammed Emin Yıldırım.mp3", "İlim Meclislerinin Değeri ve Kazanımları   Muhammed Emin Yıldırım.mp3", "İlmihal Nedir Nasıl Talim Edilmelidir   Muhammed Emin Yıldırım.mp3"]};
+const archUrl=(id,f)=>"https://archive.org/download/"+id+"/"+f.split("/").map(encodeURIComponent).join("/");
+const titleCase=s=>s.replace(/\bhz\b\.?/gi,"Hz.").split(" ").map(w=>w?w[0].toLocaleUpperCase("tr")+w.slice(1):w).join(" ");
+const cleanT=f=>{let t=f.split("/").pop().replace(/\.mp3$/i,"").replace(/\s{2,}.*$/,"").replace(/&\s*Muhammed Emin Yıldırım Hoca/i,"").replace(/^\d+[._]\s*/,"").replace(/\s*\(\d+\.\s*(Ders|Bölüm)\)\s*$/,"");if(/_/.test(t)&&t===t.toLowerCase())t=titleCase(t.replace(/_/g," "));return t.replace(/ _ /g," · ").trim()};
+const archSeries=(id,n,d,ident,hue)=>({id,n,d,hue,count:ARCH[id].length,titles:ARCH[id].map(cleanT),u:k=>archUrl(ident,ARCH[id][k-1])});
 const ASR_T=["Fil Vakası - Peygamberimizin Doğumu", "Anneye Veda", "Şam Yolculuğu", "Hz. Hatice ile Evlilik", "Zeyd’le Tanışma", "İlk Vahiy", "Darü’l-Erkam", "İlk Davet", "İlk Müslümanlar", "İlk Şehitler", "Hz. Hamza’nın Müslüman Oluşu", "Suikast Planları", "Hz. Ömer’in Müslüman Oluşu", "Üç Soru", "Habeşistan Hicreti", "Necaşi’nin Soruları", "Boykot", "Boykotun Kaldırılması", "Hüzün Yılı", "Taif Yolculuğu", "Miraç", "Miraç’ın Etkileri", "Ensar ile İlk Tanışma", "İlk Öğretmenler", "Akabe Biati", "İlk Muhacirler", "Hicret Hazırlığı", "Üçüncüsü Allah Olan İki Kişi", "Kubâ", "Ay Doğdu Üzerimize", "İlk Mescit", "Kardeşlik", "Yahudiler", "Selman’ın Hikâyesi", "Ezan-ı Muhammedî", "Ashab-ı Suffa", "Hanım Sahabilerin Tepkileri", "Enes b. Malik", "Mescid-i Nebi’de Hatıralar", "Medine’ye Ültimatom", "Nahle Vakası", "Kıblenin Değişmesi", "Bedir’e Doğru", "Bedir Savaşı -1", "Bedir Savaşı -2", "Bedir Savaşı -3", "Zafer ve Ganimetler", "Şehitler ve Esirler", "Kureyş’in Hezimeti", "Kaynukaoğulları", "Bayram", "Hz. Ali ve Hz. Fâtıma", "Mescid-i Nebî’den Hatıralar 1", "Mescid-i Nebî’den Hatıralar 2", "Kureyş’in Savaş Hazırlığı", "Uhud’a Hazırlık 1", "Uhud’a Hazırlık 2", "Uhud’a Hazırlık 3", "Savaş Başlıyor (Uhud)", "Uhud Savaşı 1", "Uhud Savaşı 2", "Uhud Savaşı 3", "Uhud Savaşı 4", "Uhud Sonrası 1", "Uhud Sonrası 2", "Hamrâu’l-Esed", "Taziyeler", "Nesibe Hatun", "Reci’ Faciası", "Bi’r-i Maûne 1", "Bi’r-i Maûne 2", "Bi’r-i Maûne 3", "Bi’r-i Maûne 4", "Bi’r-i Maûne 5", "Yahudilerin Suikast Girişimi", "Sürgün", "Zekâtın Farz Oluşu", "Hz. Bilal ile Hz. Ebû Zer", "Teravih Namazı", "Selman’ın Özgürlüğüne Kavuşması 1", "Selman’ın Özgürlüğüne Kavuşması 2"];
 const ASR_ID=[60874011, 60874013, 60874014, 60874016, 60874017, 62498884, 60874019, 60874020, 60874021, 60874022, 60874024, 60874026, 60874027, 60874028, 60874029, 60874031, 60874033, 60874034, 60874036, 60874038, 60874039, 60874040, 60874041, 60874044, 60874045, 60874046, 60874047, 60874048, 60874050, 60874051, 60874052, 60874053, 60874055, 60874056, 60874057, 60874058, 60874059, 60874060, 60874061, 60874062, 60874063, 60874064, 60874067, 60874068, 60874069, 60874072, 60874073, 60874074, 60874077, 60874078, 60874079, 60874080, 60874081, 60874082, 60874083, 60874084, 60874085, 60874086, 60874087, 60874088, 60874089, 60874090, 60874092, 60874093, 60874095, 60874096, 60874099, 60874100, 60874102, 60874103, 60874108, 60874109, 60874110, 60874112, 60874113, 60874115, 60874116, 60874117, 60874118, 60874119, 60874120];
 const SIYER=[
- {id:"asr",n:"Asr-ı Saadet Radyo Tiyatrosu",d:"Diyanet · Efendimizin (s.a.v.) ve ashabının hayatı",count:160,titles:ASR_T,u:n=>`https://archive.org/download/asr-i-saadet-radyo-tiyatrosu/${p3(n)}.mp3`,alt:n=>ASR_ID[n-1]?[`https://api.spreaker.com/download/episode/${ASR_ID[n-1]}/asr.mp3`]:[],sp:"https://open.spotify.com/show/7BG3RiPQXjdukSW1qmdjeC",who:"Diyanet Radyo"},
- {id:"enbiya",n:"Sîret-i Enbiyâ Dersleri",d:"Hz. Âdem'den başlayarak peygamberler tarihi",count:177,titles:ENBIYA_T,u:n=>`https://suffameclisleri.com/podcast/sireti-enbiya/${n}.mp3`,sp:"https://open.spotify.com/show/2mAv9iONNsDIwhwpH0rIsL"},
- {id:"ahlak",n:"Muhteşem Ahlâk Dersleri",d:"Kur'an ve Sünnet ışığında ahlâk; aile, ticaret, iman",count:100,titles:AHLAK_T,u:n=>`https://suffameclisleri.com/podcast/muhtesem-ahlak/muhtesem-ahlak-${n}.mp3`,sp:"https://open.spotify.com/show/6pdWmyaLxjB6s75ixmapg7"}
+ {hue:38,id:"asr",n:"Asr-ı Saadet Radyo Tiyatrosu",d:"Diyanet · Efendimizin (s.a.v.) ve ashabının hayatı",count:160,titles:ASR_T,u:n=>`https://archive.org/download/asr-i-saadet-radyo-tiyatrosu/${p3(n)}.mp3`,alt:n=>ASR_ID[n-1]?[`https://api.spreaker.com/download/episode/${ASR_ID[n-1]}/asr.mp3`]:[],sp:"https://open.spotify.com/show/7BG3RiPQXjdukSW1qmdjeC",who:"Diyanet Radyo"},
+ archSeries("herkes","Herkes İçin Siyer","Efendimizin hayatı baştan sona, 30 bölümde","Herkes-Icin-Siyer-M-Emin_Yildirim-30-Ders",150),
+ {hue:190,id:"enbiya",n:"Sîret-i Enbiyâ Dersleri",d:"Hz. Âdem'den başlayarak peygamberler tarihi",count:177,titles:ENBIYA_T,u:n=>`https://suffameclisleri.com/podcast/sireti-enbiya/${n}.mp3`,sp:"https://open.spotify.com/show/2mAv9iONNsDIwhwpH0rIsL"},
+ archSeries("nebevi","Nebevî Miras","Sözlerin en güzeli, en güzelin sözleri",'nebevi-miras-muhammed-emin-yildirim',265),
+ {hue:330,id:"ahlak",n:"Muhteşem Ahlâk Dersleri",d:"Kur'an ve Sünnet ışığında ahlâk; aile, ticaret, iman",count:100,titles:AHLAK_T,u:n=>`https://suffameclisleri.com/podcast/muhtesem-ahlak/muhtesem-ahlak-${n}.mp3`,sp:"https://open.spotify.com/show/6pdWmyaLxjB6s75ixmapg7"},
+ archSeries("oteki","Öteki Hayat","Ölüm, kabir, mahşer, cennet",'oteki-hayat-muhammed-emin-yildirim',220),
+ archSeries("ehlibeyt","Ehlibeyt Mektebi","Hz. Ali, Hz. Fâtıma, Hasan ve Hüseyin ve imamlar",'ehlibeyt-mektebi-muhammed-emin-yildirim',110),
+ archSeries("sahabi","82 İl 82 Sahabi","Anadolu'yla bağı olan sahabilerin hayatı",'82il82Sahabe-M-Emin-Yildirim',15),
+ archSeries("suffa","Suffa Meclisleri","İlim, kardeşlik ve muallimlik sohbetleri",'muhammed-emin-yildirim-suffa-meclisleri',95)
 ];
 const SIYER_VIDEO=[
  {n:"Sîret-i İnsan",d:"Siyer TV video arşivi",u:"https://www.siyertv.com/kategori/sireti-insan/"},
@@ -401,9 +427,9 @@ const DIZILER=[
 ];
 
 /* ===================== Durum ===================== */
-let tab=store.get("mk_tab","zikir");
+let tab=store.get("mk_tab","bugun");if(tab==="dua")tab="bugun";
 let dinleSeg=store.get("mk_dseg","kuran");if(!["kuran","siyer","sohbet","radyo"].includes(dinleSeg))dinleSeg="kuran";
-let duaSeg="sabah", kulSeg="ilahi";
+let duaSeg="sabah", kulSeg="soz";
 let kari=store.get("mk_kari2","fakih");
 let openSeries=null;
 let ZIKIR=ZIKIR_BASE.concat(store.get("mk_custom",[]));
@@ -540,7 +566,7 @@ function cycleSleep(){
 /* Parça üreticiler */
 const kariObj=()=>KARI.find(k=>k.id===kari)||KARI[0];
 const sureTrack=(n,kid)=>{const k=KARI.find(x=>x.id===kid)||kariObj();return{title:n+". "+SURE_TR[n-1]+" Sûresi",sub:k.n,src:k.s(n),art:makeArt(SURE_AR[n-1],"Kur'ân-ı Kerîm",168),key:"q_"+k.id+"_"+n,ctx:{type:"sure",n,kari:k.id},group:"Kur'ân-ı Kerîm"}};
-const siyerTrack=(S,n)=>({title:"Ders "+n+(S.titles[n-1]?" · "+S.titles[n-1]:""),sub:S.n+" · "+(S.who||"Muhammed Emin Yıldırım"),src:[S.u(n)].concat(S.alt?S.alt(n):[]),art:makeArt(String(n),S.n.replace(" Dersleri",""),190),key:"s_"+S.id+"_"+n,ctx:{type:"siyer",id:S.id,n},series:S.id,ep:n,group:"Siyer Vakfı"});
+const siyerTrack=(S,n)=>({title:(S.id==="asr"?"Bölüm ":"Ders ")+n+(S.titles[n-1]?" · "+S.titles[n-1]:""),sub:S.n+" · "+(S.who||"Muhammed Emin Yıldırım"),src:[S.u(n)].concat(S.alt?S.alt(n):[]),art:makeArt(String(n),S.n.replace(" Dersleri",""),190),key:"s_"+S.id+"_"+n,ctx:{type:"siyer",id:S.id,n},series:S.id,ep:n,group:"Siyer Vakfı"});
 const radioTrack=(r,i)=>({title:r.n,sub:r.d,src:[r.u],art:makeArt("راديو",r.n,30),live:true,key:"r_"+i,ctx:{type:"radio",i},group:"Canlı Radyo"});
 const RADIO_Q=()=>RADYO.map(radioTrack);
 function queueFromCtx(c){
@@ -616,13 +642,16 @@ function paintCounter(){
 function renderTotal(){const v=hist[todayKey()]||0;const kt=$("#kpiToday");if(kt)kt.textContent=v.toLocaleString("tr-TR");$("#todayTot").textContent=v?("Bugün "+v.toLocaleString("tr-TR")+" zikir"):""}
 
 /* ===================== Görünümler ===================== */
-const TITLES={zikir:"Zikir",dinle:"Dinle",kutuphane:"Kütüphanem",dua:"Dualar",kulliyat:"Külliyat"};
+const TITLES={bugun:"Bugün",zikir:"Zikir",dinle:"Dinle",kutuphane:"Kütüphanem",kulliyat:"Külliyat"};
 const mark=k=>(DONE[k]?'<span class="mk done">✓</span>':"")+(FAV[k]?'<span class="mk">♥</span>':"")+(NOTES.some(n=>n.key===k)?'<span class="mk">✎</span>':"");
 const progHTML=k=>{const p=POS[k],d=DUR[k];return p&&d?`<div class="bar2"><i style="width:${Math.min(100,p/d*100).toFixed(1)}%"></i></div>`:""};
+const ACC={bugun:["#e9a23b","#a8650f"],zikir:["#3fbf8f","#1d7a57"],dinle:["#5aa9e6","#2368a8"],kutuphane:["#c792ea","#7b3fb0"],kulliyat:["#ef7a8f","#b23a54"]};
+const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches};
+function setAccent(){let c=ACC[tab]||ACC.bugun;if(tab==="bugun"){try{const r=VAKIT_RENK[curVakit().v];c=[r[1],r[0]]}catch(e){}}document.documentElement.style.setProperty("--accent",isDark()?c[0]:c[1])}
 function renderView(){
   $("#pageTitle").textContent=TITLES[tab];document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
-  const v=$("#view");v.innerHTML=({zikir:vZikir,dinle:vDinle,kutuphane:vKutup,dua:vDua,kulliyat:vKulliyat})[tab]();
-  ({zikir:bZikir,dinle:bDinle,kutuphane:bKutup,dua:bDua,kulliyat:bKulliyat})[tab]();renderTotal();
+  setAccent();const v=$("#view");v.innerHTML=({bugun:vBugun,zikir:vZikir,dinle:vDinle,kutuphane:vKutup,kulliyat:vKulliyat})[tab]();
+  ({bugun:bBugun,zikir:bZikir,dinle:bDinle,kutuphane:bKutup,kulliyat:bKulliyat})[tab]();renderTotal();
 }
 
 /* --- Zikir --- */
@@ -641,6 +670,7 @@ function vZikir(){
       <button class="pill" id="zMinus">−1</button>
       <button class="pill" id="zReset">Sıfırla</button>
       <button class="pill" id="zTarget">Hedef</button>
+      <button class="pill" id="zSpeak">🔊</button>
       <button class="pill ${zs.chain?"acc":""}" id="zChain">Tesbihat ${zs.chain?"açık":"kapalı"}</button>
     </div>
     <button class="pill ${lockOn?"acc":"ghost"}" id="zLock" style="justify-self:center">${lockOn?"Kilit ekranı zikri açık · Kapat":"Ekran kapalıyken zikret"}</button>
@@ -658,7 +688,7 @@ function bZikir(){
   const tap=$("#tap");tap.addEventListener("pointerdown",e=>{e.preventDefault();inc(1)});tap.addEventListener("keydown",e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();inc(1)}});
   $("#zMinus").onclick=()=>inc(-1);
   $("#zReset").onclick=()=>confirmBox("Sayaç sıfırlansın mı?",zCur().r+" için sayım 0 olacak. Günlük toplamın değişmez.","Sıfırla",()=>{zs.counts[zs.cur]=0;saveZ();lockMeta();renderView()});
-  $("#zTarget").onclick=targetBox;
+  $("#zTarget").onclick=targetBox;$("#zSpeak").onclick=()=>speak(zCur().ar||zCur().r);
   $("#zChain").onclick=()=>{zs.chain=!zs.chain;if(zs.chain){zs.cur="subhan";TESBIHAT.forEach(id=>zs.counts[id]=0);toast("Namaz tesbihatı: 33 Sübhânallâh, 33 Elhamdülillâh, 33 Allâhu Ekber, tevhid")}saveZ();lockMeta();renderView()};
   $("#zLock").onclick=()=>lockOn?lockStop():lockStart();
   $("#zSound").onclick=()=>{store.set("mk_sound",!store.get("mk_sound",true));renderView()};
@@ -694,11 +724,11 @@ function vDinle(){
       <div class="ctrl">${last?`<button class="pill acc" id="sCont">Devam et · Ders ${last.n}</button>`:`<button class="pill acc" data-ep="1">Baştan başla</button>`}<a class="pill ghost" href="${S.sp}" target="_blank" rel="noopener">Spotify'da aç</a></div></div>
       <input type="search" id="eSearch" placeholder="Ders ara: Yusuf, Musa, 42…" style="margin:12px 0 10px">
       <div class="list" id="epList">${Array.from({length:S.count},(_,i)=>{const n=i+1,k="s_"+S.id+"_"+n,p=POS[k];return`<button class="row" data-ep="${n}" data-key="${k}"><span class="no">${n}</span><span class="t"><b>${esc(S.titles[i]||("Ders "+n))}</b><span>${p?"Kaldığın yer "+fmt(p)+(DUR[k]?" / "+fmt(DUR[k]):""):(DONE[k]?"Dinlendi":"Ders "+n)}</span>${progHTML(k)}</span>${mark(k)}</button>`}).join("")}</div>`}
-    return seg+`<div class="cards">${SIYER.map(S=>{const last=store.get("mk_last_"+S.id,null);return`<button class="card" data-series="${S.id}" style="padding:16px"><span class="tag">Sesli · ${S.count} ${S.id==="asr"?"bölüm":"ders"}</span><b style="font:600 17px/1.25 var(--f-disp)">${esc(S.n)}</b><span>${esc(S.d)}</span>${last?`<span style="color:var(--accent)">Kaldığın yer: Ders ${last.n}</span>`:""}</button>`}).join("")}</div>
-    <div class="note">Bu seriler ekranı kilitlesen de çalmaya devam eder, kaldığın yeri hatırlar, biri bitince sonrakine geçer.</div>
-    <h2>Video arşivi</h2>
+    return seg+`<button class="pill acc" id="yolBtn2" style="margin-bottom:12px">🚌 Yol modu · her seriden sıradaki ders</button><div class="cards">${SIYER.map(S=>{const last=store.get("mk_last_"+S.id,null);return`<button class="card" data-series="${S.id}" style="padding:16px;background:color-mix(in srgb,hsl(${S.hue||200} 65% 50%) 18%,var(--surface))"><span class="tag" style="color:hsl(${S.hue||200} 70% ${isDark()?65:35}%)">Sesli · ${S.count} ${S.id==="asr"?"bölüm":"ders"}</span><b style="font:600 17px/1.25 var(--f-disp)">${esc(S.n)}</b><span>${esc(S.d)}</span>${last?`<span style="color:var(--accent)">Kaldığın yer: Ders ${last.n}</span>`:""}</button>`}).join("")}</div>
+    <div class="note">Bu seriler ekranı kilitlesen de çalar, kaldığın yeri hatırlar, biri bitince sonrakine kendiliğinden geçer. Sîret-i İnsan'ın ses dosyaları artık yayında değil; onu aşağıdaki video arşivinden izleyebilirsin.</div>
+    <details style="margin-top:14px"><summary class="pill ghost" style="list-style:none;display:inline-flex">Video arşivini göster</summary>
     <div class="cards">${SIYER_VIDEO.map(v=>`<a class="card" href="${v.u}" target="_blank" rel="noopener"><span class="tag yt">${v.u.includes("youtube")?"YouTube":"Siyer TV"}</span><b>${esc(v.n)}</b><span>${esc(v.d)}</span></a>`).join("")}</div>
-    <div class="note"><b>Video dersleri arka planda dinlemek için:</b> YouTube'u uygulama yerine Safari'de aç, videoyu başlat, ekranı kilitle; kilit ekranında ▶ tuşuna bir kez bas. Çoğu zaman ses devam eder. YouTube Premium varsa uygulamada doğrudan çalışır.</div>`;
+    </details><div class="note" hidden><b> YouTube'u uygulama yerine Safari'de aç, videoyu başlat, ekranı kilitle; kilit ekranında ▶ tuşuna bir kez bas. Çoğu zaman ses devam eder. YouTube Premium varsa uygulamada doğrudan çalışır.</div>`;
   }
   return seg+`<div class="cards">${RADYO.map((r,i)=>`<button class="card" data-radio="${i}"><span class="tag">Canlı</span><b>${esc(r.n)}</b><span>${esc(r.d)}</span></button>`).join("")}</div>
    <div class="note">Radyolar canlı yayındır, ekran kapalıyken çalmaya devam eder. Diyanet yayınları iPhone Safari'de en iyi şekilde çalışır.</div>`;
@@ -719,11 +749,12 @@ function bDinle(){
   document.querySelectorAll("[data-radio]").forEach(b=>b.onclick=()=>{const i=+b.dataset.radio;playQueue(RADIO_Q(),i)});
   document.querySelectorAll("[data-radiolive]").forEach(b=>b.onclick=()=>playQueue(RADIO_Q(),+b.dataset.radiolive));
   if(dinleSeg==="sohbet")bSohbet();
+  const y2=$("#yolBtn2");if(y2)y2.onclick=yolStart;
   renderQueueHL();
 }
 
 /* --- Sohbetler: hoca arama --- */
-const HOCALAR=["Muhammed Emin Yıldırım","Nureddin Yıldız","Hayati İnanç","Ebubekir Sifil","Fatma Bayram","Halil İbrahim Genç","Abdurrahman Ateş","Nouman Ali Khan","Mufti Menk","Omar Suleiman","Hamza Yusuf","Yasir Qadhi"];
+const HOCALAR=["Risale-i Nur sesli","Zübeyir Gündüzalp","Muhammed Emin Yıldırım","Nureddin Yıldız","Hayati İnanç","Ebubekir Sifil","Fatma Bayram","Halil İbrahim Genç","Abdurrahman Ateş","Nouman Ali Khan","Mufti Menk","Omar Suleiman","Hamza Yusuf","Yasir Qadhi"];
 let SET=store.get("mk_set",{piKey:"",piSecret:"",yt:""});
 let FOLLOW=store.get("mk_follow",[]);
 let sohQ="",sohRes=[],sohYT=null,sohLoading=false,sohErr="",openPod=null,epLoading=false,epErr="",podSort="new",epQ="";
@@ -755,7 +786,7 @@ function toggleFollow(p){if(isFollow(p.cid))FOLLOW=FOLLOW.filter(f=>f.cid!==p.ci
 const podRow=p=>`<button class="pod" data-pod="${p.cid}"><img src="${esc(p.art)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span class="t"><b>${esc(p.name)}</b><span>${esc(p.artist)}${p.count?" · "+p.count+" bölüm":""}</span></span>${isFollow(p.cid)?'<span class="mk">★</span>':""}</button>`;
 function vFollow(){return FOLLOW.length?`<h2>Takip ettiğin hocalar</h2><div class="list">${FOLLOW.map(podRow).join("")}</div>`:""}
 function vSohbet(){
-  const bar=`<form class="searchbar" id="sohForm"><input type="search" id="sohIn" placeholder="Hoca ya da sohbet adı yaz…" value="${esc(sohQ)}" enterkeyhint="search"><button class="pill acc" type="submit">Ara</button></form>`;
+  const bar=`<form class="searchbar" id="sohForm"><input type="search" id="sohIn" placeholder="Hoca ya da sohbet adı yaz…" value="${esc(sohQ)}" enterkeyhint="search"><button class="pill acc" type="submit">Ara</button>${sohQ||openPod?`<button class="pill ghost" type="button" id="sohClear" aria-label="Aramayı kapat">✕</button>`:""}</form>`;
   if(openPod){const p=openPod,eps=POD_EPS[p.cid],c={cid:p.cid,p:p.name,art:p.art};
     let list="";if(eps){const q=epQ.toLocaleLowerCase("tr");let arr=eps.map((e,i)=>({e,i})).filter(x=>!q||x.e.title.toLocaleLowerCase("tr").includes(q));if(podSort==="new")arr.reverse();
       list=`<input type="search" id="epQ" placeholder="Bölümlerde ara" value="${esc(epQ)}" style="margin:10px 0"><div class="list">${arr.slice(0,500).map(({e,i})=>{const k="p_"+p.cid+"_"+e.id;return`<button class="row" data-pe="${i}" data-key="${k}"><span class="t"><b>${esc(e.title)}</b><span>${e.date?new Date(e.date).toLocaleDateString("tr-TR"):""}${e.dur?" · "+fmt(e.dur):""}${POS[k]?" · Kaldığın yer "+fmt(POS[k]):""}</span>${progHTML(k)}</span>${mark(k)}</button>`}).join("")}</div>${arr.length>500?`<div class="note">İlk 500 bölüm gösteriliyor; aradığını bulmak için yukarıdaki kutuya yaz.</div>`:""}`}
@@ -778,6 +809,7 @@ function vSohbet(){
 function bSohbet(){
   const f=$("#sohForm");if(f)f.onsubmit=e=>{e.preventDefault();const v=$("#sohIn").value;$("#sohIn").blur();doSearch(v)};
   document.querySelectorAll("[data-hoca]").forEach(b=>b.onclick=()=>doSearch(b.dataset.hoca));
+  const sc=$("#sohClear");if(sc)sc.onclick=()=>{sohQ="";sohRes=[];sohYT=null;sohErr="";openPod=null;epQ="";renderView()};
   document.querySelectorAll("[data-pod]").forEach(b=>b.onclick=()=>{const cid=+b.dataset.pod;openPod=sohRes.find(x=>x.cid===cid)||FOLLOW.find(x=>x.cid===cid);epQ="";dinleSeg="sohbet";tab="dinle";renderView();window.scrollTo(0,0);loadEps(openPod)});
   const pb=$("#podBack");if(pb)pb.onclick=()=>{openPod=null;renderView()};
   if(openPod&&$("#podFollow")){const p=openPod,c={cid:p.cid,p:p.name,art:p.art},eps=POD_EPS[p.cid];
@@ -794,9 +826,10 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <input type="text" id="sPk" placeholder="API Key" value="${esc(SET.piKey)}" autocomplete="off" autocapitalize="off"><input type="text" id="sPs" placeholder="API Secret" value="${esc(SET.piSecret)}" autocomplete="off" autocapitalize="off">
   <div class="small muted"><b style="color:var(--fg)">YouTube Data API anahtarı (isteğe bağlı).</b> Aramada YouTube videolarını da listeler. Google Cloud Console'da “YouTube Data API v3” açılıp anahtar alınır.</div>
   <input type="text" id="sYt" placeholder="YouTube API anahtarı" value="${esc(SET.yt)}" autocomplete="off" autocapitalize="off">
+  <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
   <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır.</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
-  $("#mOk").onclick=()=>{SET={piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim()};store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
+  $("#mOk").onclick=()=>{SET={piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim()};TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=settingsBox;
 
 /* --- Kütüphanem --- */
@@ -823,30 +856,154 @@ function bKutup(){
   bindNotes($("#view"));renderQueueHL();
 }
 
-/* --- Dua --- */
-function vDua(){
-  const seg=`<div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher Vakti"],["kuran","Kur'an'dan"]].map(([k,l])=>`<button data-dseg="${k}" class="${duaSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
-  let top="";
-  if(duaSeg==="seher")top=`<div class="bigcard" style="margin-bottom:12px"><span class="small" style="color:var(--accent);font-weight:700">SEHER</span><div class="ttl">Gecenin son üçte biri</div><div class="muted small">İmsaktan önceki saatler. Seher listesini başlat, uyku zamanlayıcısını kur ve istiğfarı kilit ekranından say.</div><div class="ctrl"><button class="pill acc" id="seherPlay">Seher tilavetini başlat</button><button class="pill" id="seherZikir">İstiğfar 70</button></div></div>`;
-  return seg+top+DUALAR[duaSeg].map((d,i)=>`<div class="dua"><div class="head"><h3>${esc(d.n)}</h3><span class="cnt">${esc(d.c)}</span></div>
+/* --- Dua kartları (ortak) --- */
+const DREF=r=>{const [s,i]=r.split("|");return DUALAR[s][+i]};
+function duaCard(d,ref){
+  const canTts=!d.ay&&d.ar;
+  return `<div class="dua"><div class="head"><h3>${esc(d.n)}</h3><span class="cnt">${esc(d.c)}</span></div>
    ${d.ar?`<div class="ar">${esc(d.ar)}</div>`:""}${d.r?`<div class="read">${esc(d.r)}</div>`:""}<div class="mean">${esc(d.m)}</div><div class="src">${esc(d.src)}</div>
-   ${(d.ay||d.z||d.zid)?`<div class="ctrl">${d.ay?`<button class="pill" data-ay="${i}">▶ Dinle</button>`:""}${(d.z||d.zid)?`<button class="pill ghost" data-zz="${i}">Zikirmatiğe al</button>`:""}</div>`:""}</div>`).join("")+
-   `<div class="note">Âyet okumaları Mişari el-Afâsî'nin sesindendir ve ekran kapalıyken de çalar.</div>`;
+   ${(d.ay||canTts||d.z||d.zid)?`<div class="ctrl">${d.ay?`<button class="pill" data-ay="${ref}">▶ Dinle</button>`:""}${canTts?`<button class="pill" data-tts="${ref}">🔊 Dinle</button>`:""}${(d.z||d.zid)?`<button class="pill ghost" data-zz="${ref}">Zikirmatiğe al</button>`:""}</div>`:""}</div>`;
 }
-function bDua(){
-  document.querySelectorAll("[data-dseg]").forEach(b=>b.onclick=()=>{duaSeg=b.dataset.dseg;renderView()});
-  document.querySelectorAll("[data-ay]").forEach(b=>b.onclick=()=>{const d=DUALAR[duaSeg][+b.dataset.ay];playQueue(ayahTracks(d.ay,d.n),0)});
-  document.querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>{const d=DUALAR[duaSeg][+b.dataset.zz];
-    if(d.zid){zs.cur=d.zid;zs.counts[d.zid]=0;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();window.scrollTo(0,0);return}
-    let ex=ZIKIR.find(z=>z.r===d.r);if(!ex){ex={id:"d"+Date.now(),ar:d.ar||"",r:d.r||d.n,m:d.m,t:d.z.t};const cu=store.get("mk_custom",[]);cu.push(ex);store.set("mk_custom",cu);ZIKIR=ZIKIR_BASE.concat(cu)}
-    zs.cur=ex.id;zs.counts[ex.id]=0;zs.targets[ex.id]=d.z.t;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();window.scrollTo(0,0)});
-  const sp=$("#seherPlay");if(sp)sp.onclick=()=>{playQueue(LISTELER[0].s.map(sureTrack).map(t=>(t.group="Seher",t)),0)};
-  const sz=$("#seherZikir");if(sz)sz.onclick=()=>{zs.cur="istigfar";zs.counts.istigfar=0;zs.targets.istigfar=70;zs.chain=false;saveZ();tab="zikir";renderView();window.scrollTo(0,0)};
+function speak(text,times){
+  if(!("speechSynthesis" in window)){toast("Bu cihaz sesli okumayı desteklemiyor");return}
+  speechSynthesis.cancel();const vs=speechSynthesis.getVoices();const v=vs.find(x=>/^ar/i.test(x.lang));
+  for(let k=0;k<(times||1);k++){const u=new SpeechSynthesisUtterance(text);u.lang="ar-SA";if(v)u.voice=v;u.rate=.8;speechSynthesis.speak(u)}
+}
+function goZikir(d){
+  if(d.zid){zs.cur=d.zid;zs.counts[d.zid]=0;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();window.scrollTo(0,0);return}
+  let ex=ZIKIR.find(z=>z.r===d.r);if(!ex){ex={id:"d"+Date.now(),ar:d.ar||"",r:d.r||d.n,m:d.m,t:d.z.t};const cu=store.get("mk_custom",[]);cu.push(ex);store.set("mk_custom",cu);ZIKIR=ZIKIR_BASE.concat(cu)}
+  zs.cur=ex.id;zs.counts[ex.id]=0;zs.targets[ex.id]=d.z.t;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();window.scrollTo(0,0);
+}
+function bindDua(root){
+  root.querySelectorAll("[data-ay]").forEach(b=>b.onclick=()=>{const d=DREF(b.dataset.ay);playQueue(ayahTracks(d.ay,d.n),0)});
+  root.querySelectorAll("[data-tts]").forEach(b=>b.onclick=()=>{speak(DREF(b.dataset.tts).ar)});
+  root.querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>goZikir(DREF(b.dataset.zz)));
+}
+
+/* --- Namaz vakitleri --- */
+const VAKIT_AD={seher:"Seher",sabah:"Sabah",kusluk:"Kuşluk",ogle:"Öğle",ikindi:"İkindi",aksam:"Akşam",yatsi:"Gece"};
+const VAKIT_RENK={seher:["#2b2a6b","#6a4c93"],sabah:["#c2502e","#d98b2b"],kusluk:["#b86e12","#1f7f73"],ogle:["#1f5f9e","#3f86c9"],ikindi:["#a8541a","#c7832b"],aksam:["#a8302a","#6d3680"],yatsi:["#152a4a","#2f4f7f"]};
+let TIMES=store.get("mk_times",null),timesLoading=false;
+const hm=s=>{const [h,m]=String(s).slice(0,5).split(":").map(Number);const d=new Date();d.setHours(h,m,0,0);return d};
+async function loadTimes(){
+  const today=todayKey(),city=(SET.city||"Istanbul").trim();
+  if(TIMES&&TIMES.date===today&&TIMES.city===city)return;if(timesLoading)return;timesLoading=true;
+  try{const r=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=Turkey&method=13`);const j=await r.json();
+    if(j&&j.data&&j.data.timings){const t=j.data.timings;TIMES={date:today,city,t:{imsak:t.Fajr,gunes:t.Sunrise,ogle:t.Dhuhr,ikindi:t.Asr,aksam:t.Maghrib,yatsi:t.Isha}};store.set("mk_times",TIMES);if(tab==="bugun")renderView()}}catch(e){}
+  timesLoading=false;
+}
+function timesNow(){
+  if(TIMES&&TIMES.date===todayKey())return{t:TIMES.t,approx:false};
+  return{t:(TIMES&&TIMES.t)||{imsak:"05:45",gunes:"07:10",ogle:"13:05",ikindi:"16:05",aksam:"18:45",yatsi:"20:05"},approx:true};
+}
+function curVakit(){
+  const {t}=timesNow(),now=new Date();const I=hm(t.imsak),G=hm(t.gunes),O=hm(t.ogle),K=hm(t.ikindi),A=hm(t.aksam),Y=hm(t.yatsi);
+  const night=(I.getTime()+864e5)-A.getTime();const seherStart=new Date(I.getTime()-night/3);
+  let v;if(now<seherStart&&now>=new Date(0)&&now<I&&now.getHours()<12)v="yatsi";
+  if(now>=seherStart&&now<I)v="seher";else if(now<seherStart)v="yatsi";
+  else if(now<G)v="sabah";else if(now<new Date(G.getTime()+90*60000))v="sabah";else if(now<O)v="kusluk";else if(now<K)v="ogle";else if(now<A)v="ikindi";else if(now<Y)v="aksam";else v="yatsi";
+  const list=[["İmsak",I],["Güneş",G],["Öğle",O],["İkindi",K],["Akşam",A],["Yatsı",Y]];
+  let nx=list.find(x=>x[1]>now);if(!nx)nx=["İmsak",new Date(I.getTime()+864e5)];
+  return{v,list,next:nx};
+}
+const VAKIT_DUA={
+  seher:[["seher",0],["seher",1],["seher",2],["seher",3],["seher",4]],
+  sabah:[["sabah",7],["sabah",0],["sabah",1],["sabah",3],["sabah",4],["sabah",5],["sabah",6],["sabah",8],["sabah",9]],
+  kusluk:[["sabah",10],["kuran",2],["kuran",0],["sabah",11]],
+  ogle:[["sabah",0],["kuran",4],["kuran",0],["sabah",10]],
+  ikindi:[["sabah",0],["kuran",3],["kuran",4],["sabah",11]],
+  aksam:[["sabah",7],["sabah",0],["sabah",1],["sabah",3],["sabah",4],["sabah",5],["sabah",6],["sabah",8]],
+  yatsi:[["sabah",2],["sabah",1],["sabah",3],["kuran",1],["seher",4]]
+};
+const VAKIT_NOT={seher:"Gecenin en bereketli saatleri. Az da olsa bir istiğfar, bir secde.",sabah:"Güne Allah'ın adıyla başla. Sabah evradı 10 dakika sürer.",kusluk:"Güne bereket katan zikirler ve dualar.",ogle:"Namazdan sonra tesbihat, ardından bir salavat.",ikindi:"Günün yorgunluğunda kalbi tazeleyen anlar.",aksam:"Akşam evradı: “Asbahnâ” yerine “Emseynâ” denir.",yatsi:"Yatmadan önce Âmenerrasûlü, üç İhlâs ve Muavvizeteyn."};
+
+/* --- Amel takibi --- */
+const AMEL=[["sabahN","Sabah namazı"],["ogleN","Öğle namazı"],["ikindiN","İkindi namazı"],["aksamN","Akşam namazı"],["yatsiN","Yatsı namazı"],["evradS","Sabah evradı"],["evradA","Akşam evradı"],["kuran","Kur'an (okudum/dinledim)"],["salavat","100 salavat"],["ders","Bir ders dinledim"],["iyilik","Bir iyilik / sadaka"]];
+let AM=store.get("mk_amel",{});
+const amelToday=()=>AM[todayKey()]||{};
+
+/* --- Sözler --- */
+const SOZLER=[
+ {t:"Bilesiniz ki kalpler ancak Allah'ı anmakla huzur bulur.",s:"Ra'd 13/28"},
+ {t:"De ki: Ey kendi aleyhlerine haddi aşan kullarım! Allah'ın rahmetinden ümit kesmeyin. Allah bütün günahları bağışlar.",s:"Zümer 39/53"},
+ {t:"Beni anın ki ben de sizi anayım.",s:"Bakara 2/152"},
+ {t:"Şüphesiz zorlukla beraber bir kolaylık vardır.",s:"İnşirâh 94/6"},
+ {t:"Rabbin seni bırakmadı, sana darılmadı da.",s:"Duhâ 93/3"},
+ {t:"Kullarım sana beni sorduğunda bilsinler ki ben çok yakınım; dua edenin duasına karşılık veririm.",s:"Bakara 2/186"},
+ {t:"Sabır ve namazla Allah'tan yardım isteyin.",s:"Bakara 2/45"},
+ {t:"Amellerin Allah'a en sevimli olanı, az da olsa devamlı olanıdır.",s:"Hadis · Buhârî, Müslim"},
+ {t:"İki nimet vardır ki insanların çoğu onların kıymetini bilmez: sağlık ve boş vakit.",s:"Hadis · Buhârî"},
+ {t:"Ameller niyetlere göredir.",s:"Hadis · Buhârî, Müslim"},
+ {t:"Kolaylaştırın, zorlaştırmayın; müjdeleyin, nefret ettirmeyin.",s:"Hadis · Buhârî"},
+ {t:"Allah sizin dış görünüşünüze ve mallarınıza bakmaz; kalplerinize ve amellerinize bakar.",s:"Hadis · Müslim"},
+ {t:"Kişi sevdiğiyle beraberdir.",s:"Hadis · Buhârî, Müslim"},
+ {t:"Kardeşinin yüzüne gülümsemen sadakadır.",s:"Hadis · Tirmizî"},
+ {t:"Nerede olursan ol Allah'tan kork; kötülüğün ardından bir iyilik yap ki onu silsin; insanlarla güzel ahlakla geçin.",s:"Hadis · Tirmizî"},
+ {t:"Güçlü kişi güreşte yenen değil, öfkelendiğinde kendine hâkim olandır.",s:"Hadis · Buhârî"},
+ {t:"Gelin tanış olalım, işi kolay kılalım / Sevelim sevilelim, dünya kimseye kalmaz.",s:"Yunus Emre"},
+ {t:"Ben gelmedim dava için, benim işim sevi için / Dostun evi gönüllerdir, gönüller yapmaya geldim.",s:"Yunus Emre"},
+ {t:"Bir kez gönül yıktın ise, bu kıldığın namaz değil.",s:"Yunus Emre"}
+];
+const BENNA=["Ezanı duyduğunda, hâlin ne olursa olsun namaza kalk.","Kur'an'ı oku, üzerinde düşün ya da dinle; Allah'ı an. Vaktini faydasız işlere harcama.","Arapçayı doğru konuşmaya gayret et; o İslâm'ın şiarlarındandır.","Hiçbir konuda çok tartışma; tartışma hayır getirmez.","Çok gülme; Allah'a bağlı kalp ağırbaşlı ve vakurdur.","Şakayı huy edinme; mücadele eden bir ümmet ciddiyet ister.","Sesini dinleyenin ihtiyacından fazla yükseltme; bu hem kabalıktır hem incitir.","Gıybetten ve kimseyi kırıcı konuşmaktan sakın; yalnızca hayrı konuş.","Karşılaştığın kardeşlerinle tanış, sen de kendini onlara tanıt; tanışmak kardeşliğin ilk adımıdır.","Vazifeler vaktimizden fazladır; vaktini iyi kullanmakta kardeşine yardım et, işin varsa en kısa yoldan bitir."];
+const gunSoz=()=>{const d=new Date(),n=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);return SOZLER[n%SOZLER.length]};
+
+/* --- Yol modu --- */
+const YOL=[["asr",2],["herkes",1],["enbiya",1],["nebevi",1],["ahlak",1],["oteki",1],["ehlibeyt",1],["sahabi",1]];
+function yolStart(){
+  const list=[];YOL.forEach(([id,k])=>{const S=SIYER.find(x=>x.id===id);if(!S)return;const l=store.get("mk_last_"+id,null);let n=l?l.n:1;if(l&&DONE["s_"+id+"_"+n])n++;for(let j=0;j<k&&n<=S.count;j++,n++)list.push(siyerTrack(S,n))});
+  if(!list.length)return;playQueue(list.map(t=>(t.group="Yol Modu",t)),0);toast("Yol modu: "+list.length+" ders sırayla çalacak");openSheet();
+}
+function share(){const data={title:"Maneviyat Külliyatı",text:"Zikir, Kur'ân, Siyer dersleri ve sohbetler. Ekran kapalıyken dinlenir.",url:location.href};
+  if(navigator.share){navigator.share(data).catch(()=>{});return}
+  try{navigator.clipboard.writeText(location.href).then(()=>toast("Bağlantı kopyalandı"),()=>toast(location.href))}catch(e){toast(location.href)}}
+
+/* --- Bugün görünümü --- */
+let bugSeg="vakit",duaSeg2="sabah";
+function vBugun(){
+  loadTimes();const {v,list,next}=curVakit(),{approx}=timesNow(),[c1,c2]=VAKIT_RENK[v];
+  const mins=Math.max(0,Math.round((next[1]-new Date())/60000)),kalan=mins>=60?Math.floor(mins/60)+" sa "+(mins%60)+" dk":mins+" dk";
+  const card=`<div class="vakit" style="background:linear-gradient(135deg,${c1},${c2})">
+    <div class="vk-top"><span>ŞU AN</span><span>${esc((SET.city||"İstanbul"))}${approx?" · yaklaşık":""}</span></div>
+    <div class="vk-ad">${VAKIT_AD[v]} vakti</div><div class="vk-sub">${esc(next[0])} vaktine ${kalan}</div>
+    <div class="vk-times">${list.map(([n,d])=>`<div class="${n===next[0]?"nx":""}"><span>${n}</span><b>${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</b></div>`).join("")}</div></div>`;
+  const seg=`<div class="seg" style="margin-top:14px">${[["vakit","Bu vakit"],["amel","Amellerim"],["dualar","Tüm dualar"]].map(([k,l])=>`<button data-bseg="${k}" class="${bugSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  let body="";
+  if(bugSeg==="vakit"){const s=gunSoz();
+    body=`<div class="soz"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">GÜNÜN SÖZÜ</div><div class="soz-t">${esc(s.t)}</div><div class="small muted">${esc(s.s)}</div></div>
+    <div class="ctrl" style="margin:12px 0"><button class="pill acc" id="yolBtn">🚌 Yol modunu başlat</button>${v==="sabah"||v==="kusluk"?`<button class="pill" data-radiolive="${RADYO.findIndex(r=>r.u.includes("athkar_sabah"))}">Sabah ezkârını dinle</button>`:""}${v==="aksam"||v==="yatsi"?`<button class="pill" data-radiolive="${RADYO.findIndex(r=>r.u.includes("athkar_masa"))}">Akşam ezkârını dinle</button>`:""}${v==="ogle"||v==="ikindi"?`<button class="pill" id="tesbihatBtn">Namaz tesbihatı</button>`:""}${v==="seher"?`<button class="pill" id="seherPlay">Seher tilaveti</button>`:""}${v==="yatsi"?`<button class="pill" id="mulkBtn">Mülk sûresi</button>`:""}</div>
+    <div class="note" style="margin:0 0 12px">${esc(VAKIT_NOT[v])}</div>
+    ${VAKIT_DUA[v].map(([s,i])=>duaCard(DUALAR[s][i],s+"|"+i)).join("")}`}
+  else if(bugSeg==="amel"){const a=amelToday(),cnt=AMEL.filter(([k])=>a[k]).length;
+    const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");const o=AM[k]||{};days.push({l:d.toLocaleDateString("tr-TR",{weekday:"short"}),n:AMEL.filter(([x])=>o[x]).length})}
+    let streak=0;for(let i=0;;i++){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");const o=AM[k]||{};if(["sabahN","ogleN","ikindiN","aksamN","yatsiN"].every(x=>o[x]))streak++;else if(i>0||true){if(i===0)continue;break}if(i>400)break}
+    body=`<div class="kpis"><div class="kpi"><span class="small muted">Bugün</span><b>${cnt} / ${AMEL.length}</b></div><div class="kpi"><span class="small muted">5 vakit serisi</span><b>${streak} gün</b></div></div>
+    <div class="list" style="margin-top:12px">${AMEL.map(([k,l])=>`<button class="row amel ${a[k]?"ok":""}" data-amel="${k}"><span class="chk">${a[k]?"✓":""}</span><span class="t"><b>${esc(l)}</b></span></button>`).join("")}</div>
+    <h2>Son 7 gün</h2><div class="stats">${days.map(d=>`<div><i style="height:${Math.max(3,d.n/AMEL.length*64)}px"></i>${esc(d.l)}</div>`).join("")}</div>
+    <div class="note">Amellerin Allah'a en sevimli olanı, az da olsa devamlı olanıdır (Buhârî). Bugün bir adım yeter; yarın bir adım daha.</div>`}
+  else{body=`<div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher"],["kuran","Kur'an'dan"]].map(([k,l])=>`<button data-dseg2="${k}" class="${duaSeg2===k?"on":""}">${l}</button>`).join("")}</div>`+DUALAR[duaSeg2].map((d,i)=>duaCard(d,duaSeg2+"|"+i)).join("")}
+  return card+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
+}
+function bBugun(){
+  document.querySelectorAll("[data-bseg]").forEach(b=>b.onclick=()=>{bugSeg=b.dataset.bseg;renderView()});
+  document.querySelectorAll("[data-dseg2]").forEach(b=>b.onclick=()=>{duaSeg2=b.dataset.dseg2;renderView()});
+  document.querySelectorAll("[data-amel]").forEach(b=>b.onclick=()=>{const k=todayKey();AM[k]=AM[k]||{};AM[k][b.dataset.amel]=AM[k][b.dataset.amel]?0:1;store.set("mk_amel",AM);renderView()});
+  document.querySelectorAll("[data-radiolive]").forEach(b=>b.onclick=()=>playQueue(RADIO_Q(),+b.dataset.radiolive));
+  const yb=$("#yolBtn");if(yb)yb.onclick=yolStart;
+  const tb=$("#tesbihatBtn");if(tb)tb.onclick=()=>{zs.chain=true;zs.cur="subhan";TESBIHAT.forEach(id=>zs.counts[id]=0);saveZ();tab="zikir";renderView();window.scrollTo(0,0)};
+  const sp=$("#seherPlay");if(sp)sp.onclick=()=>{playQueue(LISTELER[0].s.map(n=>sureTrack(n)).map(t=>(t.group="Seher",t)),0)};
+  const mb=$("#mulkBtn");if(mb)mb.onclick=()=>playQueue([sureTrack(67)],0);
+  $("#shareBtn").onclick=share;
+  bindDua($("#view"));
 }
 
 /* --- Külliyat --- */
 function vKulliyat(){
-  const seg=`<div class="seg">${[["ilahi","İlahiler"],["film","Film & Dizi"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  const seg=`<div class="seg">${[["soz","Gönül Sözleri"],["ilahi","İlahiler"],["film","Film & Dizi"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  if(kulSeg==="soz")return seg+`<h2 style="margin-top:4px">Âyetler, hadisler, Yunus Emre</h2>${SOZLER.map(x=>`<div class="soz" style="margin-bottom:10px"><div class="soz-t">${esc(x.t)}</div><div class="small muted">${esc(x.s)}</div></div>`).join("")}
+   <h2>Hasan el-Bennâ'nın on tavsiyesi</h2><div class="list">${BENNA.map((t,i)=>`<div class="nrow"><span class="ts">${i+1}</span><span class="tx">${esc(t)}</span></div>`).join("")}</div>
+   <h2>Risale-i Nur Külliyatı</h2><div class="bigcard"><div class="muted small">Külliyatın tamamı ücretsiz okunabiliyor ve sesli dinlenebiliyor. Vecizeleri buraya tek tek yazmadım; eserler hâlâ telif koruması altında. Aşağıdan doğrudan okuyabilir ya da sesli derslerini dinleyebilirsin.</div>
+   <div class="ctrl"><a class="pill acc" href="https://www.erisale.com" target="_blank" rel="noopener">Külliyatı oku (erisale.com)</a><button class="pill" data-qs="Risale-i Nur sesli">🎧 Sesli Risale-i Nur</button><button class="pill" data-qs="Risale-i Nur dersleri">🎧 Risale dersleri</button></div></div>
+   <h2>Zübeyir Gündüzalp</h2><div class="bigcard"><div class="muted small">Mektupları ve hayatı.</div><div class="ctrl"><button class="pill" data-qs="Zübeyir Gündüzalp">🎧 Sesli dinle</button><a class="pill ghost" target="_blank" rel="noopener" href="${yt("Zübeyir Gündüzalp mektupları")}">YouTube'da ara</a></div></div>`;
   if(kulSeg==="ilahi")return seg+`<div class="cards"><button class="card" data-r="2"><span class="tag">Canlı · arka planda çalar</span><b>Radyo İlahi</b><span>Kesintisiz ilahi ve kaside</span></button><button class="card" data-r="0"><span class="tag">Canlı · arka planda çalar</span><b>Diyanet Radyo</b><span>İlahi, sohbet, tiyatro</span></button></div>
    <h2>Sanatçılar</h2><div class="cards">${ILAHI_SANAT.map(([n,d])=>`<a class="card" target="_blank" rel="noopener" href="${yt(n+" ilahileri")}"><span class="tag yt">YouTube</span><b>${esc(n)}</b><span>${esc(d)}</span></a>`).join("")}</div>
    <h2>Unutulmaz ilahiler</h2><div class="list">${ILAHI_ESER.map(n=>`<a class="row" target="_blank" rel="noopener" href="${yt(n+" ilahi")}"><span class="t"><b>${esc(n)}</b></span><span class="go">YouTube ›</span></a>`).join("")}</div>`;
@@ -856,6 +1013,7 @@ function vKulliyat(){
 }
 function bKulliyat(){
   document.querySelectorAll("[data-kseg]").forEach(b=>b.onclick=()=>{kulSeg=b.dataset.kseg;renderView()});
+  document.querySelectorAll("[data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);window.scrollTo(0,0)});
   document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>playQueue(RADIO_Q(),+b.dataset.r));
 }
 
