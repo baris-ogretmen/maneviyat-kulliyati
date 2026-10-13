@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -477,18 +478,21 @@ const notesFor=k=>NOTES.filter(n=>n.key===k).sort((a,b)=>(a.t||0)-(b.t||0));
 function toggleFav(info){if(FAV[info.key])delete FAV[info.key];else FAV[info.key]={ctx:info.ctx,title:info.title,sub:info.sub,date:Date.now()};saveLib();toast(FAV[info.key]?"Favorilere eklendi":"Favorilerden çıkarıldı")}
 function addNote(info,t,text){NOTES.push({id:"n"+Date.now(),key:info.key,ctx:info.ctx,title:info.title,sub:info.sub,t:t,text:text,date:Date.now()});saveLib();toast("Not kaydedildi")}
 function addRecent(t){if(!t.ctx)return;RECENT=RECENT.filter(r=>r.key!==t.key);RECENT.unshift({key:t.key,ctx:t.ctx,title:t.title,sub:t.sub,date:Date.now()});RECENT=RECENT.slice(0,40);saveLib()}
-function playQueue(list,i){Q=list;qi=i;lockStop(true);if(guardOn){guardOn=false;zau.pause();zau.removeAttribute("src")}loadCur(true)}
+let GEN=0,EXP="";
+function stopSpeech(){try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}}
+function unlockSpeech(){try{if("speechSynthesis" in window&&!unlockSpeech.done){const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.speak(u);unlockSpeech.done=1}}catch(e){}}
+function playQueue(list,i){if(!list||!list.length)return;GEN++;stopSpeech();try{au.pause()}catch(e){}failStreak=0;Q=list;qi=i||0;lockStop(true);if(guardOn){guardOn=false;zau.pause();zau.removeAttribute("src")}if(Q[qi].tts)unlockSpeech();loadCur(true)}
 function loadCur(autoplay){
   const t=Q[qi];if(!t)return;pendingRetry=false;srcIdx=0;curKey=t.key||null;
-  au.src=t.src[0];au.loop=!!t.loop;au.playbackRate=t.live?1:rate;
-  if(autoplay){au.play().catch(()=>toast("Oynatmak için ▶ tuşuna dokun"))}
+  GEN++;stopSpeech();au.src=t.src[0];EXP=au.src;au.loop=!!t.loop;au.playbackRate=t.live?1:rate;
+  if(autoplay){const g=GEN;au.play().catch(e=>{if(g===GEN&&e&&e.name==="NotAllowedError")toast("Oynatmak için ▶ tuşuna dokun")})}
   if(t.series)store.set("mk_last_"+t.series,{n:t.ep});
   addRecent(t);
-  updateMini();msPlayer();renderQueueHL();
+  updateMini();msPlayer();renderQueueHL();if(autoplay&&$("#sheet").hidden)toast("▶ "+t.title);
 }
 au.addEventListener("loadedmetadata",()=>{const t=Q[qi];if(!t||t.live){pendingSeek=null;return}au.playbackRate=rate;if(curKey&&isFinite(au.duration)){DUR[curKey]=Math.floor(au.duration);store.set("mk_dur",DUR)}if(pendingSeek!=null){au.currentTime=pendingSeek;toast("Notun olduğu yer: "+fmt(pendingSeek));pendingSeek=null;return}const p=curKey&&POS[curKey];if(p&&p>15&&au.duration&&p<au.duration-20){au.currentTime=p;toast("Kaldığın yerden: "+fmt(p))}});
-au.addEventListener("error",()=>{const t=Q[qi];if(!t||!au.src)return;if(srcIdx<t.src.length-1){srcIdx++;au.src=t.src[srcIdx];au.play().catch(()=>{})}else{if(t.tts){speakThen(t.tts.text,t.tts.lang,()=>next());return}failStreak++;if(!navigator.onLine||failStreak>=4){toast("İnternet bağlantısı yok gibi görünüyor. Bağlantı gelince ▶ tuşuna bas.");srcIdx=0;au.removeAttribute("src");pendingRetry=true;updateMini();return}toast(t.live?"Bu radyo şu an yayında değil":"Bu kayıt açılmadı, sonrakine geçiliyor");if(!t.live&&qi<Q.length-1)setTimeout(next,600)}});
-au.addEventListener("playing",()=>{failStreak=0});
+au.addEventListener("error",()=>{const t=Q[qi];if(!t||!au.src||au.src!==EXP)return;if(srcIdx<t.src.length-1){srcIdx++;au.src=t.src[srcIdx];EXP=au.src;au.play().catch(()=>{})}else{if(t.tts){const g=GEN;updateMini();speakThen(t.tts.text,t.tts.lang,()=>{if(g===GEN)next()});return}failStreak++;if(!navigator.onLine||failStreak>=4){toast("İnternet bağlantısı yok gibi görünüyor. Bağlantı gelince ▶ tuşuna bas.");srcIdx=0;au.removeAttribute("src");pendingRetry=true;updateMini();return}toast(t.live?"Bu radyo şu an yayında değil":"Bu kayıt açılmadı, sonrakine geçiliyor");if(!t.live&&qi<Q.length-1)setTimeout(next,600)}});
+au.addEventListener("playing",()=>{failStreak=0;stopSpeech()});
 au.addEventListener("ended",()=>{if(curKey){delete POS[curKey];store.set("mk_pos",POS);DONE[curKey]=1;store.set("mk_done",DONE)}if(sleepEnd){sleepEnd=false;updateSheet();return}next()});
 au.addEventListener("timeupdate",()=>{
   const d=au.duration,c=au.currentTime;$("#mprog").style.width=(isFinite(d)&&d>0?c/d*100:0)+"%";
@@ -497,7 +501,7 @@ au.addEventListener("timeupdate",()=>{
   if("mediaSession" in navigator&&navigator.mediaSession.setPositionState&&isFinite(d)&&d>0&&!lockOn){try{navigator.mediaSession.setPositionState({duration:d,playbackRate:au.playbackRate,position:Math.min(c,d)})}catch(e){}}
 });
 ["play","pause"].forEach(ev=>au.addEventListener(ev,()=>{updateMini();updateSheet()}));
-function toggle(){if(!Q[qi])return;if(pendingRetry){pendingRetry=false;failStreak=0;loadCur(true);return}au.paused?au.play().catch(()=>{}):au.pause()}
+function toggle(){if(!Q[qi])return;if("speechSynthesis" in window&&speechSynthesis.speaking){stopSpeech();GEN++;return}if(pendingRetry){pendingRetry=false;failStreak=0;loadCur(true);return}au.paused?au.play().catch(()=>{}):au.pause()}
 function next(){if(qi<Q.length-1){qi++;loadCur(true)}else if(Q[qi]&&Q[qi].group==="Yol Modu"){const more=yolBatch();if(more.length){Q=Q.concat(more);qi++;loadCur(true)}}}
 function prev(){if(au.currentTime>5&&!(Q[qi]&&Q[qi].live)){au.currentTime=0;return}if(qi>0){qi--;loadCur(true)}}
 function updateMini(){
@@ -933,7 +937,7 @@ function duaTracks(d,group){const art=makeArt("دعاء",d.n.slice(0,24),150),ou
   return out}
 function zikirTracks(z){const art=makeArt(String(z.r).slice(0,10),"Zikir",168),out=[];if(z.ar)chunkText(z.ar,170).forEach(c=>out.push(ttsTrack(c,"ar-SA",z.r,"Arapça",art,"Zikir")));if(SET.meal!==false&&z.m)out.push(ttsTrack(z.m,"tr-TR",z.r+" · Anlamı","Türkçe",art,"Zikir"));return out}
 function esmaTracks(){const out=[];ESMA.forEach(([a,t,m],i)=>{const art=makeArt(a,t,280);out.push(ttsTrack(a,"ar-SA",(i+1)+". "+t,"Esmâ-ül Hüsnâ",art,"Esmâ-ül Hüsnâ"));if(SET.meal!==false)out.push(ttsTrack(t.replace(/^(el|er|es|eş|ez|et|ed|en)-/,"")+". "+m,"tr-TR",(i+1)+". "+t+" · Anlamı","Esmâ-ül Hüsnâ",art,"Esmâ-ül Hüsnâ"))});return out}
-function speakThen(text,lang,cb){if(!("speechSynthesis" in window)){cb&&cb();return}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang;const v=speechSynthesis.getVoices().find(x=>(x.lang||"").toLowerCase().replace("_","-").startsWith(lang.slice(0,2)));if(v)u.voice=v;u.rate=lang.startsWith("ar")?.8:.95;let done=false;const fin=()=>{if(!done){done=true;cb&&cb()}};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){cb&&cb()}}
+function speakThen(text,lang,cb){if(!("speechSynthesis" in window)){cb&&cb();return}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang;const v=speechSynthesis.getVoices().find(x=>(x.lang||"").toLowerCase().replace("_","-").startsWith(lang.slice(0,2)));if(v)u.voice=v;u.rate=lang.startsWith("ar")?.8:.95;let done=false,started=false;const fin=()=>{if(!done){done=true;cb&&cb()}};u.onstart=()=>{started=true};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(()=>{if(!started)fin()},2500);setTimeout(fin,Math.max(8000,text.length*180))}catch(e){cb&&cb()}}
 function speak(text,times){
   if(!("speechSynthesis" in window)){toast("Bu cihaz sesli okumayı desteklemiyor");return}
   speechSynthesis.cancel();const vs=speechSynthesis.getVoices();const v=vs.find(x=>/^ar/i.test(x.lang));
@@ -1184,6 +1188,15 @@ function bKulliyat(){
   document.querySelectorAll("[data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);window.scrollTo(0,0)});
   document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>playQueue(RADIO_Q(),+b.dataset.r));
 }
+
+/* ===================== Kendi adresini koru ===================== */
+(function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
+  const base=location.pathname.replace(/[^/]*$/,"");
+  navigator.serviceWorker.getRegistrations().then(rs=>{rs.forEach(r=>{try{const sc=new URL(r.scope).pathname;if(!sc.startsWith(base))r.unregister()}catch(e){}})}).catch(()=>{});
+  navigator.serviceWorker.register("sw.js",{scope:"./"}).catch(()=>{});
+  try{const man={name:"Maneviyat Külliyatı",short_name:"Maneviyat",display:"standalone",background_color:"#0e1517",theme_color:"#0e1517",start_url:location.origin+base,scope:location.origin+base,icons:[{src:document.querySelector('link[rel="apple-touch-icon"]').href,sizes:"180x180",type:"image/png"}]};
+    document.querySelector('link[rel="manifest"]').href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}))}catch(e){}
+})();
 
 /* ===================== Başlat ===================== */
 document.addEventListener("touchend",()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}},{once:true});
