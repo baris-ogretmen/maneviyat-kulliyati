@@ -1,5 +1,5 @@
 // Maneviyat Külliyatı — çevrimdışı açılış yardımcısı
-const C="maneviyat-v9";
+const C="maneviyat-v11";
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(["./"])).catch(()=>{}))});
 self.addEventListener("activate",e=>{e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith("maneviyat-")&&k!==C).map(k=>caches.delete(k)));await self.clients.claim()})())});
 self.addEventListener("fetch",e=>{
