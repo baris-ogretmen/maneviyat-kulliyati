@@ -479,18 +479,20 @@ function toggleFav(info){if(FAV[info.key])delete FAV[info.key];else FAV[info.key
 function addNote(info,t,text){NOTES.push({id:"n"+Date.now(),key:info.key,ctx:info.ctx,title:info.title,sub:info.sub,t:t,text:text,date:Date.now()});saveLib();toast("Not kaydedildi")}
 function addRecent(t){if(!t.ctx)return;RECENT=RECENT.filter(r=>r.key!==t.key);RECENT.unshift({key:t.key,ctx:t.ctx,title:t.title,sub:t.sub,date:Date.now()});RECENT=RECENT.slice(0,40);saveLib()}
 let GEN=0,EXP="";
+const DEEP=()=>SET.ton!=="normal";
+function setTone(t){const deep=!!(t&&t.tts&&DEEP());try{au.preservesPitch=!deep;au.webkitPreservesPitch=!deep;au.mozPreservesPitch=!deep}catch(e){}au.playbackRate=t&&t.live?1:(deep?0.8:rate)}
 function stopSpeech(){try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}}
 function unlockSpeech(){try{if("speechSynthesis" in window&&!unlockSpeech.done){const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.speak(u);unlockSpeech.done=1}}catch(e){}}
 function playQueue(list,i){if(!list||!list.length)return;GEN++;stopSpeech();try{au.pause()}catch(e){}failStreak=0;Q=list;qi=i||0;lockStop(true);if(guardOn){guardOn=false;zau.pause();zau.removeAttribute("src")}if(Q[qi].tts)unlockSpeech();loadCur(true)}
 function loadCur(autoplay){
   const t=Q[qi];if(!t)return;pendingRetry=false;srcIdx=0;curKey=t.key||null;
-  GEN++;stopSpeech();au.src=t.src[0];EXP=au.src;au.loop=!!t.loop;au.playbackRate=t.live?1:rate;
+  GEN++;stopSpeech();au.src=t.src[0];EXP=au.src;au.loop=!!t.loop;setTone(t);
   if(autoplay){const g=GEN;au.play().catch(e=>{if(g===GEN&&e&&e.name==="NotAllowedError")toast("Oynatmak için ▶ tuşuna dokun")})}
   if(t.series)store.set("mk_last_"+t.series,{n:t.ep});
   addRecent(t);
   updateMini();msPlayer();renderQueueHL();if(autoplay&&$("#sheet").hidden)toast("▶ "+t.title);
 }
-au.addEventListener("loadedmetadata",()=>{const t=Q[qi];if(!t||t.live){pendingSeek=null;return}au.playbackRate=rate;if(curKey&&isFinite(au.duration)){DUR[curKey]=Math.floor(au.duration);store.set("mk_dur",DUR)}if(pendingSeek!=null){au.currentTime=pendingSeek;toast("Notun olduğu yer: "+fmt(pendingSeek));pendingSeek=null;return}const p=curKey&&POS[curKey];if(p&&p>15&&au.duration&&p<au.duration-20){au.currentTime=p;toast("Kaldığın yerden: "+fmt(p))}});
+au.addEventListener("loadedmetadata",()=>{const t=Q[qi];if(!t||t.live){pendingSeek=null;return}setTone(t);if(curKey&&isFinite(au.duration)){DUR[curKey]=Math.floor(au.duration);store.set("mk_dur",DUR)}if(pendingSeek!=null){au.currentTime=pendingSeek;toast("Notun olduğu yer: "+fmt(pendingSeek));pendingSeek=null;return}const p=curKey&&POS[curKey];if(p&&p>15&&au.duration&&p<au.duration-20){au.currentTime=p;toast("Kaldığın yerden: "+fmt(p))}});
 au.addEventListener("error",()=>{const t=Q[qi];if(!t||!au.src||au.src!==EXP)return;if(srcIdx<t.src.length-1){srcIdx++;au.src=t.src[srcIdx];EXP=au.src;au.play().catch(()=>{})}else{if(t.tts){const g=GEN;updateMini();speakThen(t.tts.text,t.tts.lang,()=>{if(g===GEN)next()});return}failStreak++;if(!navigator.onLine||failStreak>=4){toast("İnternet bağlantısı yok gibi görünüyor. Bağlantı gelince ▶ tuşuna bas.");srcIdx=0;au.removeAttribute("src");pendingRetry=true;updateMini();return}toast(t.live?"Bu radyo şu an yayında değil":"Bu kayıt açılmadı, sonrakine geçiliyor");if(!t.live&&qi<Q.length-1)setTimeout(next,600)}});
 au.addEventListener("playing",()=>{failStreak=0;stopSpeech()});
 au.addEventListener("ended",()=>{if(curKey){delete POS[curKey];store.set("mk_pos",POS);DONE[curKey]=1;store.set("mk_done",DONE)}if(sleepEnd){sleepEnd=false;updateSheet();return}next()});
@@ -737,6 +739,7 @@ function vDinle(){
    <select id="kariSel">${KARI.map(k=>`<option value="${k.id}" ${k.id===kari?"selected":""}>${esc(k.n)}</option>`).join("")}</select>
    <h2>Hazır listeler</h2>
    <div class="cards">${LISTELER.map((l,i)=>`<button class="card" data-list="${i}"><span class="tag">Liste · ${l.s.length} sûre</span><b>${esc(l.n)}</b><span>${esc(l.d)}</span></button>`).join("")}</div>
+   ${(()=>{const set=new Set(Object.keys(DONE).filter(k=>k.startsWith("q_")).map(k=>k.split("_").pop()));const n=set.size;return `<div class="soz" style="margin-top:16px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">HATİM İLERLEMESİ</div><div class="soz-t">${n} / 114 sûre dinlendi</div><div class="bar2" style="height:6px"><i style="width:${n/114*100}%"></i></div></div>`})()}
    <h2>114 Sûre</h2>
    <input type="search" id="sSearch" placeholder="Sûre ara: Yâsîn, Mülk, 36…" style="margin-bottom:10px">
    <div class="list" id="sureList">${SURE_TR.map((n,i)=>{const k="q_"+kari+"_"+(i+1);return`<button class="row" data-sure="${i+1}" data-key="${k}"><span class="no">${i+1}</span><span class="t"><b>${esc(n)}</b><span>${AYET[i]} âyet</span>${progHTML(k)}</span>${mark(k)}<span class="ar">${SURE_AR[i]}</span></button>`}).join("")}</div>`;
@@ -853,11 +856,12 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <input type="text" id="sPk" placeholder="API Key" value="${esc(SET.piKey)}" autocomplete="off" autocapitalize="off"><input type="text" id="sPs" placeholder="API Secret" value="${esc(SET.piSecret)}" autocomplete="off" autocapitalize="off">
   <div class="small muted"><b style="color:var(--fg)">YouTube Data API anahtarı (isteğe bağlı).</b> Aramada YouTube videolarını da listeler. Google Cloud Console'da “YouTube Data API v3” açılıp anahtar alınır.</div>
   <input type="text" id="sYt" placeholder="YouTube API anahtarı" value="${esc(SET.yt)}" autocomplete="off" autocapitalize="off">
+  <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır.</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 11</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
-  $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
+  $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=settingsBox;
 
 /* --- Uyku --- */
@@ -937,7 +941,8 @@ function duaTracks(d,group){const art=makeArt("دعاء",d.n.slice(0,24),150),ou
   return out}
 function zikirTracks(z){const art=makeArt(String(z.r).slice(0,10),"Zikir",168),out=[];if(z.ar)chunkText(z.ar,170).forEach(c=>out.push(ttsTrack(c,"ar-SA",z.r,"Arapça",art,"Zikir")));if(SET.meal!==false&&z.m)out.push(ttsTrack(z.m,"tr-TR",z.r+" · Anlamı","Türkçe",art,"Zikir"));return out}
 function esmaTracks(){const out=[];ESMA.forEach(([a,t,m],i)=>{const art=makeArt(a,t,280);out.push(ttsTrack(a,"ar-SA",(i+1)+". "+t,"Esmâ-ül Hüsnâ",art,"Esmâ-ül Hüsnâ"));if(SET.meal!==false)out.push(ttsTrack(t.replace(/^(el|er|es|eş|ez|et|ed|en)-/,"")+". "+m,"tr-TR",(i+1)+". "+t+" · Anlamı","Esmâ-ül Hüsnâ",art,"Esmâ-ül Hüsnâ"))});return out}
-function speakThen(text,lang,cb){if(!("speechSynthesis" in window)){cb&&cb();return}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang;const v=speechSynthesis.getVoices().find(x=>(x.lang||"").toLowerCase().replace("_","-").startsWith(lang.slice(0,2)));if(v)u.voice=v;u.rate=lang.startsWith("ar")?.8:.95;let done=false,started=false;const fin=()=>{if(!done){done=true;cb&&cb()}};u.onstart=()=>{started=true};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(()=>{if(!started)fin()},2500);setTimeout(fin,Math.max(8000,text.length*180))}catch(e){cb&&cb()}}
+function speakThen(text,lang,cb){if(!("speechSynthesis" in window)){cb&&cb();return}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang;const vs=speechSynthesis.getVoices().filter(x=>(x.lang||"").toLowerCase().replace("_","-").startsWith(lang.slice(0,2))),male=/maged|majed|tarik|tariq|hamed|naayf|cem|ahmet|mehmet|male|erkek/i,fem=/yelda|laila|mariam|zeina|hoda|filiz|seda|female|kadın/i;
+  const v=vs.find(x=>male.test(x.name))||vs.find(x=>!fem.test(x.name))||vs[0];if(v)u.voice=v;u.pitch=DEEP()&&!(v&&male.test(v.name))?0.6:1;u.rate=lang.startsWith("ar")?.8:.95;let done=false,started=false;const fin=()=>{if(!done){done=true;cb&&cb()}};u.onstart=()=>{started=true};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(()=>{if(!started)fin()},2500);setTimeout(fin,Math.max(8000,text.length*180))}catch(e){cb&&cb()}}
 function speak(text,times){
   if(!("speechSynthesis" in window)){toast("Bu cihaz sesli okumayı desteklemiyor");return}
   speechSynthesis.cancel();const vs=speechSynthesis.getVoices();const v=vs.find(x=>/^ar/i.test(x.lang));
@@ -963,7 +968,7 @@ async function loadTimes(){
   const today=todayKey(),city=(SET.city||"Istanbul").trim();
   if(TIMES&&TIMES.date===today&&TIMES.city===city)return;if(timesLoading)return;timesLoading=true;
   try{const r=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=Turkey&method=13`);const j=await r.json();
-    if(j&&j.data&&j.data.timings){const t=j.data.timings;TIMES={date:today,city,t:{imsak:t.Fajr,gunes:t.Sunrise,ogle:t.Dhuhr,ikindi:t.Asr,aksam:t.Maghrib,yatsi:t.Isha}};store.set("mk_times",TIMES);if(tab==="bugun")renderView()}}catch(e){}
+    if(j&&j.data&&j.data.timings){const t=j.data.timings;TIMES={date:today,city,lat:+(j.data.meta&&j.data.meta.latitude)||41.0082,lon:+(j.data.meta&&j.data.meta.longitude)||28.9784,t:{imsak:t.Fajr,gunes:t.Sunrise,ogle:t.Dhuhr,ikindi:t.Asr,aksam:t.Maghrib,yatsi:t.Isha}};store.set("mk_times",TIMES);if(tab==="bugun")renderView()}}catch(e){}
   timesLoading=false;
 }
 function timesNow(){
@@ -1085,6 +1090,37 @@ function vakitTick(){
 }
 setInterval(vakitTick,15000);
 
+/* --- Kıble --- */
+function kibleAci(){const la=((TIMES&&TIMES.lat)||41.0082)*Math.PI/180,lo=((TIMES&&TIMES.lon)||28.9784)*Math.PI/180,kla=21.4225*Math.PI/180,klo=39.8262*Math.PI/180,d=klo-lo;
+  return (Math.atan2(Math.sin(d),Math.cos(la)*Math.tan(kla)-Math.sin(la)*Math.cos(d))*180/Math.PI+360)%360}
+const yonAd=a=>["Kuzey","Kuzeydoğu","Doğu","Güneydoğu","Güney","Güneybatı","Batı","Kuzeybatı"][Math.round(a/45)%8];
+let kibleOn=false;function kibleHandler(e){const h=e.webkitCompassHeading!=null?e.webkitCompassHeading:(e.absolute&&e.alpha!=null?360-e.alpha:null);if(h==null)return;const k=kibleAci(),rel=(k-h+360)%360,el=$("#kibleOk"),dial=$("#kibleDial");if(!dial)return;dial.style.transform=`rotate(${-h}deg)`;const ok=rel<6||rel>354;el.textContent=ok?"✓ Kıbleye dönüksün":(rel<180?"Biraz sağa dön →":"← Biraz sola dön");el.style.color=ok?"var(--good)":"var(--muted)"}
+function kibleAc(){const k=kibleAci();openModal(`<h3>🧭 Kıble</h3><div class="small muted">${esc(SET.city||"İstanbul")} için kıble: <b style="color:var(--fg)">${Math.round(k)}°</b> (${yonAd(k)})</div>
+  <div style="position:relative;width:240px;height:240px;margin:6px auto"><div id="kibleDial" style="position:absolute;inset:0;border-radius:50%;border:2px solid var(--line);transition:transform .15s linear;background:radial-gradient(circle,var(--surface2),var(--surface))">
+   ${["K","D","G","B"].map((n,i)=>`<span style="position:absolute;left:50%;top:50%;transform:rotate(${i*90}deg) translate(0,-104px) rotate(${-i*90}deg);translate:-50% -50%;font-weight:700;color:${i?"var(--muted)":"#e05a4f"}">${n}</span>`).join("")}
+   <div style="position:absolute;left:50%;top:50%;width:4px;height:96px;background:var(--accent);border-radius:2px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(${k}deg)"></div>
+   <div style="position:absolute;left:50%;top:50%;transform:rotate(${k}deg) translate(0,-112px) rotate(${-k}deg);translate:-50% -50%;font-size:22px">🕋</div></div></div>
+  <div id="kibleOk" style="text-align:center;font-weight:700">Pusulayı başlat</div>
+  <div class="ctrl"><button class="pill acc" id="kStart">Pusulayı başlat</button><button class="pill ghost" id="mNo">Kapat</button></div>
+  <div class="small muted">Telefonu yere paralel tut. Metal eşyalardan uzak dur.</div>`,()=>{
+  $("#mNo").onclick=()=>{window.removeEventListener("deviceorientation",kibleHandler);window.removeEventListener("deviceorientationabsolute",kibleHandler);closeModal()};
+  $("#kStart").onclick=async()=>{try{if(typeof DeviceOrientationEvent!=="undefined"&&DeviceOrientationEvent.requestPermission){const r=await DeviceOrientationEvent.requestPermission();if(r!=="granted"){toast("Pusula izni verilmedi");return}}
+    window.addEventListener("deviceorientationabsolute",kibleHandler);window.addEventListener("deviceorientation",kibleHandler);$("#kibleOk").textContent="Telefonu yavaşça çevir…"}catch(e){toast("Bu cihazda pusula açılamadı")}}})}
+
+/* --- Kaza namazı takibi --- */
+const KAZA_AD=[["sabah","Sabah"],["ogle","Öğle"],["ikindi","İkindi"],["aksam","Akşam"],["yatsi","Yatsı"],["vitir","Vitir"]];
+let KAZA=store.get("mk_kaza",{});
+function vKaza(){const top=KAZA_AD.reduce((a,[k])=>a+(KAZA[k]||0),0);
+  return `<h2>Kaza namazlarım</h2><div class="small muted" style="margin-bottom:8px">Borcunu bir kez gir; kıldıkça − ile düş. Toplam kalan: <b style="color:var(--fg)">${top}</b></div>
+  <div class="list">${KAZA_AD.map(([k,n])=>`<div class="nrow" style="align-items:center"><span class="tx"><b>${n}</b></span><button class="pill ghost" data-kz="${k}" data-d="-1" style="padding:6px 14px">−</button><input type="number" inputmode="numeric" data-kzv="${k}" value="${KAZA[k]||0}" style="width:76px;text-align:center;padding:6px"><button class="pill" data-kz="${k}" data-d="1" style="padding:6px 14px">+</button></div>`).join("")}</div>`}
+function bKaza(){document.querySelectorAll("[data-kz]").forEach(b=>b.onclick=()=>{const k=b.dataset.kz;KAZA[k]=Math.max(0,(KAZA[k]||0)+(+b.dataset.d));store.set("mk_kaza",KAZA);renderView()});
+  document.querySelectorAll("[data-kzv]").forEach(i=>i.onchange=()=>{KAZA[i.dataset.kzv]=Math.max(0,parseInt(i.value,10)||0);store.set("mk_kaza",KAZA);renderView()})}
+
+/* --- Doğru simge kontrolü --- */
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent),IS_APP=!!(navigator.standalone||matchMedia("(display-mode: standalone)").matches);
+function vSimge(){if(!IS_IOS||IS_APP||store.get("mk_simge_ok",false))return"";
+  return `<div class="soz" style="margin-top:12px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">ANA EKRANA EKLE</div><div class="small">Safari'nin altındaki Paylaş <b>⬆️</b> düğmesine bas → <b>Ana Ekrana Ekle</b>. Hilal simgeli “Maneviyat” telefonunda uygulama gibi durur.</div><button class="pill ghost" id="simgeOk" style="justify-self:start">Tamam, ekledim</button></div>`}
+
 /* --- Mübarek günler --- */
 let HIJ=null;
 function hijriOf(d){try{const f=HIJ||(HIJ=new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn",{day:"numeric",month:"numeric"}));const p=f.formatToParts(d);return{m:+p.find(x=>x.type==="month").value,d:+p.find(x=>x.type==="day").value}}catch(e){return null}}
@@ -1136,9 +1172,10 @@ function vBugun(){
     body=`<div class="kpis"><div class="kpi"><span class="small muted">Bugün</span><b>${cnt} / ${AMEL.length}</b></div><div class="kpi"><span class="small muted">5 vakit serisi</span><b>${streak} gün</b></div></div>
     <div class="list" style="margin-top:12px">${AMEL.map(([k,l])=>`<button class="row amel ${a[k]?"ok":""}" data-amel="${k}"><span class="chk">${a[k]?"✓":""}</span><span class="t"><b>${esc(l)}</b></span></button>`).join("")}</div>
     <h2>Son 7 gün</h2><div class="stats">${days.map(d=>`<div><i style="height:${Math.max(3,d.n/AMEL.length*64)}px"></i>${esc(d.l)}</div>`).join("")}</div>
-    <div class="note">Amellerin Allah'a en sevimli olanı, az da olsa devamlı olanıdır (Buhârî). Bugün bir adım yeter; yarın bir adım daha.</div>`}
+    <div class="note">Amellerin Allah'a en sevimli olanı, az da olsa devamlı olanıdır (Buhârî). Bugün bir adım yeter; yarın bir adım daha.</div>`+vKaza()}
   else{body=`<div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher"],["kuran","Kur'an'dan"]].map(([k,l])=>`<button data-dseg2="${k}" class="${duaSeg2===k?"on":""}">${l}</button>`).join("")}</div><button class="pill acc" id="duaAll" style="margin-bottom:12px">▶ Tümünü sırayla dinle</button>`+DUALAR[duaSeg2].map((d,i)=>duaCard(d,duaSeg2+"|"+i)).join("")}
-  return card+vDevam()+(bugSeg==="vakit"?vMubarek():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
+  const gun=new Date().getDay(),cuma=(gun===5||(gun===4&&new Date().getHours()>=18))?`<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(150 60% 45%) 18%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:hsl(150 60% ${isDark()?60:32}%)">CUMA</div><div class="soz-t">Hayırlı Cumalar</div><div class="small muted">Kehf sûresini okumak ve bolca salavat getirmek sünnettir.</div><div class="ctrl"><button class="pill" id="kehfBtn">▶ Kehf sûresi</button><button class="pill ghost" id="salBtn">Salavat 100</button></div></div>`:"";
+  return card+`<div class="ctrl" style="margin-top:12px"><button class="pill" id="kibleBtn">🧭 Kıble</button><button class="pill ghost" id="kazaBtn">Kaza takibi</button></div>`+vSimge()+vDevam()+cuma+(bugSeg==="vakit"?vMubarek():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
 }
 function bBugun(){
   document.querySelectorAll("[data-bseg]").forEach(b=>b.onclick=()=>{bugSeg=b.dataset.bseg;renderView()});
@@ -1155,6 +1192,11 @@ function bBugun(){
   const sp=$("#seherPlay");if(sp)sp.onclick=()=>{playQueue(LISTELER[0].s.map(n=>sureTrack(n)).map(t=>(t.group="Seher",t)),0)};
   const mb=$("#mulkBtn");if(mb)mb.onclick=()=>playQueue([sureTrack(67)],0);
   $("#shareBtn").onclick=share;
+  $("#kibleBtn").onclick=kibleAc;$("#kazaBtn").onclick=()=>{bugSeg="amel";renderView();setTimeout(()=>{const h=[...document.querySelectorAll("#view h2")].find(x=>x.textContent.includes("Kaza"));if(h)h.scrollIntoView({block:"start"})},50)};
+  const so=$("#simgeOk");if(so)so.onclick=()=>{store.set("mk_simge_ok",true);renderView()};
+  const kb=$("#kehfBtn");if(kb)kb.onclick=()=>playQueue([sureTrack(18)],0);
+  const sb=$("#salBtn");if(sb)sb.onclick=()=>{zs.cur="salavat";zs.counts.salavat=0;zs.targets.salavat=100;zs.chain=false;saveZ();tab="zikir";renderView();window.scrollTo(0,0)};
+  if(bugSeg==="amel")bKaza();
   const dv=$("#devamBtn");if(dv)dv.onclick=()=>{const r=RECENT.find(x=>x.ctx&&x.ctx.type!=="radio");if(r)openCtx(r.ctx)};
   bindDua($("#view"));
 }
