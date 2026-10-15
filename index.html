@@ -883,7 +883,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 15</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 17</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1261,7 +1261,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=16;
+const SURUM=17;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1339,14 +1339,14 @@ function vakitItems(){const {t}=timesNow();const sk=sehirKod(),city=SET.city||"�
 async function hatListe(sifre){const j=await kasaPost("/hatirlatma/liste",{sifre,uyg:UYG});return Array.isArray(j)?j:(j.liste||j.hatirlatmalar||[])}
 const hatTemiz=h=>({id:String(h.id||("h"+Date.now())),saat:h.saat||"08:00",gunler:(h.gunler||[]).map(Number),baslik:h.baslik||"🕌 Maneviyat",govde:h.govde||"",url:String(h.url||"#bugun").startsWith("#")?appUrl(h.url||"#bugun"):h.url,hedef:h.hedef||{},aktif:h.aktif!==false});
 const gunNo=d=>Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2020,0,1))/864e5);
-function risaleItems(){if(!VEC.length)return[];const saat=SET.rsaat||"08:30",out=[];
+function risaleItems(){const saat=SET.rsaat||"08:30",out=[];if(!VEC.length){for(let k=0;k<7;k++){const d=new Date();d.setDate(d.getDate()+k);const x=gunDers(k);out.push({id:"risale_g"+d.getDay(),saat,gunler:[d.getDay()],baslik:"📚 Maneviyat · Günün Risale-i Nur dersi",govde:x.n+" ("+x.y+"): "+x.d+". Okumak için dokun.",url:appUrl("#risale"),hedef:{},aktif:true})}return out}
   for(let k=0;k<7;k++){const d=new Date();d.setDate(d.getDate()+k);const v=VEC[gunNo(d)%VEC.length];const g=v.t.length>170?v.t.slice(0,167)+"…":v.t;
     out.push({id:"risale_g"+d.getDay(),saat,gunler:[d.getDay()],baslik:"📚 Maneviyat · Günün Risale vecizesi",govde:"❝"+g+"❞"+(v.s?" — "+v.s:""),url:appUrl("#risale"),hedef:{},aktif:true})}
   return out}
-function otoItems(liste){const va=store.get("mk_hat_auto",false),ri=store.get("mk_hat_risale",false);
+function otoItems(liste){const va=store.get("mk_hat_auto",true),ri=store.get("mk_hat_risale",true);
   let l=liste.filter(h=>{const i=String(h.id);return !(va&&i.startsWith("vakit_"))&&!(ri&&i.startsWith("risale_g"))});
   if(va)l=l.concat(vakitItems());if(ri)l=l.concat(risaleItems());return l}
-async function vakitOto(){try{const va=store.get("mk_hat_auto",false),ri=store.get("mk_hat_risale",false);if(!va&&!ri)return;
+async function vakitOto(){try{const va=store.get("mk_hat_auto",true),ri=store.get("mk_hat_risale",true);if(!va&&!ri)return;
   const s=store.get("mk_kasa_sifre","");if(!s||store.get("mk_hat_vakit_t","")===todayKey())return;
   if(va&&(!TIMES||TIMES.date!==todayKey()))return;
   const l=otoItems((await hatListe(s)).map(hatTemiz));
@@ -1385,9 +1385,9 @@ function vRisale(){const ok=store.get("mk_risale_ok",{});const nS=RN_SOZLER.filt
   const bugun=vecGunun(0),liste=VEC.filter(v=>vecFiltre==="hepsi"||(v.kat||"genel")===vecFiltre).slice().reverse(),say=k=>VEC.filter(v=>(v.kat||"genel")===k).length;
   return `<div class="bigcard" style="background:color-mix(in srgb,hsl(150 55% 40%) 20%,var(--surface))"><span class="small" style="font-weight:700;letter-spacing:.06em;color:var(--accent)">RİSALE-İ NUR KÜLLİYATI</span><div class="ttl">Bediüzzaman Said Nursî</div><div class="muted small">Günün vecizesi, vecize defterin, çocuk eğitimi, okuma yolculuğun ve sesli dersler.</div>
   <div class="ctrl"><a class="pill acc" href="https://www.erisale.com" target="_blank" rel="noopener">📖 erisale.com</a><button class="pill" data-qs="Risale-i Nur sesli">🎧 Sesli Risale</button><button class="pill" data-qs="Risale-i Nur dersleri">🎧 Risale dersleri</button></div></div>
-  <h2>📚 Günün vecizesi</h2>
+  <h2>📚 Bugün</h2>
   ${bugun?`<div class="soz" style="background:color-mix(in srgb,hsl(150 55% 40%) 16%,var(--surface))"><div class="soz-t">❝ ${esc(bugun.t)} ❞</div><div class="small muted">${esc(bugun.s||"Risale-i Nur")} · ${esc(katAd(bugun.kat))}</div><div class="ctrl"><button class="pill ghost" id="rvPay">📤 Paylaş</button><button class="pill ghost" id="rvSes">🔊 Dinle</button><button class="pill ghost" id="rvBaska">🔀 Başka bir vecize</button></div></div>`
-  :`<div class="empty">Henüz vecize yok. Aşağıdaki deftere ekleyince her gün biri burada, Bugün sayfasında ve bildirim olarak karşına çıkar.</div>`}
+  :dersKart(gunDers(0),"background:color-mix(in srgb,hsl(150 55% 40%) 16%,var(--surface))").replace('<button class="pill ghost" id="vcGo">Risale-i Nur ›</button>','')}
   <h2>✍️ Vecize defterim <span class="small muted">${VEC.length}</span></h2>
   <div class="bigcard"><div class="muted small">erisale.com'da ya da kitabında okurken beğendiğin cümleyi kopyala, buraya yapıştır. Çok sayıda vecizeyi “Toplu ekle” ile tek seferde ekleyebilirsin.</div>
   <textarea id="vcT" placeholder="Vecizeyi buraya yapıştır…"></textarea><input type="text" id="vcS" placeholder="Kaynak (ör. Sözler, 23. Söz)"><label class="small muted" style="display:grid;gap:4px">Konu${katSec("vcK")}</label>
@@ -1420,7 +1420,7 @@ function bRisale(){
   const rb=$("#rvBaska");if(rb)rb.onclick=()=>{if(VEC.length<2){toast("Defterinde başka vecize yok");return}rOff++;const v=vecGunun(rOff),box=rb.closest(".soz");box.querySelector(".soz-t").textContent="❝ "+v.t+" ❞";box.querySelector(".small").textContent=(v.s||"Risale-i Nur")+" · "+katAd(v.kat)};
 }
 function vVecizeCard(){const v=vecGunun(0),bg="background:color-mix(in srgb,hsl(150 55% 40%) 16%,var(--surface))",bas=`<div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">📚 GÜNÜN RİSALE-İ NUR VECİZESİ</div>`;
-  if(!v)return `<div class="soz" style="margin-top:10px;${bg}">${bas}<div class="small">Vecizelerini bir kez deftere ekle; her gün biri burada ve bildirim olarak karşına çıksın.</div><div class="ctrl"><button class="pill acc" id="vcGo">✍️ Vecize defterini aç</button></div></div>`;
+  if(!v)return dersKart(gunDers(0),bg);
   return `<div class="soz" style="margin-top:10px;${bg}">${bas}<div class="soz-t">❝ ${esc(v.t)} ❞</div><div class="small muted">${esc(v.s||"Risale-i Nur")}</div><div class="ctrl"><button class="pill ghost" id="vcPay">📤 Paylaş</button><button class="pill ghost" id="vcSes">🔊 Dinle</button><button class="pill ghost" id="vcGo">Defterim ›</button></div></div>`}
 
 /* ---------- Kırk Hadis (İmam Nevevî'den seçmeler, mana olarak) ---------- */
@@ -1536,8 +1536,8 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <div class="ctrl"><button class="pill" id="hatGetir">📥 Kasadan getir</button><button class="pill ghost" id="hatYeni">➕ Ekle</button></div>
    <div id="hatList" style="display:grid;gap:10px"></div>
    <div class="small muted">Hazır öneriler:</div><div class="ctrl" id="hatOneri"></div>
-   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatAuto" ${store.get("mk_hat_auto",false)?"checked":""} style="width:20px;height:20px;flex:none">🕌 Namaz vakitlerinden 10 dk önce hatırlat (${esc(SET.city||"İstanbul")} saatleriyle; şifre hatırlanıyorsa uygulamayı her gün ilk açışında kendini günceller)</label>
-   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatRisale" ${store.get("mk_hat_risale",false)?"checked":""} style="width:20px;height:20px;flex:none">📚 Her gün Risale-i Nur vecizesi bildirimi (vecize defterinden sırayla, bir haftalık plan; şu an ${VEC.length} vecize)</label>
+   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatAuto" ${store.get("mk_hat_auto",true)?"checked":""} style="width:20px;height:20px;flex:none">🕌 Namaz vakitlerinden 10 dk önce hatırlat (${esc(SET.city||"İstanbul")} saatleriyle; şifre hatırlanıyorsa uygulamayı her gün ilk açışında kendini günceller)</label>
+   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatRisale" ${store.get("mk_hat_risale",true)?"checked":""} style="width:20px;height:20px;flex:none">📚 Her gün Risale-i Nur vecizesi bildirimi (her gün farklı bir Söz ya da risale; defterine vecize eklersen onlar da gelir)</label>
    <label class="small muted" style="display:flex;gap:8px;align-items:center">Vecize bildiriminin saati <input type="time" id="hatRsaat" value="${esc(SET.rsaat||"08:30")}"></label>
    <button class="pill acc" id="hatKaydet" style="justify-self:start;font-size:16px;padding:12px 18px">💾 Kasaya kaydet</button></div>
   <h2>📣 Şimdi bildirim gönder <span class="small muted">(uygulama sahibi)</span></h2>
@@ -1585,7 +1585,7 @@ function bAyarlar(){
   on("#hatGetir",async()=>{const s=sif();if(!s)return;try{HAT=await hatListe(s);hatRender();toast("📥 "+HAT.length+" hatırlatma getirildi")}catch(e){toast("Getirilemedi: "+e.message)}});
   on("#hatYeni",()=>{HAT.push({id:"h"+Date.now(),saat:"08:00",gunler:[],baslik:"🕌 Maneviyat · ",govde:"",url:"#bugun",hedef:{},aktif:true});hatRender();const b=[...document.querySelectorAll("#hatList [data-hf=baslik]")].pop();if(b){b.scrollIntoView({block:"center"});b.focus();b.setSelectionRange(b.value.length,b.value.length)}toast("Saat, gün, başlık ve metni yaz; sonra 💾 Kasaya kaydet")});
   const ha=$("#hatAuto");if(ha)ha.onchange=()=>store.set("mk_hat_auto",ha.checked);
-  const hr=$("#hatRisale");if(hr)hr.onchange=()=>{store.set("mk_hat_risale",hr.checked);if(hr.checked&&!VEC.length)toast("Önce Külliyat → Risale-i Nur → Vecize defterine vecize ekle")};
+  const hr=$("#hatRisale");if(hr)hr.onchange=()=>{store.set("mk_hat_risale",hr.checked);};
   const hs=$("#hatRsaat");if(hs)hs.onchange=()=>{SET.rsaat=hs.value||"08:30";store.set("mk_set",SET)};
   on("#hatKaydet",async()=>{const s=sif();if(!s)return;const liste=otoItems(HAT.map(hatTemiz));
     try{await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste});HAT=liste;store.set("mk_hat_vakit_t",todayKey());hatRender();toast("✅ "+liste.length+" hatırlatma kasaya kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
@@ -1645,6 +1645,20 @@ function anahtarAyikla(t){t=String(t||"");const out=[];
   t.split(/[\s,;|"'`]+/).forEach(x=>{x=x.trim().replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9_\-]+$/g,"");if(x.length>=20&&/^[A-Za-z0-9._\-]+$/.test(x))out.push(x)});
   return [...new Set(out)]}
 
+/* ---------- Günün Risale-i Nur dersi (otomatik, uğraştırmaz) ---------- */
+const RN_DERS=RN_SOZLER.map((d,i)=>({n:(i+1)+". Söz",y:"Sözler",d,q:(i+1)+". Söz"})).concat(RN_RISALE.map(([n,y,d])=>({n,y,d,q:n})));
+function gunDers(off){const d=new Date();d.setDate(d.getDate()+(off||0));return RN_DERS[gunNo(d)%RN_DERS.length]}
+function dersKart(x,bg){return `<div class="soz" style="margin-top:10px;${bg}"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">📚 GÜNÜN RİSALE-İ NUR DERSİ</div><div class="soz-t">${esc(x.n)}</div><div class="small muted">${esc(x.y)} · ${esc(x.d)}</div><div class="ctrl"><a class="pill acc" target="_blank" rel="noopener" href="${rnLink(x.q)}">📖 Oku</a><a class="pill ghost" target="_blank" rel="noopener" href="${yt("Risale-i Nur "+x.q+" sesli")}">🎧 Sesli dinle</a><button class="pill ghost" id="vcGo">Risale-i Nur ›</button></div></div>`}
+/* ---------- Kendini güncelleme: yeni sürüm yüklenince uygulama kendiliğinden yenilenir ---------- */
+let guncelT=0;
+async function surumKontrol(){if(location.protocol!=="https:"||Date.now()-guncelT<60000)return;guncelT=Date.now();
+  try{const r=await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const SURUM=(\d+);/);
+    if(m&&+m[1]>SURUM){const k="mk_guncel_"+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");
+      try{const ks=await caches.keys();await Promise.all(ks.filter(x=>x.startsWith("maneviyat-")).map(x=>caches.delete(x)))}catch(e){}
+      toast("Yeni sürüm yükleniyor…");setTimeout(()=>location.reload(),600)}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")surumKontrol()});
+setTimeout(surumKontrol,2500);
+
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
   const base=location.pathname.replace(/[^/]*$/,"");
@@ -1652,7 +1666,7 @@ function anahtarAyikla(t){t=String(t||"");const out=[];
   navigator.serviceWorker.register("sw.js",{scope:"./"}).then(r=>{PUSH_REG=r;pushCheck()}).catch(()=>{});
   /* çevrimdışı açılış: yalnız bu sayfayı kapsayan ayrı yardımcı (bildirim sw.js'ine dokunmaz) */
   const page=location.pathname;if(!page.endsWith("/"))navigator.serviceWorker.register("maneviyat-sw.js",{scope:page}).catch(()=>{});
-  try{const man={name:"Maneviyat Külliyatı",short_name:"Maneviyat",display:"standalone",background_color:"#0e1517",theme_color:"#0e1517",start_url:location.origin+base,scope:location.origin+base,icons:[{src:document.querySelector('link[rel="apple-touch-icon"]').href,sizes:"180x180",type:"image/png"}]};
+  try{const man={name:"Maneviyat Külliyatı",short_name:"Maneviyat",display:"standalone",background_color:"#0e1517",theme_color:"#0e1517",start_url:location.origin+location.pathname,scope:location.origin+base,id:location.origin+location.pathname,icons:[{src:document.querySelector('link[rel="apple-touch-icon"]').href,sizes:"180x180",type:"image/png"}]};
     document.querySelector('link[rel="manifest"]').href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}))}catch(e){}
 })();
 
