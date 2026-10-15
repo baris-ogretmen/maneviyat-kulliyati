@@ -883,7 +883,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 18</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 19</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1142,7 +1142,7 @@ function bKaza(){document.querySelectorAll("[data-kz]").forEach(b=>b.onclick=()=
   document.querySelectorAll("[data-kzv]").forEach(i=>i.onchange=()=>{KAZA[i.dataset.kzv]=Math.max(0,parseInt(i.value,10)||0);store.set("mk_kaza",KAZA);renderView()})}
 
 /* --- Doğru simge kontrolü --- */
-const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent),IS_APP=!!(navigator.standalone||matchMedia("(display-mode: standalone)").matches);
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1),IS_APP=!!(navigator.standalone||matchMedia("(display-mode: standalone)").matches);
 function vSimge(){if(!IS_IOS||IS_APP||store.get("mk_simge_ok",false))return"";
   return `<div class="soz" style="margin-top:12px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">ANA EKRANA EKLE</div><div class="small">Safari'nin altındaki Paylaş <b>⬆️</b> düğmesine bas → <b>Ana Ekrana Ekle</b>. Hilal simgeli “Maneviyat” telefonunda uygulama gibi durur.</div><button class="pill ghost" id="simgeOk" style="justify-self:start">Tamam, ekledim</button></div>`}
 
@@ -1261,7 +1261,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=18;
+const SURUM=19;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1301,7 +1301,7 @@ async function pushSubscribe(){
   store.set("mk_push_t",Date.now());store.set("mk_push_on",true);return s;
 }
 async function pushEnable(){
-  try{const e=pushDestek();if(e){toast(e);return false}
+  try{const e=pushDestek();if(e){if(IS_IOS&&!IS_APP)ekleRehberi();else toast(e);return false}
     const p=await Notification.requestPermission();if(p!=="granted"){toast("Bildirim izni verilmedi. Telefon Ayarları → Bildirimler'den açabilirsin.");return false}
     await pushSubscribe();toast("🔔 Bildirimler açık");return true}catch(e){toast("Açılamadı: "+e.message);return false}}
 async function pushDisable(){try{const r=await getPushReg();const s=r&&await r.pushManager.getSubscription();if(s)await s.unsubscribe()}catch(e){}store.set("mk_push_on",false);toast("Bildirimler kapatıldı")}
@@ -1529,10 +1529,10 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <div class="small muted">Bu cihaz: ${ok(perm==="granted")} izin · ${ok(IS_APP||!IS_IOS)} ana ekran · ${ok(acik)} abonelik</div></div>
   <h2>🔔 Bildirim durumu</h2>
   <div class="bigcard"><div class="ctrl"><button class="pill" id="durumBtn">🔄 Durumu göster</button><button class="pill" id="kaydetBtn">📲 Bu cihazı kaydet</button><button class="pill" id="denemeBtn">🧪 Bana dene</button></div><div id="durumOut" class="small"></div></div>
-  <h2>⏰ Hatırlatmalar <span class="small muted">(uygulama sahibi)</span></h2>
+  ${yonetici()?`<h2>⏰ Hatırlatmalar <span class="small muted">(yönetici)</span></h2>
   <div class="bigcard"><div class="muted small">Bu liste, uygulamayı ana ekrana ekleyip bildirimi açan herkese gider. Değiştirmek için kasa şifresi gerekir.</div>
    <input type="password" id="hatSifre" placeholder="🔒 Kasa şifresi" value="${esc(store.get("mk_kasa_sifre",""))}" autocomplete="off">
-   <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hatHatirla" ${store.get("mk_kasa_sifre","")?"checked":""} style="width:20px;height:20px">Şifreyi bu cihazda hatırla</label>
+   <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hatHatirla" checked style="width:20px;height:20px">Şifreyi bu cihazda hatırla</label>
    <div class="ctrl"><button class="pill" id="hatGetir">📥 Kasadan getir</button><button class="pill ghost" id="hatYeni">➕ Ekle</button></div>
    <div id="hatList" style="display:grid;gap:10px"></div>
    <div class="small muted">Hazır öneriler:</div><div class="ctrl" id="hatOneri"></div>
@@ -1540,12 +1540,13 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatRisale" ${store.get("mk_hat_risale",true)?"checked":""} style="width:20px;height:20px;flex:none">📚 Her gün Risale-i Nur vecizesi bildirimi (her gün farklı bir Söz ya da risale; defterine vecize eklersen onlar da gelir)</label>
    <label class="small muted" style="display:flex;gap:8px;align-items:center">Vecize bildiriminin saati <input type="time" id="hatRsaat" value="${esc(SET.rsaat||"08:30")}"></label>
    <button class="pill acc" id="hatKaydet" style="justify-self:start;font-size:16px;padding:12px 18px">💾 Kasaya kaydet</button></div>
-  <h2>📣 Şimdi bildirim gönder <span class="small muted">(uygulama sahibi)</span></h2>
+  <h2>📣 Şimdi bildirim gönder <span class="small muted">(yönetici)</span></h2>
   <div class="bigcard"><div class="muted small">Yazdığın bildirim, bildirimi açık olan herkese hemen gider. Kandil, Cuma, özel gün mesajları için. Yukarıdaki kasa şifresi gerekir.</div>
    <input type="text" id="anBaslik" value="🕌 Maneviyat · " placeholder="Başlık">
    <textarea id="anMetin" placeholder="Mesaj (ör. Bu gece Regaip Kandili. Dualarınızda buluşalım.)"></textarea>
    <label class="small muted" style="display:grid;gap:4px">Dokununca açılacak bölüm<select id="anUrl"><option value="#bugun">Bugün</option><option value="#zikir">Zikir</option><option value="#kuran">Kur'an</option><option value="#risale">Risale-i Nur</option><option value="#hadis">Kırk Hadis</option><option value="#siyer">Siyer</option><option value="#uyku">Uyku</option></select></label>
    <div class="ctrl"><button class="pill acc" id="anGonder">📣 Herkese gönder</button><button class="pill ghost" id="anBana">🧪 Önce bana gönder</button></div></div>
+`:""}
   <h2>Genel</h2>
   <div class="bigcard">
    <label class="small muted" style="display:grid;gap:4px">Şehir (namaz vakitleri)<input type="text" id="aCity" value="${esc(SET.city||"")}" placeholder="Istanbul"></label>
@@ -1562,16 +1563,18 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <button class="pill" id="sKaydet" style="justify-self:start">💾 Kaydet</button></div>
   <h2>💾 Yedek</h2>
   <div class="bigcard"><div class="small muted">Zikir sayıların, notların, vecize defterin, amellerin ve ayarların tek dosyada. Telefon değiştirirken işine yarar.</div><div class="ctrl"><button class="pill" id="yedekAl">⬇️ Yedek al</button><label class="pill ghost" style="cursor:pointer">⬆️ Yedeği yükle<input type="file" id="yedekDosya" accept="application/json,.json" hidden></label></div></div>
-  <h2>🔐 Kasa</h2>
+  ${yonetici()?`<h2>🔐 Kasa</h2>
   <div class="bigcard"><div class="small muted">Bildirim sunucusunun adresi. Değiştirmen gerekmez.</div><input type="text" id="kasaAdr" value="${esc(kasaUrl())}" autocomplete="off" autocapitalize="off"><div class="ctrl"><button class="pill" id="kasaKaydet">💾 Kaydet</button><button class="pill" id="kasaTest">🩺 Test et</button></div><div id="kasaOut" class="small"></div></div>
   <h2>🗝️ Anahtar kasası</h2>
   <div class="bigcard"><div class="muted small">Yapay zekâ (Gemini) anahtarlarını baris-kasa'ya koy. Bu kasaya bağlı bütün uygulamaların ortak kullanır; anahtarlar kasada gizli kalır, bu cihaza ve koda yazılmaz.</div>
    <input type="password" id="akSifre" placeholder="🔒 Kasa şifresi" value="${esc(store.get("mk_kasa_sifre",""))}" autocomplete="off">
    <textarea id="akYeni" placeholder="AIza… anahtarlarını yapıştır (her satıra bir tane)" autocomplete="off" autocapitalize="off"></textarea>
    <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button><button class="pill" id="akTest">🧪 Yapay zekâyı test et</button></div><div class="small muted">Her biçimdeki anahtarı (AIza…, AQ.… vb.) yapıştırabilirsin. Birden çok anahtarı aralarında boşluk, virgül ya da satır olsa da tek seferde yapıştır; uygulama her birini ayırıp kasaya gönderir.</div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
+  <div class="ctrl" style="justify-content:center;margin-top:22px"><button class="pill ghost" id="ygCikis">🔓 Yönetici modundan çık</button></div>`:`<div class="ctrl" style="justify-content:center;margin-top:22px"><button class="pill ghost" id="ygGiris" style="font-size:13px">🔐 Yönetici girişi</button></div>`}
   <div class="small muted" style="text-align:center;margin-top:18px">Maneviyat Külliyatı · sürüm ${SURUM}</div>`}
 function bAyarlar(){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+  on("#ygGiris",yoneticiGiris);on("#ygCikis",yoneticiCikis);
   on("#ayGeri",()=>{tab=store.get("mk_tab","bugun");renderView()});
   on("#pushOn",async()=>{await pushEnable();renderView()});on("#pushOff",async()=>{await pushDisable();renderView()});
   on("#durumBtn",async()=>{const o=$("#durumOut");o.textContent="Soruluyor…";try{const r=await getPushReg();const s=r&&await r.pushManager.getSubscription();
@@ -1658,6 +1661,22 @@ async function surumKontrol(){if(location.protocol!=="https:"||Date.now()-guncel
       toast("Yeni sürüm yükleniyor…");setTimeout(()=>location.reload(),600)}}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")surumKontrol()});
 setTimeout(surumKontrol,2500);
+
+/* ---------- Yönetici modu: sahibe özel kartlar yalnız şifreyle açılır ---------- */
+const yonetici=()=>!!store.get("mk_yonetici",false);
+function yoneticiGiris(){openModal(`<h3>🔐 Yönetici girişi</h3><div class="small muted">Hatırlatma, toplu bildirim ve anahtar kasası yalnız uygulama sahibine açıktır. Kasa şifresini gir; bu cihaz bir daha sormaz.</div><input type="password" id="ygS" placeholder="🔒 Kasa şifresi" autocomplete="off"><div class="ctrl"><button class="pill acc" id="mOk">Giriş yap</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{
+  setTimeout(()=>{try{$("#ygS").focus()}catch(e){}},60);
+  $("#mOk").onclick=async()=>{const s=$("#ygS").value.trim();if(!s){toast("Şifreyi yaz");return}
+    try{const l=await hatListe(s);store.set("mk_kasa_sifre",s);store.set("mk_yonetici",true);HAT=l.length?l:HAT;store.set("mk_hat",HAT);closeModal();toast("✅ Yönetici modu açık");renderView()}catch(e){toast("Şifre doğrulanamadı")}};
+  $("#mNo").onclick=closeModal})}
+function yoneticiCikis(){confirmBox("Yönetici modundan çıkılsın mı?","Bu cihazda hatırlatma ve anahtar kartları gizlenir, şifre unutulur. Bildirimlerin gelmeye devam eder.","Çık",()=>{store.set("mk_yonetici",false);store.set("mk_kasa_sifre","");renderView()})}
+/* ---------- iPhone'da ana ekrana ekleme rehberi ---------- */
+function ekleRehberi(){const icUyg=/FBAN|FBAV|Instagram|WhatsApp|Line\/|GSA\//i.test(navigator.userAgent);
+  openModal(`<h3>📲 Bildirim için önce ana ekrana ekle</h3>
+  <div class="small">iPhone, internet uygulamalarına bildirimi yalnızca <b>ana ekrana eklenmişse</b> izin verir. Bir kez yapılır:</div>
+  ${icUyg?`<div class="note" style="margin:0"><b>WhatsApp ya da Instagram içinden açtın.</b> Önce sağ alttaki/üstteki menüden <b>“Safari'de aç”</b>a dokun.</div>`:""}
+  <ol class="small" style="margin:0;padding-left:20px;display:grid;gap:6px"><li>Safari'de adres çubuğundaki <b>Paylaş ⬆️</b> düğmesine dokun (yeni iPhone'larda önce <b>•••</b>, sonra <b>Paylaş</b>).</li><li>Listeyi kaydırıp <b>“Ana Ekrana Ekle”</b>yi seç, sağ üstte <b>Ekle</b>.</li><li>Safari'yi kapat, ana ekrandaki <b>hilal simgeli Maneviyat</b>'ı aç.</li><li>Orada <b>🔔 Bildirimleri aç</b>'a bas, “İzin ver” de.</li></ol>
+  <button class="pill acc" id="mNo">Anladım</button>`,()=>{$("#mNo").onclick=closeModal})}
 
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
