@@ -207,6 +207,14 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
 .vt th,.vt td{padding:6px 3px;text-align:center;border-bottom:1px solid var(--line)}
 .vt th{position:sticky;top:0;background:var(--surface)}
 .vt tr.bugun td{background:var(--surface2);font-weight:700;color:var(--accent)}
+.vakit{position:relative;overflow:hidden}
+.vakit>*{position:relative}
+.vakit.gece::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;background-image:radial-gradient(1.5px 1.5px at 12% 20%,#fff,transparent),radial-gradient(1px 1px at 30% 70%,#fff,transparent),radial-gradient(1.5px 1.5px at 55% 15%,#fff,transparent),radial-gradient(1px 1px at 72% 45%,#fff,transparent),radial-gradient(2px 2px at 88% 22%,#fff,transparent),radial-gradient(1px 1px at 45% 40%,#fff,transparent),radial-gradient(1px 1px at 92% 75%,#fff,transparent),radial-gradient(1.5px 1.5px at 20% 88%,#fff,transparent)}
+.vk-times div{position:relative;border:1px solid rgba(255,255,255,.18)}
+.vk-times .cur{font-weight:700}
+.vk-times .cur b{font-size:15px}
+.simdi{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;background:#ffd36a;color:#3a2600;border-radius:6px;padding:1px 5px;text-shadow:none}
+#kapali{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 30%,#1b2450,#05080a 70%);color:#ebe7dc;display:grid;place-items:center;text-align:center;padding:24px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -875,7 +883,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 14</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 15</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -977,7 +985,8 @@ function bindDua(root){
 /* --- Namaz vakitleri --- */
 const VAKIT_LBL={seher:"",sabah:"İmsak",kusluk:"Güneş",ogle:"Öğle",ikindi:"İkindi",aksam:"Akşam",yatsi:"Yatsı"};
 const VAKIT_AD={seher:"Seher",sabah:"Sabah",kusluk:"Kuşluk",ogle:"Öğle",ikindi:"İkindi",aksam:"Akşam",yatsi:"Gece"};
-const VAKIT_RENK={seher:["#2b2a6b","#6a4c93"],sabah:["#c2502e","#d98b2b"],kusluk:["#b86e12","#1f7f73"],ogle:["#1f5f9e","#3f86c9"],ikindi:["#a8541a","#c7832b"],aksam:["#a8302a","#6d3680"],yatsi:["#152a4a","#2f4f7f"]};
+const VAKIT_RENK={seher:["#2a1f6b","#8a4fbf"],sabah:["#d0573a","#f0a23a"],kusluk:["#d08a18","#2a9d8f"],ogle:["#1f6fc4","#36a3d9"],ikindi:["#c0601d","#e3a338"],aksam:["#b2343a","#7a2f8f"],yatsi:["#141a52","#5a2d91"]};
+const VAKIT_TILE={"İmsak":"#8a6cf0","Güneş":"#f5a33b","Öğle":"#3d98ec","İkindi":"#ec8a34","Akşam":"#ec5866","Yatsı":"#7d6af0"};
 let TIMES=store.get("mk_times",null),timesLoading=false;
 const hm=s=>{const [h,m]=String(s).slice(0,5).split(":").map(Number);const d=new Date();d.setHours(h,m,0,0);return d};
 async function loadTimes(){
@@ -1169,11 +1178,11 @@ let bugSeg="vakit",duaSeg2="sabah";
 function vBugun(){
   loadTimes();const {v,list,next}=curVakit(),{approx}=timesNow(),[c1,c2]=VAKIT_RENK[v];
   const mins=Math.max(0,Math.round((next[1]-new Date())/60000)),kalan=mins>=60?Math.floor(mins/60)+" sa "+(mins%60)+" dk":mins+" dk";
-  const card=`<div class="vakit" style="background:linear-gradient(135deg,${c1},${c2})">
+  const card=`<div class="vakit ${v==="yatsi"||v==="seher"?"gece":""}" style="background:linear-gradient(135deg,${c1},${c2})">
     <div class="vk-top"><span>ŞU AN</span><span>${esc((SET.city||"İstanbul"))}${approx?" · yaklaşık":""}</span></div>
     <div class="vk-ad">${VAKIT_AD[v]} vakti</div><div class="vk-sub">${esc(next[0])} vaktine ${kalan}</div>${ramazanLine(list)}
     <button id="remindBtn" class="vk-rem">${guardOn?"🔔 Vakit hatırlatıcı açık · kapat":"🔕 Vakitten 10 ve 5 dk önce hatırlat"}</button>
-    <div class="vk-times">${list.map(([n,d])=>`<div class="${n===VAKIT_LBL[v]?"cur":n===next[0]?"nx":""}" style="${n===VAKIT_LBL[v]?"color:"+c1:""}"><span>${n}</span><b>${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</b></div>`).join("")}</div></div>`;
+    <div class="vk-times">${list.map(([n,d])=>`<div class="${n===VAKIT_LBL[v]?"cur":n===next[0]?"nx":""}" style="${n===VAKIT_LBL[v]?`background:#fff;color:${VAKIT_TILE[n]||c1};box-shadow:0 0 0 3px ${VAKIT_TILE[n]||c1}aa,0 8px 22px rgba(0,0,0,.35)`:`background:linear-gradient(165deg,${VAKIT_TILE[n]}e6,${VAKIT_TILE[n]}73)`}">${n===VAKIT_LBL[v]?'<i class="simdi">ŞİMDİ</i>':""}<span>${n}</span><b>${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</b></div>`).join("")}</div></div>`;
   const seg=`<div class="seg" style="margin-top:14px">${[["vakit","Bu vakit"],["amel","Amellerim"],["dualar","Tüm dualar"]].map(([k,l])=>`<button data-bseg="${k}" class="${bugSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
   let body="";
   if(bugSeg==="vakit"){const s=gunSoz();
@@ -1252,7 +1261,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=14;
+const SURUM=15;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1559,7 +1568,7 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
   <div class="bigcard"><div class="muted small">Yapay zekâ (Gemini) anahtarlarını baris-kasa'ya koy. Bu kasaya bağlı bütün uygulamaların ortak kullanır; anahtarlar kasada gizli kalır, bu cihaza ve koda yazılmaz.</div>
    <input type="password" id="akSifre" placeholder="🔒 Kasa şifresi" value="${esc(store.get("mk_kasa_sifre",""))}" autocomplete="off">
    <textarea id="akYeni" placeholder="AIza… anahtarlarını yapıştır (her satıra bir tane)" autocomplete="off" autocapitalize="off"></textarea>
-   <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button><button class="pill" id="akTest">🧪 Yapay zekâyı test et</button></div><div class="small muted">“Geçersiz” denen anahtar kasanın kabul etmediği biçimdedir (AIza ile başlamıyor, eksik ya da fazla karakter, boşluk var). Google AI Studio’dan yeniden kopyalayıp eklemeyi dene.</div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
+   <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button><button class="pill" id="akTest">🧪 Yapay zekâyı test et</button></div><div class="small muted">Birden çok anahtarı aynı anda, aralarında boşluk, virgül ya da satır olsa da yapıştırabilirsin; uygulama her birini ayrı ayrı bulup kasaya ekler. “Geçersiz” çıkan anahtarı Google AI Studio’dan yeniden kopyala.</div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
   <div class="small muted" style="text-align:center;margin-top:18px">Maneviyat Külliyatı · sürüm ${SURUM}</div>`}
 function bAyarlar(){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
@@ -1570,7 +1579,7 @@ function bAyarlar(){
     o.innerHTML=`<div>${ben?"✅":"⛔"} Bu cihaz kasada ${ben?"kayıtlı":"kayıtlı değil"}</div><div>👥 Bu uygulamada toplam <b>${j.toplam||0}</b> abone</div>${Object.keys(sh).length?`<div>🏙️ ${Object.entries(sh).map(([k,v])=>esc(k)+": "+(Array.isArray(v)?v[0]:(typeof v==="object"&&v?Object.values(v)[0]:v))).join(" · ")}</div>`:""}`}catch(e){o.textContent="⛔ "+e.message}});
   on("#kaydetBtn",async()=>{try{if(Notification.permission!=="granted"){await pushEnable();return}await pushSubscribe();toast("📲 Bu cihaz kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
   on("#denemeBtn",async()=>{try{if(!store.get("mk_push_on",false))await pushSubscribe()}catch(e){toast("Önce bildirimleri aç: "+e.message);return}
-    olay({ogrId:cihazId},{baslik:"🕌 Maneviyat · Deneme",govde:"Bildirimler çalışıyor. Allah kabul etsin.",url:appUrl("#bugun"),etiket:"deneme-"+Date.now()});openModal(`<h3>🧪 Deneme gönderildi</h3><div class="small">Şimdi telefonu <b>yan tuşla kilitle</b>. Birkaç saniye içinde kilit ekranında “🕌 Maneviyat · Deneme” bildirimi görünür.</div><div class="small muted">Uygulama açıkken iPhone bazen bildirimi ekrana getirmez; kilitlemek en sağlam denemedir. Gelmezse “🔄 Durumu göster”in fotoğrafını at.</div><button class="pill acc" id="mNo">Tamam</button>`,()=>{$("#mNo").onclick=closeModal})});
+    denemeAc()});
   hatRender();
   const sif=()=>{const s=$("#hatSifre").value.trim();if(!s){toast("Kasa şifresini yaz");return""}store.set("mk_kasa_sifre",$("#hatHatirla").checked?s:"");return s};
   on("#hatGetir",async()=>{const s=sif();if(!s)return;try{HAT=await hatListe(s);hatRender();toast("📥 "+HAT.length+" hatırlatma getirildi")}catch(e){toast("Getirilemedi: "+e.message)}});
@@ -1594,7 +1603,7 @@ function bAyarlar(){
   on("#anGonder",()=>confirmBox("Herkese gönderilsin mi?","Bildirimi açık olan herkes bu mesajı alacak.","Gönder",()=>anGo(true)));on("#anBana",()=>anGo(false));
   const akS=()=>{const s=$("#akSifre").value.trim();if(!s)toast("Kasa şifresini yaz");return s};
   const akListe=async()=>{const s=akS();if(!s)return;const o=$("#akOut");o.textContent="Soruluyor…";try{const j=await kasaPost("/anahtar/liste",{sifre:s});const dz=o=>{if(Array.isArray(o))return o;for(const k of ["liste","anahtarlar","keys","items","maskeler"])if(o&&Array.isArray(o[k]))return o[k];for(const v of Object.values(o||{}))if(Array.isArray(v))return v;return[]};const l=dz(j);
-    o.innerHTML=l.length?l.map((x,i)=>`<div class="nrow" style="border-radius:10px"><span class="tx">🗝️ ${esc(typeof x==="string"?x:(x.maske||x.anahtar||x.key||JSON.stringify(x)))}</span><button class="x" data-aksil="${i}" aria-label="Sil">🗑️</button></div>`).join("")+`<div class="muted">Toplam ${l.length} anahtar</div>`:(j.toplam?`Kasada ${j.toplam} anahtar var.`:"Kasada anahtar yok.");
+    o.innerHTML=l.length?l.map((x,i)=>`<div class="nrow" style="border-radius:10px"><span class="tx">🗝️ ${esc(typeof x==="string"?x:(x.m||x.maske||x.anahtar||x.key||JSON.stringify(x)))}</span><button class="x" data-aksil="${x&&x.i!=null?x.i:i}" aria-label="Sil">🗑️</button></div>`).join("")+`<div class="muted">Toplam ${l.length} anahtar</div>`:(j.toplam?`Kasada ${j.toplam} anahtar var.`:"Kasada anahtar yok.");
     o.querySelectorAll("[data-aksil]").forEach(b=>b.onclick=()=>confirmBox("Anahtar silinsin mi?","Bu anahtar kasadan kaldırılacak.","Sil",async()=>{try{await kasaPost("/anahtar/sil",{sifre:s,i:+b.dataset.aksil});toast("Silindi");akListe()}catch(e){toast("Silinemedi: "+e.message)}}))}catch(e){o.textContent="⛔ "+e.message}};
   on("#akListe",akListe);
   on("#akTest",async()=>{const o=$("#akOut");o.textContent="Kasa üzerinden yapay zekâ deneniyor…";
@@ -1603,16 +1612,32 @@ function bAyarlar(){
       o.innerHTML=r.ok&&t?`✅ Yapay zekâ çalışıyor. Cevap: “${esc(t.slice(0,60))}”<br><span class="muted">Kasa, kotası dolan anahtarı atlayıp sıradakini kullanır.</span>`:`⛔ Çalışmadı (${r.status}). ${esc((j.error&&j.error.message)||j.hata||"Kasada geçerli anahtar yok ya da kotası dolu.")}`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 
   on("#akEkle",async()=>{const s=akS();if(!s)return;const t=$("#akYeni").value.trim();if(!t){toast("Anahtarları yapıştır");return}
-    try{const j=await kasaPost("/anahtar/ekle",{sifre:s,anahtarlar:t});$("#akYeni").value="";$("#akOut").textContent=`✅ Eklenen: ${j.eklenen||0} · zaten vardı: ${j.zatenVardi||0} · geçersiz: ${j.gecersiz||0} · kasada toplam: ${j.toplam||0}`}catch(e){toast("Eklenemedi: "+e.message)}});
+    const bul=[...new Set(t.match(/AIza[0-9A-Za-z_\-]{35}/g)||[])];if(!bul.length){toast("Yapıştırdığın metinde AIza ile başlayan 39 karakterlik anahtar bulunamadı");return}
+    try{const j=await kasaPost("/anahtar/ekle",{sifre:s,anahtarlar:bul.join("\n")});$("#akYeni").value="";await akListe();
+      $("#akOut").insertAdjacentHTML("afterbegin",`<div>🔎 Metinde ${bul.length} anahtar bulundu → ✅ eklenen: ${j.eklenen||0} · zaten vardı: ${j.zatenVardi||0} · geçersiz: ${j.gecersiz||0} · kasada toplam: ${j.toplam||0}</div>`)}catch(e){toast("Eklenemedi: "+e.message)}});
   on("#kasaTest",async()=>{const o=$("#kasaOut");o.textContent="Test ediliyor…";try{const r=await fetch(kasaUrl()+"/saglik");const j=await r.json();o.innerHTML=`${j.ok?"✅":"⛔"} kasa · ${j.depo?"✅":"⛔"} depo · ${j.sifre?"✅":"⛔"} şifre`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 }
 
 /* ---------- Sayfa başına dönüş (iPhone ana ekran uygulamasında da) ---------- */
 function toTop(){const f=()=>{try{window.scrollTo({top:0,left:0,behavior:"instant"})}catch(e){window.scrollTo(0,0)}document.documentElement.scrollTop=0;document.body.scrollTop=0};f();requestAnimationFrame(f);setTimeout(f,60)}
-/* ---------- Çıkış ---------- */
+
+
+/* ---------- Bildirim denemesi (kasa yanıtını gösterir) ---------- */
+async function denemeAc(){
+  openModal(`<h3>🧪 Deneme bildirimi</h3><div class="small" id="dnOut">Kasaya gönderiliyor…</div><button class="pill acc" id="mNo">Tamam</button>`,()=>{$("#mNo").onclick=closeModal});
+  const veri={baslik:"🕌 Maneviyat · Deneme",govde:"Bildirimler çalışıyor. Allah kabul etsin.",url:appUrl("#bugun"),etiket:"deneme-"+Date.now()};
+  const post=async h=>{const r=await fetch(kasaUrl()+"/olay",{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({hedef:Object.assign({uyg:UYG},h),veri})});let j={};try{j=await r.json()}catch(e){j={durum:r.status}}return j};
+  const sayi=o=>{if(!o||typeof o!=="object")return null;for(const k of ["gonderilen","gonderildi","basarili","gonderim","sayi","adet","hedefSayisi","toplam"])if(typeof o[k]==="number")return o[k];return null};
+  const el=()=>$("#dnOut");
+  try{let j=await post({rol:["kullanici"],sinif:"*",ogrId:cihazId}),n=sayi(j);
+    if(n===0){j=await post({rol:["kullanici"],sinif:"*"});n=sayi(j)}
+    if(el())el().innerHTML=(n===0?`⛔ Kasa bu cihazı bulamadı (0 gönderim). “📲 Bu cihazı kaydet”e basıp tekrar dene.`:`✅ Kasa bildirimi gönderdi${n!=null?" ("+n+" cihaz)":""}.`)+`<br><br>Şimdi telefonu <b>yan tuşla kilitle</b>; birkaç saniye içinde kilit ekranına gelir.<br><span class="muted">Kasa yanıtı: ${esc(JSON.stringify(j).slice(0,220))}</span>`}
+  catch(e){if(el())el().textContent="⛔ Kasaya ulaşılamadı: "+e.message}}
+/* ---------- Çıkış ekranı ---------- */
 function exitApp(){try{au.pause()}catch(e){}try{stopSpeech()}catch(e){}try{if(lockOn)lockStop(true)}catch(e){}try{if(guardOn){guardOn=false;SET.remind=false;store.set("mk_set",SET);zau.pause()}}catch(e){}
-  try{window.close()}catch(e){}
-  setTimeout(()=>openModal(`<h3>⏻ Uygulamadan çık</h3><div class="small">Çalan ses durduruldu.</div><div class="small">${IS_IOS?"iPhone, internet uygulamalarının kendi kendini kapatmasına izin vermiyor. Kapatmak için: ekranın en altından yukarı kaydırıp ortada bir an bekle, açılan kartlardan <b>Maneviyat</b>'ı yukarı fırlat.":"Kapatmak için telefonun son uygulamalar ekranını açıp Maneviyat'ı yana kaydır."}</div><div class="small muted">Uygulamayı kapatsan da bildirimler gelmeye devam eder.</div><button class="pill acc" id="mNo">Tamam</button>`,()=>{$("#mNo").onclick=closeModal}),250)}
+  closeModal();let o=$("#kapali");if(!o){o=document.createElement("div");o.id="kapali";document.body.appendChild(o)}
+  o.innerHTML=`<div style="display:grid;gap:14px;justify-items:center;max-width:340px"><div style="font-size:54px">🌙</div><div style="font:600 24px var(--f-disp)">Maneviyat kapatıldı</div><div style="opacity:.8;font-size:15px">Ses ve zikir durduruldu. Bildirimler gelmeye devam eder.</div><button class="pill acc" id="kapAc" style="font-size:16px;padding:12px 22px">Tekrar aç</button><div style="opacity:.6;font-size:13px">${IS_IOS?"Telefondan tamamen kaldırmak istersen: ekranın altından yukarı kaydır, Maneviyat kartını yukarı fırlat.":"Telefondan tamamen kaldırmak istersen son uygulamalar ekranından kaydır."}</div></div>`;
+  o.hidden=false;$("#kapAc").onclick=()=>{o.hidden=true};try{window.close()}catch(e){}}
 
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
