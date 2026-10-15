@@ -217,7 +217,7 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
       <div style="display:flex;align-items:center;gap:8px"><img id="logo" alt="" width="22" height="22" style="border-radius:6px"><div class="hijri" id="hijri"></div></div>
       <h1 id="pageTitle">Zikir</h1>
     </div>
-    <div style="display:flex;align-items:center;gap:6px"><span class="sub" id="todayTot"></span><button class="ib" id="gear" aria-label="Ayarlar" style="width:38px;height:38px"><svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+    <div style="display:flex;align-items:center;gap:6px"><span class="sub" id="todayTot"></span><button class="ib" id="cikisBtn" aria-label="Çıkış" title="Çıkış" style="width:38px;height:38px;font-size:19px">⏻</button><button class="ib" id="gear" aria-label="Ayarlar" style="width:38px;height:38px"><svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
   </header>
   <main id="view"></main>
 </div>
@@ -779,10 +779,10 @@ function vDinle(){
 function bDinle(){
   document.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{dinleSeg=b.dataset.seg;store.set("mk_dseg",dinleSeg);openSeries=null;openSure=null;renderView()});
   const ks=$("#kariSel");if(ks)ks.onchange=()=>{kari=ks.value;store.set("mk_kari2",kari);renderView();toast(kariObj().n+" seçildi")};
-  document.querySelectorAll("[data-sure]").forEach(b=>b.onclick=()=>{const n=+b.dataset.sure;if(kuranMod==="oku"){openSure=n;renderView();window.scrollTo(0,0);loadSure(n);return}playQueue(Array.from({length:115-n},(_,i)=>sureTrack(n+i)),0)});
+  document.querySelectorAll("[data-sure]").forEach(b=>b.onclick=()=>{const n=+b.dataset.sure;if(kuranMod==="oku"){openSure=n;renderView();toTop();loadSure(n);return}playQueue(Array.from({length:115-n},(_,i)=>sureTrack(n+i)),0)});
   document.querySelectorAll("[data-list]").forEach(b=>b.onclick=()=>{const l=LISTELER[+b.dataset.list];playQueue(l.s.map(sureTrack).map(t=>(t.group=l.n,t)),0)});
   const ss=$("#sSearch");if(ss)ss.oninput=()=>{const q=ss.value.trim().toLocaleLowerCase("tr");document.querySelectorAll("#sureList .row").forEach(r=>{const n=+r.dataset.sure;r.hidden=q&&!(SURE_TR[n-1].toLocaleLowerCase("tr").includes(q)||String(n)===q||SURE_AR[n-1].includes(q))})};
-  document.querySelectorAll("[data-series]").forEach(b=>b.onclick=()=>{openSeries=b.dataset.series;renderView();window.scrollTo(0,0)});
+  document.querySelectorAll("[data-series]").forEach(b=>b.onclick=()=>{openSeries=b.dataset.series;renderView();toTop()});
   const sb=$("#sBack");if(sb)sb.onclick=()=>{openSeries=null;renderView()};
   if(openSeries){const S=SIYER.find(s=>s.id===openSeries);const all=()=>Array.from({length:S.count},(_,i)=>siyerTrack(S,i+1));
     document.querySelectorAll("[data-ep]").forEach(b=>b.onclick=()=>playQueue(all(),+b.dataset.ep-1));
@@ -856,7 +856,7 @@ function bSohbet(){
   const f=$("#sohForm");if(f)f.onsubmit=e=>{e.preventDefault();const v=$("#sohIn").value;$("#sohIn").blur();doSearch(v)};
   document.querySelectorAll("[data-hoca]").forEach(b=>b.onclick=()=>doSearch(b.dataset.hoca));
   const sc=$("#sohClear");if(sc)sc.onclick=()=>{sohQ="";sohRes=[];sohYT=null;sohErr="";openPod=null;epQ="";renderView()};
-  document.querySelectorAll("[data-pod]").forEach(b=>b.onclick=()=>{const cid=+b.dataset.pod;openPod=sohRes.find(x=>x.cid===cid)||FOLLOW.find(x=>x.cid===cid);epQ="";dinleSeg="sohbet";tab="dinle";renderView();window.scrollTo(0,0);loadEps(openPod)});
+  document.querySelectorAll("[data-pod]").forEach(b=>b.onclick=()=>{const cid=+b.dataset.pod;openPod=sohRes.find(x=>x.cid===cid)||FOLLOW.find(x=>x.cid===cid);epQ="";dinleSeg="sohbet";tab="dinle";renderView();toTop();loadEps(openPod)});
   const pb=$("#podBack");if(pb)pb.onclick=()=>{openPod=null;renderView()};
   if(openPod&&$("#podFollow")){const p=openPod,c={cid:p.cid,p:p.name,art:p.art},eps=POD_EPS[p.cid];
     $("#podFollow").onclick=()=>{toggleFollow(p);renderView()};
@@ -875,10 +875,10 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 13</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 14</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
-$("#gear").onclick=()=>{tab="ayarlar";renderView();window.scrollTo(0,0)};
+$("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
 
 /* --- Uyku --- */
 const AMB={};
@@ -965,9 +965,9 @@ function speak(text,times){
   for(let k=0;k<(times||1);k++){const u=new SpeechSynthesisUtterance(text);u.lang="ar-SA";if(v)u.voice=v;u.rate=.8;speechSynthesis.speak(u)}
 }
 function goZikir(d){
-  if(d.zid){zs.cur=d.zid;zs.counts[d.zid]=0;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();window.scrollTo(0,0);return}
+  if(d.zid){zs.cur=d.zid;zs.counts[d.zid]=0;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();toTop();return}
   let ex=ZIKIR.find(z=>z.r===d.r);if(!ex){ex={id:"d"+Date.now(),ar:d.ar||"",r:d.r||d.n,m:d.m,t:d.z.t};const cu=store.get("mk_custom",[]);cu.push(ex);store.set("mk_custom",cu);ZIKIR=ZIKIR_BASE.concat(cu)}
-  zs.cur=ex.id;zs.counts[ex.id]=0;zs.targets[ex.id]=d.z.t;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();window.scrollTo(0,0);
+  zs.cur=ex.id;zs.counts[ex.id]=0;zs.targets[ex.id]=d.z.t;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();toTop();
 }
 function bindDua(root){
   root.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{const d=DREF(b.dataset.play);playQueue(duaTracks(d),0)});
@@ -1204,14 +1204,14 @@ function bBugun(){
   const da=$("#duaAll");if(da)da.onclick=()=>playQueue(DUALAR[duaSeg2].flatMap(d=>duaTracks(d,"Dualar")),0);
   document.querySelectorAll("[data-evrad]").forEach(b=>b.onclick=()=>{playQueue(evradQueue(b.dataset.evrad),0);toast("Sesli evrad başladı · ekranı kilitleyebilirsin")});
   const rb=$("#remindBtn");if(rb)rb.onclick=()=>{guardOn?guardStop():guardStart();renderView()};
-  const tb=$("#tesbihatBtn");if(tb)tb.onclick=()=>{zs.chain=true;zs.cur="subhan";TESBIHAT.forEach(id=>zs.counts[id]=0);saveZ();tab="zikir";renderView();window.scrollTo(0,0)};
+  const tb=$("#tesbihatBtn");if(tb)tb.onclick=()=>{zs.chain=true;zs.cur="subhan";TESBIHAT.forEach(id=>zs.counts[id]=0);saveZ();tab="zikir";renderView();toTop()};
   const sp=$("#seherPlay");if(sp)sp.onclick=()=>{playQueue(LISTELER[0].s.map(n=>sureTrack(n)).map(t=>(t.group="Seher",t)),0)};
   const mb=$("#mulkBtn");if(mb)mb.onclick=()=>playQueue([sureTrack(67)],0);
   $("#shareBtn").onclick=share;
   $("#kibleBtn").onclick=kibleAc;$("#kazaBtn").onclick=()=>{bugSeg="amel";renderView();setTimeout(()=>{const h=[...document.querySelectorAll("#view h2")].find(x=>x.textContent.includes("Kaza"));if(h)h.scrollIntoView({block:"start"})},50)};
   const so=$("#simgeOk");if(so)so.onclick=()=>{store.set("mk_simge_ok",true);renderView()};
   const kb=$("#kehfBtn");if(kb)kb.onclick=()=>playQueue([sureTrack(18)],0);
-  const sb=$("#salBtn");if(sb)sb.onclick=()=>{zs.cur="salavat";zs.counts.salavat=0;zs.targets.salavat=100;zs.chain=false;saveZ();tab="zikir";renderView();window.scrollTo(0,0)};
+  const sb=$("#salBtn");if(sb)sb.onclick=()=>{zs.cur="salavat";zs.counts.salavat=0;zs.targets.salavat=100;zs.chain=false;saveZ();tab="zikir";renderView();toTop()};
   if(bugSeg==="amel")bKaza();
   const dv=$("#devamBtn");if(dv)dv.onclick=()=>{const r=RECENT.find(x=>x.ctx&&x.ctx.type!=="radio");if(r)openCtx(r.ctx)};
   bBugunExtra();
@@ -1246,13 +1246,13 @@ function bKulliyat(){
   document.querySelectorAll("[data-kseg]").forEach(b=>b.onclick=()=>{kulSeg=b.dataset.kseg;renderView()});
   const ea=$("#esmaAll");if(ea)ea.onclick=()=>playQueue(esmaTracks(),0);
   document.querySelectorAll("[data-esma]").forEach(b=>b.onclick=()=>{const [a,t,m]=ESMA[+b.dataset.esma];const r=t==="Allah"?"Allah":"Yâ "+t.replace(/^(el|er|es|eş|ez|et|ed|en)-/,"").replace(/^./,c=>c.toLocaleUpperCase("tr"));goZikir({ar:a,r,m,n:r,z:{t:33}})});
-  document.querySelectorAll("[data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);window.scrollTo(0,0)});
+  document.querySelectorAll("[data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);toTop()});
   document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>playQueue(RADIO_Q(),+b.dataset.r));
   bKulExtra();
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=13;
+const SURUM=14;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1309,7 +1309,7 @@ function routeHash(){const h=(location.hash||"").slice(1);if(!h)return;
   const map={bugun:["bugun"],cuma:["bugun"],zikir:["zikir"],kuran:["dinle","kuran"],uyku:["dinle","uyku"],siyer:["dinle","siyer"],sohbet:["dinle","sohbet"],radyo:["dinle","radyo"],risale:["kulliyat","risale"],hadis:["kulliyat","hadis"],esma:["kulliyat","esma"],kutuphane:["kutuphane"],ayarlar:["ayarlar"]};
   const m=map[h];if(!m)return;tab=m[0];if(m[1]){if(m[0]==="dinle"){dinleSeg=m[1];openSeries=null;openSure=null}else kulSeg=m[1]}
   try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
-  renderView();window.scrollTo(0,0)}
+  renderView();toTop()}
 
 /* ---------- Hatırlatmalar (kasa) ---------- */
 let HAT=store.get("mk_hat",[]);
@@ -1425,8 +1425,8 @@ function bHadis(){const ha=$("#hdAll");if(ha)ha.onclick=()=>playQueue(KIRK.map(h
   document.querySelectorAll("[data-hdp]").forEach(b=>b.onclick=()=>{const i=KIRK.findIndex(x=>String(x[0])===b.dataset.hdp);playQueue(KIRK.map(hadisTrack),i)});
   document.querySelectorAll("[data-hdez]").forEach(b=>b.onclick=()=>{const ez=store.get("mk_hadis_ez",{}),k=b.dataset.hdez;if(ez[k])delete ez[k];else ez[k]=1;store.set("mk_hadis_ez",ez);renderView()})}
 function bKulExtra(){if(kulSeg==="risale")bRisale();if(kulSeg==="hadis")bHadis();
-  document.querySelectorAll("[data-kgo]").forEach(b=>b.onclick=()=>{kulSeg=b.dataset.kgo;renderView();window.scrollTo(0,0)});
-  document.querySelectorAll("#view [data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);window.scrollTo(0,0)})}
+  document.querySelectorAll("[data-kgo]").forEach(b=>b.onclick=()=>{kulSeg=b.dataset.kgo;renderView();toTop()});
+  document.querySelectorAll("#view [data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);toTop()})}
 
 /* ---------- Kur'an: oku ve âyet âyet dinle ---------- */
 let kuranMod=store.get("mk_kmod","dinle"),openSure=null,sureLoading=false,sureErr="",tekrar=store.get("mk_tekrar",1),mealSes=store.get("mk_mealses",false),mealGoster=store.get("mk_mealg",true);
@@ -1453,7 +1453,7 @@ function vSureOku(){const n=openSure,txt=SURE_TXT[n],o=store.get("mk_okuma",null
   <div class="small muted" style="margin-top:10px">Metin ve meal: alquran.cloud (Diyanet İşleri meali).</div>`:""}`}
 function bKuranExtra(){
   document.querySelectorAll("[data-kmod]").forEach(b=>b.onclick=()=>{kuranMod=b.dataset.kmod;store.set("mk_kmod",kuranMod);renderView()});
-  const dv=$("#okDevam");if(dv)dv.onclick=()=>{const o=store.get("mk_okuma",null);if(!o)return;openSure=o.s;kuranMod="oku";store.set("mk_kmod","oku");renderView();window.scrollTo(0,0);loadSure(o.s)};
+  const dv=$("#okDevam");if(dv)dv.onclick=()=>{const o=store.get("mk_okuma",null);if(!o)return;openSure=o.s;kuranMod="oku";store.set("mk_kmod","oku");renderView();toTop();loadSure(o.s)};
   if(!openSure)return;const n=openSure;
   $("#okBack").onclick=()=>{openSure=null;renderView()};
   const rt=$("#okRetry");if(rt)rt.onclick=()=>{sureErr="";loadSure(n)};
@@ -1493,7 +1493,7 @@ function zekatAc(){const z=store.get("mk_zekat",{});const f=[["altinFiyat","Alt�
       $("#zkOut").innerHTML=!v.altinFiyat?"Önce altının gram fiyatını yaz.":`<div>Net servet: <b>${tl(top)}</b></div><div>Nisap: <b>${tl(nis)}</b></div><div class="soz-t">${top>=nis?"Vermen gereken zekât: "+tl(top/40):"Nisaba ulaşmıyor; zekât düşmez."}</div>`};
     document.querySelectorAll("[data-zk]").forEach(i=>i.oninput=calc);calc();$("#mNo").onclick=closeModal})}
 function bBugunExtra(){
-  const go=(t,s)=>{tab=t;if(t==="kulliyat")kulSeg=s;if(t==="dinle"){dinleSeg=s;openSeries=null}renderView();window.scrollTo(0,0)};
+  const go=(t,s)=>{tab=t;if(t==="kulliyat")kulSeg=s;if(t==="dinle"){dinleSeg=s;openSeries=null}renderView();toTop()};
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
   on("#aylikBtn",aylikAc);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));on("#vcPay",()=>{const v=vecGunun(0);if(v)paylas(vecMetin(v))});on("#vcSes",()=>{const v=vecGunun(0);if(v)playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)});
   on("#okuBtn",()=>{kuranMod="oku";store.set("mk_kmod","oku");openSure=null;go("dinle","kuran")});
@@ -1559,7 +1559,7 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
   <div class="bigcard"><div class="muted small">Yapay zekâ (Gemini) anahtarlarını baris-kasa'ya koy. Bu kasaya bağlı bütün uygulamaların ortak kullanır; anahtarlar kasada gizli kalır, bu cihaza ve koda yazılmaz.</div>
    <input type="password" id="akSifre" placeholder="🔒 Kasa şifresi" value="${esc(store.get("mk_kasa_sifre",""))}" autocomplete="off">
    <textarea id="akYeni" placeholder="AIza… anahtarlarını yapıştır (her satıra bir tane)" autocomplete="off" autocapitalize="off"></textarea>
-   <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button></div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
+   <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button><button class="pill" id="akTest">🧪 Yapay zekâyı test et</button></div><div class="small muted">“Geçersiz” denen anahtar kasanın kabul etmediği biçimdedir (AIza ile başlamıyor, eksik ya da fazla karakter, boşluk var). Google AI Studio’dan yeniden kopyalayıp eklemeyi dene.</div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
   <div class="small muted" style="text-align:center;margin-top:18px">Maneviyat Külliyatı · sürüm ${SURUM}</div>`}
 function bAyarlar(){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
@@ -1567,10 +1567,10 @@ function bAyarlar(){
   on("#pushOn",async()=>{await pushEnable();renderView()});on("#pushOff",async()=>{await pushDisable();renderView()});
   on("#durumBtn",async()=>{const o=$("#durumOut");o.textContent="Soruluyor…";try{const r=await getPushReg();const s=r&&await r.pushManager.getSubscription();
     const j=await kasaPost("/abone/durum",{endpoint:s?s.endpoint:"",uyg:UYG});const ben=(j.ben||[]).length,sh=j.sinif||{};
-    o.innerHTML=`<div>${ben?"✅":"⛔"} Bu cihaz kasada ${ben?"kayıtlı":"kayıtlı değil"}</div><div>👥 Bu uygulamada toplam <b>${j.toplam||0}</b> abone</div>${Object.keys(sh).length?`<div>🏙️ ${Object.entries(sh).map(([k,v])=>esc(k)+": "+v).join(" · ")}</div>`:""}`}catch(e){o.textContent="⛔ "+e.message}});
+    o.innerHTML=`<div>${ben?"✅":"⛔"} Bu cihaz kasada ${ben?"kayıtlı":"kayıtlı değil"}</div><div>👥 Bu uygulamada toplam <b>${j.toplam||0}</b> abone</div>${Object.keys(sh).length?`<div>🏙️ ${Object.entries(sh).map(([k,v])=>esc(k)+": "+(Array.isArray(v)?v[0]:(typeof v==="object"&&v?Object.values(v)[0]:v))).join(" · ")}</div>`:""}`}catch(e){o.textContent="⛔ "+e.message}});
   on("#kaydetBtn",async()=>{try{if(Notification.permission!=="granted"){await pushEnable();return}await pushSubscribe();toast("📲 Bu cihaz kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
   on("#denemeBtn",async()=>{try{if(!store.get("mk_push_on",false))await pushSubscribe()}catch(e){toast("Önce bildirimleri aç: "+e.message);return}
-    olay({ogrId:cihazId},{baslik:"🕌 Maneviyat · Deneme",govde:"Bildirimler çalışıyor. Allah kabul etsin.",url:appUrl("#bugun"),etiket:"deneme-"+Date.now()});toast("🧪 Gönderildi; birkaç saniye içinde gelmeli. Uygulamayı kapatıp bekleyebilirsin.")});
+    olay({ogrId:cihazId},{baslik:"🕌 Maneviyat · Deneme",govde:"Bildirimler çalışıyor. Allah kabul etsin.",url:appUrl("#bugun"),etiket:"deneme-"+Date.now()});openModal(`<h3>🧪 Deneme gönderildi</h3><div class="small">Şimdi telefonu <b>yan tuşla kilitle</b>. Birkaç saniye içinde kilit ekranında “🕌 Maneviyat · Deneme” bildirimi görünür.</div><div class="small muted">Uygulama açıkken iPhone bazen bildirimi ekrana getirmez; kilitlemek en sağlam denemedir. Gelmezse “🔄 Durumu göster”in fotoğrafını at.</div><button class="pill acc" id="mNo">Tamam</button>`,()=>{$("#mNo").onclick=closeModal})});
   hatRender();
   const sif=()=>{const s=$("#hatSifre").value.trim();if(!s){toast("Kasa şifresini yaz");return""}store.set("mk_kasa_sifre",$("#hatHatirla").checked?s:"");return s};
   on("#hatGetir",async()=>{const s=sif();if(!s)return;try{HAT=await hatListe(s);hatRender();toast("📥 "+HAT.length+" hatırlatma getirildi")}catch(e){toast("Getirilemedi: "+e.message)}});
@@ -1593,14 +1593,26 @@ function bAyarlar(){
     toast(herkes?"📣 Gönderildi; birkaç saniye içinde herkese ulaşır":"🧪 Sana gönderildi")};
   on("#anGonder",()=>confirmBox("Herkese gönderilsin mi?","Bildirimi açık olan herkes bu mesajı alacak.","Gönder",()=>anGo(true)));on("#anBana",()=>anGo(false));
   const akS=()=>{const s=$("#akSifre").value.trim();if(!s)toast("Kasa şifresini yaz");return s};
-  const akListe=async()=>{const s=akS();if(!s)return;const o=$("#akOut");o.textContent="Soruluyor…";try{const j=await kasaPost("/anahtar/liste",{sifre:s});const l=Array.isArray(j)?j:(j.liste||j.anahtarlar||[]);
-    o.innerHTML=l.length?l.map((x,i)=>`<div class="nrow" style="border-radius:10px"><span class="tx">🗝️ ${esc(typeof x==="string"?x:(x.maske||x.anahtar||x.key||JSON.stringify(x)))}</span><button class="x" data-aksil="${i}" aria-label="Sil">🗑️</button></div>`).join("")+`<div class="muted">Toplam ${l.length} anahtar</div>`:"Kasada anahtar yok.";
+  const akListe=async()=>{const s=akS();if(!s)return;const o=$("#akOut");o.textContent="Soruluyor…";try{const j=await kasaPost("/anahtar/liste",{sifre:s});const dz=o=>{if(Array.isArray(o))return o;for(const k of ["liste","anahtarlar","keys","items","maskeler"])if(o&&Array.isArray(o[k]))return o[k];for(const v of Object.values(o||{}))if(Array.isArray(v))return v;return[]};const l=dz(j);
+    o.innerHTML=l.length?l.map((x,i)=>`<div class="nrow" style="border-radius:10px"><span class="tx">🗝️ ${esc(typeof x==="string"?x:(x.maske||x.anahtar||x.key||JSON.stringify(x)))}</span><button class="x" data-aksil="${i}" aria-label="Sil">🗑️</button></div>`).join("")+`<div class="muted">Toplam ${l.length} anahtar</div>`:(j.toplam?`Kasada ${j.toplam} anahtar var.`:"Kasada anahtar yok.");
     o.querySelectorAll("[data-aksil]").forEach(b=>b.onclick=()=>confirmBox("Anahtar silinsin mi?","Bu anahtar kasadan kaldırılacak.","Sil",async()=>{try{await kasaPost("/anahtar/sil",{sifre:s,i:+b.dataset.aksil});toast("Silindi");akListe()}catch(e){toast("Silinemedi: "+e.message)}}))}catch(e){o.textContent="⛔ "+e.message}};
   on("#akListe",akListe);
+  on("#akTest",async()=>{const o=$("#akOut");o.textContent="Kasa üzerinden yapay zekâ deneniyor…";
+    try{const r=await fetch(kasaUrl()+"/g/v1beta/models/gemini-2.5-flash:generateContent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:"Yalnızca 'Tamam' yaz."}]}]})});
+      const j=await r.json().catch(()=>({}));const c=j&&j.candidates&&j.candidates[0],t=c&&c.content&&c.content.parts?c.content.parts.map(p=>p.text||"").join("").trim():"";
+      o.innerHTML=r.ok&&t?`✅ Yapay zekâ çalışıyor. Cevap: “${esc(t.slice(0,60))}”<br><span class="muted">Kasa, kotası dolan anahtarı atlayıp sıradakini kullanır.</span>`:`⛔ Çalışmadı (${r.status}). ${esc((j.error&&j.error.message)||j.hata||"Kasada geçerli anahtar yok ya da kotası dolu.")}`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
+
   on("#akEkle",async()=>{const s=akS();if(!s)return;const t=$("#akYeni").value.trim();if(!t){toast("Anahtarları yapıştır");return}
     try{const j=await kasaPost("/anahtar/ekle",{sifre:s,anahtarlar:t});$("#akYeni").value="";$("#akOut").textContent=`✅ Eklenen: ${j.eklenen||0} · zaten vardı: ${j.zatenVardi||0} · geçersiz: ${j.gecersiz||0} · kasada toplam: ${j.toplam||0}`}catch(e){toast("Eklenemedi: "+e.message)}});
   on("#kasaTest",async()=>{const o=$("#kasaOut");o.textContent="Test ediliyor…";try{const r=await fetch(kasaUrl()+"/saglik");const j=await r.json();o.innerHTML=`${j.ok?"✅":"⛔"} kasa · ${j.depo?"✅":"⛔"} depo · ${j.sifre?"✅":"⛔"} şifre`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 }
+
+/* ---------- Sayfa başına dönüş (iPhone ana ekran uygulamasında da) ---------- */
+function toTop(){const f=()=>{try{window.scrollTo({top:0,left:0,behavior:"instant"})}catch(e){window.scrollTo(0,0)}document.documentElement.scrollTop=0;document.body.scrollTop=0};f();requestAnimationFrame(f);setTimeout(f,60)}
+/* ---------- Çıkış ---------- */
+function exitApp(){try{au.pause()}catch(e){}try{stopSpeech()}catch(e){}try{if(lockOn)lockStop(true)}catch(e){}try{if(guardOn){guardOn=false;SET.remind=false;store.set("mk_set",SET);zau.pause()}}catch(e){}
+  try{window.close()}catch(e){}
+  setTimeout(()=>openModal(`<h3>⏻ Uygulamadan çık</h3><div class="small">Çalan ses durduruldu.</div><div class="small">${IS_IOS?"iPhone, internet uygulamalarının kendi kendini kapatmasına izin vermiyor. Kapatmak için: ekranın en altından yukarı kaydırıp ortada bir an bekle, açılan kartlardan <b>Maneviyat</b>'ı yukarı fırlat.":"Kapatmak için telefonun son uygulamalar ekranını açıp Maneviyat'ı yana kaydır."}</div><div class="small muted">Uygulamayı kapatsan da bildirimler gelmeye devam eder.</div><button class="pill acc" id="mNo">Tamam</button>`,()=>{$("#mNo").onclick=closeModal}),250)}
 
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
@@ -1616,8 +1628,9 @@ function bAyarlar(){
 /* ===================== Başlat ===================== */
 document.addEventListener("touchend",()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}},{once:true});
 try{$("#logo").src=document.querySelector('link[rel="apple-touch-icon"]').href}catch(e){}
-document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;store.set("mk_tab",tab);renderView();window.scrollTo(0,0)});
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;store.set("mk_tab",tab);renderView();toTop()});
 applyTheme();
+$("#cikisBtn").onclick=exitApp;
 renderView();
 routeHash();
 clearBadge();
