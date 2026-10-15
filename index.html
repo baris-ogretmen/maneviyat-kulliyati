@@ -875,7 +875,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 12</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 13</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();window.scrollTo(0,0)};
@@ -1252,7 +1252,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=12;
+const SURUM=13;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1329,9 +1329,18 @@ function vakitItems(){const {t}=timesNow();const sk=sehirKod(),city=SET.city||"�
     return{id:"vakit_"+k,saat:pad2(d.getHours())+":"+pad2(d.getMinutes()),gunler:[],baslik:"🕌 Maneviyat · "+n+" vaktine 10 dk",govde:g+" ("+city+")",url:appUrl("#bugun"),hedef:{sinif:sk},aktif:true}})}
 async function hatListe(sifre){const j=await kasaPost("/hatirlatma/liste",{sifre,uyg:UYG});return Array.isArray(j)?j:(j.liste||j.hatirlatmalar||[])}
 const hatTemiz=h=>({id:String(h.id||("h"+Date.now())),saat:h.saat||"08:00",gunler:(h.gunler||[]).map(Number),baslik:h.baslik||"🕌 Maneviyat",govde:h.govde||"",url:String(h.url||"#bugun").startsWith("#")?appUrl(h.url||"#bugun"):h.url,hedef:h.hedef||{},aktif:h.aktif!==false});
-async function vakitOto(){try{if(!store.get("mk_hat_auto",false))return;const s=store.get("mk_kasa_sifre","");
-  if(!s||!TIMES||TIMES.date!==todayKey()||store.get("mk_hat_vakit_t","")===todayKey())return;
-  const l=(await hatListe(s)).filter(h=>!String(h.id).startsWith("vakit_")).map(hatTemiz).concat(vakitItems());
+const gunNo=d=>Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2020,0,1))/864e5);
+function risaleItems(){if(!VEC.length)return[];const saat=SET.rsaat||"08:30",out=[];
+  for(let k=0;k<7;k++){const d=new Date();d.setDate(d.getDate()+k);const v=VEC[gunNo(d)%VEC.length];const g=v.t.length>170?v.t.slice(0,167)+"…":v.t;
+    out.push({id:"risale_g"+d.getDay(),saat,gunler:[d.getDay()],baslik:"📚 Maneviyat · Günün Risale vecizesi",govde:"❝"+g+"❞"+(v.s?" — "+v.s:""),url:appUrl("#risale"),hedef:{},aktif:true})}
+  return out}
+function otoItems(liste){const va=store.get("mk_hat_auto",false),ri=store.get("mk_hat_risale",false);
+  let l=liste.filter(h=>{const i=String(h.id);return !(va&&i.startsWith("vakit_"))&&!(ri&&i.startsWith("risale_g"))});
+  if(va)l=l.concat(vakitItems());if(ri)l=l.concat(risaleItems());return l}
+async function vakitOto(){try{const va=store.get("mk_hat_auto",false),ri=store.get("mk_hat_risale",false);if(!va&&!ri)return;
+  const s=store.get("mk_kasa_sifre","");if(!s||store.get("mk_hat_vakit_t","")===todayKey())return;
+  if(va&&(!TIMES||TIMES.date!==todayKey()))return;
+  const l=otoItems((await hatListe(s)).map(hatTemiz));
   await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste:l});store.set("mk_hat_vakit_t",todayKey());HAT=l;store.set("mk_hat",HAT)}catch(e){}}
 function hatRender(){const el=$("#hatList");if(!el)return;store.set("mk_hat",HAT);
   el.innerHTML=HAT.length?HAT.map((h,i)=>`<div class="hat" data-i="${i}">
@@ -1348,38 +1357,62 @@ function hatRender(){const el=$("#hatList");if(!el)return;store.set("mk_hat",HAT
 }
 
 /* ---------- Risale-i Nur ---------- */
-let VEC=store.get("mk_vecize",[]);
-const saveVec=()=>store.set("mk_vecize",VEC);
+let VEC=store.get("mk_vecize",[]),vecFiltre="hepsi";
+const saveVec=()=>{store.set("mk_vecize",VEC);store.set("mk_hat_vakit_t","")};
+const RN_KAT=[["genel","Genel"],["iman","İman"],["cocuk","Çocuk eğitimi"],["sabir","Sabır · şükür"],["kardes","Kardeşlik"],["genc","Gençlik"],["ahiret","Ölüm · âhiret"]];
+const katAd=k=>(RN_KAT.find(x=>x[0]===k)||RN_KAT[0])[1];
+const katSec=(id,sel)=>`<select id="${id}">${RN_KAT.map(([k,l])=>`<option value="${k}" ${k===(sel||"genel")?"selected":""}>${l}</option>`).join("")}</select>`;
+function vecGunun(off){if(!VEC.length)return null;const d=new Date();d.setDate(d.getDate()+(off||0));return VEC[gunNo(d)%VEC.length]}
+function paylas(t){const d={title:"Maneviyat Külliyatı",text:t};if(navigator.share){navigator.share(d).catch(()=>{});return}
+  try{navigator.clipboard.writeText(t).then(()=>toast("Kopyalandı; istediğin yere yapıştırabilirsin"),()=>toast("Kopyalanamadı"))}catch(e){toast("Kopyalanamadı")}}
+const vecMetin=v=>"❝ "+v.t+" ❞"+(v.s?"\n— "+v.s:"\n— Risale-i Nur");
 const RN_SOZLER=["Bismillah'ın bereketi; her işe Allah'ın adıyla başlamak","İmanın insana kazandırdığı saadet ve huzur","İbadetin kıymeti; iki asker temsili","Namazın değeri; günün küçük bir kısmıyla kazanılan büyük sermaye","Namaz ve büyük günahlardan kaçınmanın asıl vazife oluşu","Nefsi ve malı Allah'a emanet olarak satmanın kârlı ticareti","İki tılsım: Allah'a ve âhirete iman","Dünya hayatı ve insanın hâli; kuyu temsili","Beş vakit namazın vakitlerindeki hikmetler","Haşir: âhiretin varlığına deliller (Haşir Risalesi)","Kâinatın ve insanın yaratılış hikmeti; ibadetin sırrı","Kur'an hikmeti ile felsefenin karşılaştırılması","Kur'an'ın şiirden farkı; gençlere nasihatler","Bazı âyetlerin hikmeti ve yaratılışın aşamaları","Göklerin katları ve şeytanların taşlanması meselesi","Allah'ın birliği ile her yerde tasarrufunun sırrı","Dünyanın güzelliği ve geçiciliği; teselliler","Nefsin gururu, kâinattaki güzellik ve risalet","Peygamberimizin (s.a.v.) risaletine deliller","Peygamber mucizelerinin işaret ettikleri","Namazdaki usanç ve vesveseye karşı tedbirler","Allah'ın birliğine kâinattan deliller","İmanın güzellikleri ve insanın mahiyeti","Esmâ-i Hüsnâ ve bazı hakikatler","Kur'an'ın mucizeliği (Mu'cizât-ı Kur'âniye)","Kader ve insanın iradesi (Kader Risalesi)","İçtihad meselesi ve sahâbenin fazileti","Cennet ve cennet hayatıyla ilgili sorular","Meleklerin varlığı, ruhun bekâsı ve haşir","Ene (benlik) ve zerrelerin hareketi","Mi'rac (Mi'rac Risalesi)","Şirkin imkânsızlığı ve tevhid","Otuz üç pencere: Allah'ı tanımaya açılan deliller"];
 const RN_RISALE=[["Gençlik Rehberi","Derleme","Gençlere iman ve iffet dersleri"],["Hastalar Risalesi","25. Lem'a","Hastalara teselli ve şifalar"],["İhtiyarlar Risalesi","26. Lem'a","Yaşlılara ümit ve teselli"],["İhlâs Risalesi","20. ve 21. Lem'a","Hizmette ihlâs ve kardeşlik"],["İktisat Risalesi","19. Lem'a","İsraftan sakınma, kanaat"],["Tabiat Risalesi","23. Lem'a","Tabiatçı düşünceye cevap"],["Tesettür Risalesi","24. Lem'a","Örtünmenin hikmetleri"],["Uhuvvet Risalesi","22. Mektup","Kardeşlik, kin ve hasede karşı"],["Mu'cizât-ı Ahmediye","19. Mektup","Peygamberimizin mucizeleri"],["Ramazan Risalesi","29. Mektup, 1. Kısım","Ramazan ve orucun hikmetleri"],["Hz. Yûnus'un münâcâtı","1. Lem'a","Sıkıntıda Allah'a sığınmak"],["Hz. Eyyûb'un münâcâtı","2. Lem'a","Sabır ve manevi hastalıklar"],["Âyetü'l-Kübrâ","7. Şuâ","Kâinatın Allah'ı tanıtması"],["Meyve Risalesi","11. Şuâ","İman esasları, gençlere dersler"]];
 const RN_ESER=[["Sözler","33 Söz ve ekleri"],["Mektubat","33 Mektup"],["Lem'alar","33 Lem'a"],["Şuâlar","İmanî dersler"],["Mesnevî-i Nuriye","Arapça eserlerin tercümesi"],["İşârâtü'l-İ'câz","Fâtiha ve Bakara tefsiri"],["Asâ-yı Mûsâ","Seçilmiş iman dersleri"],["Barla Lâhikası","Mektuplar"],["Kastamonu Lâhikası","Mektuplar"],["Emirdağ Lâhikası","Mektuplar"],["Tarihçe-i Hayat","Bediüzzaman'ın hayatı"],["Sikke-i Tasdîk-i Gaybî","Derleme"],["Muhâkemât","İlk dönem eseri"],["Hutbe-i Şâmiye","Şam'da okunan hutbe"]];
 const rnLink=q=>"https://www.google.com/search?q="+encodeURIComponent("erisale "+q);
 function rnRow(k,n,d,q,ok){return `<div class="nrow" style="align-items:center"><button class="chk-b ${ok[k]?"on":""}" data-rnok="${k}" aria-label="Okudum">${ok[k]?"✓":""}</button><span class="tx"><b style="display:block">${esc(n)}</b><span>${esc(d)}</span></span><a class="pill ghost" style="padding:6px 10px;font-size:13px" target="_blank" rel="noopener" href="${rnLink(q)}">Oku</a><a class="pill ghost" style="padding:6px 10px;font-size:13px" target="_blank" rel="noopener" href="${yt("Risale-i Nur "+q+" sesli")}" aria-label="Sesli">🎧</a></div>`}
+const RN_COCUK=[["17. Mektup","Mektubat","Evladını kaybeden anne babaya teselli; çocukların âhiretteki durumu","17. Mektup"],["Hastalar Risalesi","25. Lem'a","Hasta çocukların anne babalarına teselli içeren kısımlar","Hastalar Risalesi"],["Gençlik Rehberi","Derleme","Gençlik çağına iman, iffet ve zamanı değerlendirme dersleri","Gençlik Rehberi"],["İhtiyarlar Risalesi","26. Lem'a","Aile içinde büyüklere hürmet ve şefkat","İhtiyarlar Risalesi"]];
 function vRisale(){const ok=store.get("mk_risale_ok",{});const nS=RN_SOZLER.filter((_,i)=>ok["s"+(i+1)]).length,nR=RN_RISALE.filter((_,i)=>ok["r"+i]).length;
-  return `<div class="bigcard" style="background:color-mix(in srgb,hsl(150 55% 40%) 20%,var(--surface))"><span class="small" style="font-weight:700;letter-spacing:.06em;color:var(--accent)">RİSALE-İ NUR KÜLLİYATI</span><div class="ttl">Bediüzzaman Said Nursî</div><div class="muted small">Okuma yolculuğun, vecize defterin ve sesli dersler. Metnin aslı erisale.com'da ücretsiz okunur.</div>
+  const bugun=vecGunun(0),liste=VEC.filter(v=>vecFiltre==="hepsi"||(v.kat||"genel")===vecFiltre).slice().reverse(),say=k=>VEC.filter(v=>(v.kat||"genel")===k).length;
+  return `<div class="bigcard" style="background:color-mix(in srgb,hsl(150 55% 40%) 20%,var(--surface))"><span class="small" style="font-weight:700;letter-spacing:.06em;color:var(--accent)">RİSALE-İ NUR KÜLLİYATI</span><div class="ttl">Bediüzzaman Said Nursî</div><div class="muted small">Günün vecizesi, vecize defterin, çocuk eğitimi, okuma yolculuğun ve sesli dersler.</div>
   <div class="ctrl"><a class="pill acc" href="https://www.erisale.com" target="_blank" rel="noopener">📖 erisale.com</a><button class="pill" data-qs="Risale-i Nur sesli">🎧 Sesli Risale</button><button class="pill" data-qs="Risale-i Nur dersleri">🎧 Risale dersleri</button></div></div>
+  <h2>📚 Günün vecizesi</h2>
+  ${bugun?`<div class="soz" style="background:color-mix(in srgb,hsl(150 55% 40%) 16%,var(--surface))"><div class="soz-t">❝ ${esc(bugun.t)} ❞</div><div class="small muted">${esc(bugun.s||"Risale-i Nur")} · ${esc(katAd(bugun.kat))}</div><div class="ctrl"><button class="pill ghost" id="rvPay">📤 Paylaş</button><button class="pill ghost" id="rvSes">🔊 Dinle</button><button class="pill ghost" id="rvBaska">🔀 Başka bir vecize</button></div></div>`
+  :`<div class="empty">Henüz vecize yok. Aşağıdaki deftere ekleyince her gün biri burada, Bugün sayfasında ve bildirim olarak karşına çıkar.</div>`}
   <h2>✍️ Vecize defterim <span class="small muted">${VEC.length}</span></h2>
-  <div class="bigcard"><div class="muted small">Okurken kalbine dokunan cümleyi buraya yapıştır. Defterindeki vecizeler Bugün sayfasında “günün vecizesi” olarak döner, kilit ekranında da görünür.</div>
-  <textarea id="vcT" placeholder="Vecizeyi buraya yapıştır…"></textarea><input type="text" id="vcS" placeholder="Kaynak (ör. Sözler, 23. Söz)">
-  <div class="ctrl"><button class="pill acc" id="vcAdd">➕ Deftere ekle</button><button class="pill ghost" id="vcBulk">Toplu ekle</button>${VEC.length?`<button class="pill ghost" id="vcRead">🔊 Hepsini sesli oku</button><button class="pill ghost" id="vcCopy">Kopyala</button>`:""}</div></div>
-  ${VEC.length?`<div class="list" style="margin-top:10px">${VEC.slice().reverse().map(v=>`<div class="nrow"><span class="ts">❝</span><span class="tx">${esc(v.t)}<span>${esc(v.s||"")}</span></span><button class="x" data-vcdel="${v.id}" aria-label="Sil">×</button></div>`).join("")}</div>`:`<div class="empty" style="margin-top:10px">Defterin boş. erisale.com'da okurken beğendiğin cümleyi kopyala, buraya yapıştır.</div>`}
-  <h2>📚 Sözler · okuma yolculuğu <span class="small muted">${nS}/33</span></h2><div class="bar2" style="height:6px;margin-bottom:10px"><i style="width:${nS/33*100}%"></i></div>
+  <div class="bigcard"><div class="muted small">erisale.com'da ya da kitabında okurken beğendiğin cümleyi kopyala, buraya yapıştır. Çok sayıda vecizeyi “Toplu ekle” ile tek seferde ekleyebilirsin.</div>
+  <textarea id="vcT" placeholder="Vecizeyi buraya yapıştır…"></textarea><input type="text" id="vcS" placeholder="Kaynak (ör. Sözler, 23. Söz)"><label class="small muted" style="display:grid;gap:4px">Konu${katSec("vcK")}</label>
+  <div class="ctrl"><button class="pill acc" id="vcAdd">➕ Deftere ekle</button><button class="pill" id="vcBulk">📋 Toplu ekle</button>${VEC.length?`<button class="pill ghost" id="vcRead">🔊 Sesli oku</button><button class="pill ghost" id="vcCopy">Kopyala</button>`:""}</div></div>
+  ${VEC.length?`<div class="chips" style="margin-top:6px">${[["hepsi","Hepsi"]].concat(RN_KAT).map(([k,l])=>`<button class="chip ${vecFiltre===k?"on":""}" data-vf="${k}"><b>${l}</b><span>${k==="hepsi"?VEC.length:say(k)}</span></button>`).join("")}</div>
+  ${liste.length?`<div class="list">${liste.map(v=>`<div class="nrow"><span class="ts">❝</span><span class="tx">${esc(v.t)}<span>${esc(v.s||"")}${v.s?" · ":""}${esc(katAd(v.kat))}</span></span><button class="x" data-vcpay="${v.id}" aria-label="Paylaş">📤</button><button class="x" data-vcdel="${v.id}" aria-label="Sil">×</button></div>`).join("")}</div>`:`<div class="empty">Bu konuda henüz vecize yok.</div>`}`:""}
+  <h2>👨‍👩‍👧 Çocuk eğitimi</h2>
+  <div class="bigcard"><div class="muted small">Risale-i Nur'da çocuklar, gençler ve aileyle ilgili okunacak bölümler. Okurken seçtiğin cümleleri “Çocuk eğitimi” konusuyla deftere eklersen burada ayrıca listelenir.</div>
+   <div class="ctrl"><button class="pill" data-qs="Risale-i Nur çocuk eğitimi">🎧 Çocuk eğitimi sohbetleri</button><a class="pill ghost" target="_blank" rel="noopener" href="${yt("Risale-i Nur çocuk eğitimi")}">▶ YouTube</a><button class="pill ghost" data-vf="cocuk">Defterimdekiler (${say("cocuk")})</button></div></div>
+  <div class="list" style="margin-top:10px">${RN_COCUK.map(([n,y,d,q],i)=>rnRow("c"+i,n,y+" · "+d,q,ok)).join("")}</div>
+  <h2>📖 Sözler · okuma yolculuğu <span class="small muted">${nS}/33</span></h2><div class="bar2" style="height:6px;margin-bottom:10px"><i style="width:${nS/33*100}%"></i></div>
   <div class="list">${RN_SOZLER.map((d,i)=>rnRow("s"+(i+1),(i+1)+". Söz",d,(i+1)+". Söz",ok)).join("")}</div>
   <h2>Sık okunan risaleler <span class="small muted">${nR}/${RN_RISALE.length}</span></h2><div class="list">${RN_RISALE.map(([n,y,d],i)=>rnRow("r"+i,n,y+" · "+d,n,ok)).join("")}</div>
   <h2>Külliyatın eserleri</h2><div class="cards">${RN_ESER.map(([n,d])=>`<a class="card" target="_blank" rel="noopener" href="${rnLink(n)}"><span class="tag">Oku</span><b>${esc(n)}</b><span>${esc(d)}</span></a>`).join("")}</div>
-  <div class="note">Konu özetleri yönlendirme içindir, metnin kendisi değildir. Eserlerin telif hakkı sürdüğü için metinler uygulamaya gömülmedi; okuduklarını vecize defterine sen ekleyebilirsin.</div>`}
+  <div class="note">Konu özetleri yönlendirme içindir, metnin kendisi değildir. Eserlerin telif hakkı sürdüğü için metinler uygulamaya gömülmedi; defterdeki vecizeleri sen eklersin, uygulama onları her gün sana ve bildirimi açanlara sunar.</div>`}
+function bulkModal(){openModal(`<h3>📋 Toplu ekle</h3><div class="small muted">Her satıra bir vecize yaz. Kaynağı “—” işaretinden sonra ekleyebilirsin.<br>Örnek: <i>vecize metni — Sözler, 23. Söz</i></div><label class="small muted" style="display:grid;gap:4px">Bu vecizelerin konusu${katSec("vbK",vecFiltre==="hepsi"?"genel":vecFiltre)}</label><textarea id="vbT" style="min-height:220px" placeholder="Bir satıra bir vecize…"></textarea><div class="ctrl"><button class="pill acc" id="mOk">Ekle</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{
+  $("#mOk").onclick=()=>{let n=0;const kat=$("#vbK").value;$("#vbT").value.split(/\n+/).forEach((l,i)=>{l=l.trim().replace(/^[❝"“]+|[❞"”]+$/g,"").trim();if(!l)return;const p=l.split(/\s+[—–|]\s+/);const t=p[0].replace(/[❝❞"“”]/g,"").trim();if(!t||VEC.some(v=>v.t===t))return;VEC.push({id:"v"+Date.now()+"_"+i,t,s:(p.slice(1).join(" — ")||"").trim(),kat});n++});saveVec();closeModal();toast(n+" vecize eklendi");renderView()};$("#mNo").onclick=closeModal})}
 function bRisale(){
   document.querySelectorAll("[data-rnok]").forEach(b=>b.onclick=()=>{const ok=store.get("mk_risale_ok",{}),k=b.dataset.rnok;if(ok[k])delete ok[k];else ok[k]=todayKey();store.set("mk_risale_ok",ok);renderView()});
-  const add=$("#vcAdd");if(add)add.onclick=()=>{const t=$("#vcT").value.trim();if(!t){toast("Vecizeyi yapıştır");return}VEC.push({id:"v"+Date.now(),t,s:$("#vcS").value.trim()});saveVec();toast("Defterine eklendi");renderView()};
-  const bulk=$("#vcBulk");if(bulk)bulk.onclick=()=>openModal(`<h3>Toplu ekle</h3><div class="small muted">Her satıra bir vecize. Kaynağı “—” işaretinden sonra yazabilirsin.<br>Örnek: <i>vecize metni — Sözler, 23. Söz</i></div><textarea id="vbT" style="min-height:200px"></textarea><div class="ctrl"><button class="pill acc" id="mOk">Ekle</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{
-    $("#mOk").onclick=()=>{let n=0;$("#vbT").value.split(/\n+/).forEach((l,i)=>{l=l.trim();if(!l)return;const p=l.split(/\s+[—–|]\s+/);VEC.push({id:"v"+Date.now()+"_"+i,t:p[0].trim(),s:(p.slice(1).join(" — ")||"").trim()});n++});saveVec();closeModal();toast(n+" vecize eklendi");renderView()};$("#mNo").onclick=closeModal});
-  const rd=$("#vcRead");if(rd)rd.onclick=()=>{const art=makeArt("❝","Vecize defterim",150),q=[];VEC.forEach(v=>chunkText(v.t,180).forEach(c=>q.push(ttsTrack(c,"tr-TR","Vecize defterim",v.s||"Risale-i Nur",art,"Vecize defterim"))));playQueue(q,0)};
-  const cp=$("#vcCopy");if(cp)cp.onclick=()=>{const txt=VEC.map(v=>"❝ "+v.t+(v.s?"\n— "+v.s:"")).join("\n\n");try{navigator.clipboard.writeText(txt).then(()=>toast("Defter kopyalandı"),()=>toast("Kopyalanamadı"))}catch(e){toast("Kopyalanamadı")}};
+  const add=$("#vcAdd");if(add)add.onclick=()=>{const t=$("#vcT").value.trim();if(!t){toast("Vecizeyi yapıştır");return}VEC.push({id:"v"+Date.now(),t,s:$("#vcS").value.trim(),kat:$("#vcK").value});saveVec();toast("Defterine eklendi");renderView()};
+  const bulk=$("#vcBulk");if(bulk)bulk.onclick=bulkModal;
+  const rd=$("#vcRead");if(rd)rd.onclick=()=>{const art=makeArt("❝","Vecize defterim",150),q=[];VEC.filter(v=>vecFiltre==="hepsi"||(v.kat||"genel")===vecFiltre).forEach(v=>chunkText(v.t,180).forEach(c=>q.push(ttsTrack(c,"tr-TR","Vecize defterim",v.s||"Risale-i Nur",art,"Vecize defterim"))));if(q.length)playQueue(q,0)};
+  const cp=$("#vcCopy");if(cp)cp.onclick=()=>{const txt=VEC.map(v=>v.t+(v.s?" — "+v.s:"")).join("\n");try{navigator.clipboard.writeText(txt).then(()=>toast("Defter kopyalandı"),()=>toast("Kopyalanamadı"))}catch(e){toast("Kopyalanamadı")}};
+  document.querySelectorAll("[data-vf]").forEach(b=>b.onclick=()=>{vecFiltre=b.dataset.vf;renderView();const l=document.querySelector("#view .chips");if(l)l.scrollIntoView({block:"start"})});
+  document.querySelectorAll("[data-vcpay]").forEach(b=>b.onclick=()=>{const v=VEC.find(x=>x.id===b.dataset.vcpay);if(v)paylas(vecMetin(v))});
   document.querySelectorAll("[data-vcdel]").forEach(b=>b.onclick=()=>confirmBox("Vecize silinsin mi?","Defterinden kalıcı olarak silinecek.","Sil",()=>{VEC=VEC.filter(v=>v.id!==b.dataset.vcdel);saveVec();renderView()}));
+  const bu=vecGunun(0);let rOff=0;
+  const rp=$("#rvPay");if(rp)rp.onclick=()=>paylas(vecMetin(vecGunun(rOff)||bu));
+  const rs=$("#rvSes");if(rs)rs.onclick=()=>{const v=vecGunun(rOff)||bu;playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)};
+  const rb=$("#rvBaska");if(rb)rb.onclick=()=>{if(VEC.length<2){toast("Defterinde başka vecize yok");return}rOff++;const v=vecGunun(rOff),box=rb.closest(".soz");box.querySelector(".soz-t").textContent="❝ "+v.t+" ❞";box.querySelector(".small").textContent=(v.s||"Risale-i Nur")+" · "+katAd(v.kat)};
 }
-function vVecizeCard(){if(!VEC.length)return `<button class="row" id="vcGo" style="border-radius:16px;margin-top:10px"><span class="no" style="font-size:20px">📚</span><span class="t"><b>Risale-i Nur vecize defteri</b><span>Okuduğun cümleleri biriktir; her gün biri karşına çıksın</span></span><span class="go">›</span></button>`;
-  const d=new Date(),n=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5),v=VEC[n%VEC.length];
-  return `<div class="soz" style="margin-top:10px;background:color-mix(in srgb,hsl(150 55% 40%) 16%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">GÜNÜN VECİZESİ · DEFTERİNDEN</div><div class="soz-t">${esc(v.t)}</div><div class="small muted">${esc(v.s||"Risale-i Nur")}</div></div>`}
+function vVecizeCard(){const v=vecGunun(0),bg="background:color-mix(in srgb,hsl(150 55% 40%) 16%,var(--surface))",bas=`<div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">📚 GÜNÜN RİSALE-İ NUR VECİZESİ</div>`;
+  if(!v)return `<div class="soz" style="margin-top:10px;${bg}">${bas}<div class="small">Vecizelerini bir kez deftere ekle; her gün biri burada ve bildirim olarak karşına çıksın.</div><div class="ctrl"><button class="pill acc" id="vcGo">✍️ Vecize defterini aç</button></div></div>`;
+  return `<div class="soz" style="margin-top:10px;${bg}">${bas}<div class="soz-t">❝ ${esc(v.t)} ❞</div><div class="small muted">${esc(v.s||"Risale-i Nur")}</div><div class="ctrl"><button class="pill ghost" id="vcPay">📤 Paylaş</button><button class="pill ghost" id="vcSes">🔊 Dinle</button><button class="pill ghost" id="vcGo">Defterim ›</button></div></div>`}
 
 /* ---------- Kırk Hadis (İmam Nevevî'den seçmeler, mana olarak) ---------- */
 const KIRK=[[1,"Ameller ancak niyetlere göredir; herkese niyet ettiği şey vardır.","Buhârî, Müslim"],[2,"İhsan, Allah'ı görüyormuş gibi ibadet etmendir; sen O'nu görmesen de O seni görür.","Müslim"],[3,"İslâm beş temel üzerine kurulmuştur: kelime-i şehâdet, namaz, zekât, hac ve Ramazan orucu.","Buhârî, Müslim"],[5,"Kim bu dinimizde ondan olmayan bir şey ortaya çıkarırsa, o reddedilir.","Buhârî, Müslim"],[6,"Helal de haram da bellidir, aralarında şüpheli şeyler vardır. Bedende bir et parçası vardır; o düzelirse bütün beden düzelir: o da kalptir.","Buhârî, Müslim"],[7,"Din nasihattir (samimiyettir).","Müslim"],[9,"Size yasakladığım şeyden kaçının, emrettiğimi gücünüz yettiğince yapın.","Buhârî, Müslim"],[10,"Allah temizdir, yalnızca temiz olanı kabul eder.","Müslim"],[11,"Seni şüpheye düşüreni bırak, şüphe vermeyene yönel.","Tirmizî, Nesâî"],[12,"Kişinin kendisini ilgilendirmeyen şeyi bırakması, Müslümanlığının güzelliğindendir.","Tirmizî"],[13,"Biriniz kendisi için istediğini kardeşi için de istemedikçe kâmil mü'min olamaz.","Buhârî, Müslim"],[15,"Allah'a ve âhiret gününe inanan ya hayır söylesin ya sussun; komşusuna ve misafirine ikram etsin.","Buhârî, Müslim"],[16,"Öfkelenme.","Buhârî"],[17,"Allah her şeyde ihsanı (en güzel şekilde yapmayı) yazmıştır.","Müslim"],[18,"Nerede olursan ol Allah'tan kork; kötülüğün ardından bir iyilik yap ki onu silsin; insanlarla güzel ahlakla geçin.","Tirmizî"],[19,"Allah'ın emirlerini gözet ki Allah da seni gözetsin. İstediğinde Allah'tan iste, yardım dilediğinde Allah'tan dile.","Tirmizî"],[20,"Utanmıyorsan dilediğini yap.","Buhârî"],[21,"“Allah'a inandım” de, sonra dosdoğru ol.","Müslim"],[23,"Temizlik imanın yarısıdır; “Elhamdülillâh” mizanı doldurur.","Müslim"],[25,"Her tesbih, her tekbir, her tahmid, her tehlîl sadakadır; iyiliği emretmek de sadakadır.","Müslim"],[26,"İki kişinin arasını adaletle bulman, güzel söz, namaza attığın her adım ve yoldan eziyet veren şeyi kaldırman sadakadır.","Buhârî, Müslim"],[27,"İyilik güzel ahlaktır; günah ise içini tırmalayan ve insanların bilmesinden hoşlanmadığın şeydir.","Müslim"],[31,"Dünyaya gönül bağlama ki Allah seni sevsin; insanların elindekine göz dikme ki insanlar seni sevsin.","İbn Mâce"],[32,"Zarar vermek de zarara zararla karşılık vermek de yoktur.","İbn Mâce"],[34,"Biriniz bir kötülük görürse eliyle düzeltsin; gücü yetmezse diliyle, ona da gücü yetmezse kalbiyle karşı çıksın; bu imanın en zayıfıdır.","Müslim"],[35,"Birbirinize haset etmeyin, kin tutmayın, sırt çevirmeyin; ey Allah'ın kulları, kardeş olun.","Müslim"],[36,"Kim bir mü'minin dünya sıkıntılarından birini giderirse, Allah da kıyamet günü onun bir sıkıntısını giderir. Kul kardeşinin yardımında oldukça Allah da onun yardımındadır.","Müslim"],[39,"Allah ümmetimden hatayı, unutmayı ve zorla yaptırılanı bağışlamıştır.","İbn Mâce"],[40,"Dünyada bir garip ya da yolcu gibi ol.","Buhârî"],[42,"Ey âdemoğlu! Bana dua edip benden ümit ettikçe, senden olanı bağışlarım.","Tirmizî (hadis-i kudsî)"]];
@@ -1462,7 +1495,7 @@ function zekatAc(){const z=store.get("mk_zekat",{});const f=[["altinFiyat","Alt�
 function bBugunExtra(){
   const go=(t,s)=>{tab=t;if(t==="kulliyat")kulSeg=s;if(t==="dinle"){dinleSeg=s;openSeries=null}renderView();window.scrollTo(0,0)};
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
-  on("#aylikBtn",aylikAc);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));
+  on("#aylikBtn",aylikAc);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));on("#vcPay",()=>{const v=vecGunun(0);if(v)paylas(vecMetin(v))});on("#vcSes",()=>{const v=vecGunun(0);if(v)playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)});
   on("#okuBtn",()=>{kuranMod="oku";store.set("mk_kmod","oku");openSure=null;go("dinle","kuran")});
   on("#dlistBtn",()=>{bugSeg="dualar";duaSeg2="liste";renderView();setTimeout(()=>{const s=document.querySelector("[data-dseg2]");if(s)s.scrollIntoView({block:"start"})},50)});
   on("#davetAc",async()=>{if(await pushEnable())renderView()});on("#davetGizle",()=>{store.set("mk_push_gizle",true);renderView()});
@@ -1495,7 +1528,15 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <div id="hatList" style="display:grid;gap:10px"></div>
    <div class="small muted">Hazır öneriler:</div><div class="ctrl" id="hatOneri"></div>
    <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatAuto" ${store.get("mk_hat_auto",false)?"checked":""} style="width:20px;height:20px;flex:none">🕌 Namaz vakitlerinden 10 dk önce hatırlat (${esc(SET.city||"İstanbul")} saatleriyle; şifre hatırlanıyorsa uygulamayı her gün ilk açışında kendini günceller)</label>
+   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatRisale" ${store.get("mk_hat_risale",false)?"checked":""} style="width:20px;height:20px;flex:none">📚 Her gün Risale-i Nur vecizesi bildirimi (vecize defterinden sırayla, bir haftalık plan; şu an ${VEC.length} vecize)</label>
+   <label class="small muted" style="display:flex;gap:8px;align-items:center">Vecize bildiriminin saati <input type="time" id="hatRsaat" value="${esc(SET.rsaat||"08:30")}"></label>
    <button class="pill acc" id="hatKaydet" style="justify-self:start;font-size:16px;padding:12px 18px">💾 Kasaya kaydet</button></div>
+  <h2>📣 Şimdi bildirim gönder <span class="small muted">(uygulama sahibi)</span></h2>
+  <div class="bigcard"><div class="muted small">Yazdığın bildirim, bildirimi açık olan herkese hemen gider. Kandil, Cuma, özel gün mesajları için. Yukarıdaki kasa şifresi gerekir.</div>
+   <input type="text" id="anBaslik" value="🕌 Maneviyat · " placeholder="Başlık">
+   <textarea id="anMetin" placeholder="Mesaj (ör. Bu gece Regaip Kandili. Dualarınızda buluşalım.)"></textarea>
+   <label class="small muted" style="display:grid;gap:4px">Dokununca açılacak bölüm<select id="anUrl"><option value="#bugun">Bugün</option><option value="#zikir">Zikir</option><option value="#kuran">Kur'an</option><option value="#risale">Risale-i Nur</option><option value="#hadis">Kırk Hadis</option><option value="#siyer">Siyer</option><option value="#uyku">Uyku</option></select></label>
+   <div class="ctrl"><button class="pill acc" id="anGonder">📣 Herkese gönder</button><button class="pill ghost" id="anBana">🧪 Önce bana gönder</button></div></div>
   <h2>Genel</h2>
   <div class="bigcard">
    <label class="small muted" style="display:grid;gap:4px">Şehir (namaz vakitleri)<input type="text" id="aCity" value="${esc(SET.city||"")}" placeholder="Istanbul"></label>
@@ -1514,6 +1555,11 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
   <div class="bigcard"><div class="small muted">Zikir sayıların, notların, vecize defterin, amellerin ve ayarların tek dosyada. Telefon değiştirirken işine yarar.</div><div class="ctrl"><button class="pill" id="yedekAl">⬇️ Yedek al</button><label class="pill ghost" style="cursor:pointer">⬆️ Yedeği yükle<input type="file" id="yedekDosya" accept="application/json,.json" hidden></label></div></div>
   <h2>🔐 Kasa</h2>
   <div class="bigcard"><div class="small muted">Bildirim sunucusunun adresi. Değiştirmen gerekmez.</div><input type="text" id="kasaAdr" value="${esc(kasaUrl())}" autocomplete="off" autocapitalize="off"><div class="ctrl"><button class="pill" id="kasaKaydet">💾 Kaydet</button><button class="pill" id="kasaTest">🩺 Test et</button></div><div id="kasaOut" class="small"></div></div>
+  <h2>🗝️ Anahtar kasası</h2>
+  <div class="bigcard"><div class="muted small">Yapay zekâ (Gemini) anahtarlarını baris-kasa'ya koy. Bu kasaya bağlı bütün uygulamaların ortak kullanır; anahtarlar kasada gizli kalır, bu cihaza ve koda yazılmaz.</div>
+   <input type="password" id="akSifre" placeholder="🔒 Kasa şifresi" value="${esc(store.get("mk_kasa_sifre",""))}" autocomplete="off">
+   <textarea id="akYeni" placeholder="AIza… anahtarlarını yapıştır (her satıra bir tane)" autocomplete="off" autocapitalize="off"></textarea>
+   <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button></div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
   <div class="small muted" style="text-align:center;margin-top:18px">Maneviyat Külliyatı · sürüm ${SURUM}</div>`}
 function bAyarlar(){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
@@ -1528,16 +1574,31 @@ function bAyarlar(){
   hatRender();
   const sif=()=>{const s=$("#hatSifre").value.trim();if(!s){toast("Kasa şifresini yaz");return""}store.set("mk_kasa_sifre",$("#hatHatirla").checked?s:"");return s};
   on("#hatGetir",async()=>{const s=sif();if(!s)return;try{HAT=await hatListe(s);hatRender();toast("📥 "+HAT.length+" hatırlatma getirildi")}catch(e){toast("Getirilemedi: "+e.message)}});
-  on("#hatYeni",()=>{HAT.push({id:"h"+Date.now(),saat:"08:00",gunler:[],baslik:"🕌 Maneviyat · ",govde:"",url:"#bugun",hedef:{},aktif:true});hatRender()});
+  on("#hatYeni",()=>{HAT.push({id:"h"+Date.now(),saat:"08:00",gunler:[],baslik:"🕌 Maneviyat · ",govde:"",url:"#bugun",hedef:{},aktif:true});hatRender();const b=[...document.querySelectorAll("#hatList [data-hf=baslik]")].pop();if(b){b.scrollIntoView({block:"center"});b.focus();b.setSelectionRange(b.value.length,b.value.length)}toast("Saat, gün, başlık ve metni yaz; sonra 💾 Kasaya kaydet")});
   const ha=$("#hatAuto");if(ha)ha.onchange=()=>store.set("mk_hat_auto",ha.checked);
-  on("#hatKaydet",async()=>{const s=sif();if(!s)return;let liste=HAT.map(hatTemiz);if(store.get("mk_hat_auto",false))liste=liste.filter(h=>!h.id.startsWith("vakit_")).concat(vakitItems());
-    try{await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste});HAT=liste;if(store.get("mk_hat_auto",false))store.set("mk_hat_vakit_t",todayKey());hatRender();toast("✅ "+liste.length+" hatırlatma kasaya kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
+  const hr=$("#hatRisale");if(hr)hr.onchange=()=>{store.set("mk_hat_risale",hr.checked);if(hr.checked&&!VEC.length)toast("Önce Külliyat → Risale-i Nur → Vecize defterine vecize ekle")};
+  const hs=$("#hatRsaat");if(hs)hs.onchange=()=>{SET.rsaat=hs.value||"08:30";store.set("mk_set",SET)};
+  on("#hatKaydet",async()=>{const s=sif();if(!s)return;const liste=otoItems(HAT.map(hatTemiz));
+    try{await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste});HAT=liste;store.set("mk_hat_vakit_t",todayKey());hatRender();toast("✅ "+liste.length+" hatırlatma kasaya kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
   on("#aKaydet",()=>{const c=$("#aCity").value.trim();if(c!==(SET.city||"")){TIMES=null;store.set("mk_hat_vakit_t","")}
     Object.assign(SET,{city:c,ad:$("#aAd").value.trim(),tema:$("#aTema").value,arz:parseFloat($("#aArz").value)||1,zhedef:Math.max(0,parseInt($("#aZh").value,10)||0),ton:$("#aTon").checked?"kalin":"normal",meal:$("#aMeal").checked});
     store.set("mk_set",SET);applyTheme();setAccent();toast("Ayarlar kaydedildi");if(store.get("mk_push_on",false))pushSubscribe().catch(()=>{})});
   on("#sKaydet",()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim()});store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);toast("Kaydedildi")});
   on("#yedekAl",yedekAl);const yd=$("#yedekDosya");if(yd)yd.onchange=()=>{if(yd.files[0])yedekYukle(yd.files[0])};
   on("#kasaKaydet",()=>{store.set("mk_kasa",$("#kasaAdr").value.trim().replace(/\/+$/,"")||KASA_VARS);toast("Kasa adresi kaydedildi")});
+  const anGo=async herkes=>{const b=$("#anBaslik").value.trim(),m=$("#anMetin").value.trim();if(!m){toast("Mesajı yaz");return}
+    if(herkes){const s=sif();if(!s)return;try{await kasaPost("/hatirlatma/liste",{sifre:s,uyg:UYG})}catch(e){toast("Şifre doğrulanamadı: "+e.message);return}}
+    else{try{if(!store.get("mk_push_on",false))await pushSubscribe()}catch(e){toast("Önce bildirimleri aç");return}}
+    olay(herkes?{rol:["kullanici"],sinif:"*"}:{ogrId:cihazId},{baslik:b||"🕌 Maneviyat",govde:m,url:appUrl($("#anUrl").value),etiket:(herkes?"duyuru-":"deneme-")+Date.now()});
+    toast(herkes?"📣 Gönderildi; birkaç saniye içinde herkese ulaşır":"🧪 Sana gönderildi")};
+  on("#anGonder",()=>confirmBox("Herkese gönderilsin mi?","Bildirimi açık olan herkes bu mesajı alacak.","Gönder",()=>anGo(true)));on("#anBana",()=>anGo(false));
+  const akS=()=>{const s=$("#akSifre").value.trim();if(!s)toast("Kasa şifresini yaz");return s};
+  const akListe=async()=>{const s=akS();if(!s)return;const o=$("#akOut");o.textContent="Soruluyor…";try{const j=await kasaPost("/anahtar/liste",{sifre:s});const l=Array.isArray(j)?j:(j.liste||j.anahtarlar||[]);
+    o.innerHTML=l.length?l.map((x,i)=>`<div class="nrow" style="border-radius:10px"><span class="tx">🗝️ ${esc(typeof x==="string"?x:(x.maske||x.anahtar||x.key||JSON.stringify(x)))}</span><button class="x" data-aksil="${i}" aria-label="Sil">🗑️</button></div>`).join("")+`<div class="muted">Toplam ${l.length} anahtar</div>`:"Kasada anahtar yok.";
+    o.querySelectorAll("[data-aksil]").forEach(b=>b.onclick=()=>confirmBox("Anahtar silinsin mi?","Bu anahtar kasadan kaldırılacak.","Sil",async()=>{try{await kasaPost("/anahtar/sil",{sifre:s,i:+b.dataset.aksil});toast("Silindi");akListe()}catch(e){toast("Silinemedi: "+e.message)}}))}catch(e){o.textContent="⛔ "+e.message}};
+  on("#akListe",akListe);
+  on("#akEkle",async()=>{const s=akS();if(!s)return;const t=$("#akYeni").value.trim();if(!t){toast("Anahtarları yapıştır");return}
+    try{const j=await kasaPost("/anahtar/ekle",{sifre:s,anahtarlar:t});$("#akYeni").value="";$("#akOut").textContent=`✅ Eklenen: ${j.eklenen||0} · zaten vardı: ${j.zatenVardi||0} · geçersiz: ${j.gecersiz||0} · kasada toplam: ${j.toplam||0}`}catch(e){toast("Eklenemedi: "+e.message)}});
   on("#kasaTest",async()=>{const o=$("#kasaOut");o.textContent="Test ediliyor…";try{const r=await fetch(kasaUrl()+"/saglik");const j=await r.json();o.innerHTML=`${j.ok?"✅":"⛔"} kasa · ${j.depo?"✅":"⛔"} depo · ${j.sifre?"✅":"⛔"} şifre`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 }
 
