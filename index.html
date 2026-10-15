@@ -1261,7 +1261,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=15;
+const SURUM=16;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1568,7 +1568,7 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
   <div class="bigcard"><div class="muted small">Yapay zekâ (Gemini) anahtarlarını baris-kasa'ya koy. Bu kasaya bağlı bütün uygulamaların ortak kullanır; anahtarlar kasada gizli kalır, bu cihaza ve koda yazılmaz.</div>
    <input type="password" id="akSifre" placeholder="🔒 Kasa şifresi" value="${esc(store.get("mk_kasa_sifre",""))}" autocomplete="off">
    <textarea id="akYeni" placeholder="AIza… anahtarlarını yapıştır (her satıra bir tane)" autocomplete="off" autocapitalize="off"></textarea>
-   <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button><button class="pill" id="akTest">🧪 Yapay zekâyı test et</button></div><div class="small muted">Birden çok anahtarı aynı anda, aralarında boşluk, virgül ya da satır olsa da yapıştırabilirsin; uygulama her birini ayrı ayrı bulup kasaya ekler. “Geçersiz” çıkan anahtarı Google AI Studio’dan yeniden kopyala.</div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
+   <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button><button class="pill" id="akTest">🧪 Yapay zekâyı test et</button></div><div class="small muted">Her biçimdeki anahtarı (AIza…, AQ.… vb.) yapıştırabilirsin. Birden çok anahtarı aralarında boşluk, virgül ya da satır olsa da tek seferde yapıştır; uygulama her birini ayırıp kasaya gönderir.</div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
   <div class="small muted" style="text-align:center;margin-top:18px">Maneviyat Külliyatı · sürüm ${SURUM}</div>`}
 function bAyarlar(){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
@@ -1612,9 +1612,9 @@ function bAyarlar(){
       o.innerHTML=r.ok&&t?`✅ Yapay zekâ çalışıyor. Cevap: “${esc(t.slice(0,60))}”<br><span class="muted">Kasa, kotası dolan anahtarı atlayıp sıradakini kullanır.</span>`:`⛔ Çalışmadı (${r.status}). ${esc((j.error&&j.error.message)||j.hata||"Kasada geçerli anahtar yok ya da kotası dolu.")}`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 
   on("#akEkle",async()=>{const s=akS();if(!s)return;const t=$("#akYeni").value.trim();if(!t){toast("Anahtarları yapıştır");return}
-    const bul=[...new Set(t.match(/AIza[0-9A-Za-z_\-]{35}/g)||[])];if(!bul.length){toast("Yapıştırdığın metinde AIza ile başlayan 39 karakterlik anahtar bulunamadı");return}
+    const bul=anahtarAyikla(t);if(!bul.length){toast("Yapıştırdığın metinde anahtar bulunamadı");return}
     try{const j=await kasaPost("/anahtar/ekle",{sifre:s,anahtarlar:bul.join("\n")});$("#akYeni").value="";await akListe();
-      $("#akOut").insertAdjacentHTML("afterbegin",`<div>🔎 Metinde ${bul.length} anahtar bulundu → ✅ eklenen: ${j.eklenen||0} · zaten vardı: ${j.zatenVardi||0} · geçersiz: ${j.gecersiz||0} · kasada toplam: ${j.toplam||0}</div>`)}catch(e){toast("Eklenemedi: "+e.message)}});
+      $("#akOut").insertAdjacentHTML("afterbegin",`<div>🔎 ${bul.length} anahtar gönderildi → ✅ eklenen: ${j.eklenen||0} · zaten vardı: ${j.zatenVardi||0} · ⛔ kasanın reddettiği: ${j.gecersiz||0} · kasada toplam: ${j.toplam||0}</div>${j.gecersiz?`<div class="muted">Reddedilen anahtar(lar), kasanın kodundaki biçim kontrolüne takıldı (kasa kodu şu an yalnız AIza… biçimini kabul ediyor olabilir). Uygulama her biçimi gönderiyor; yeni biçimdeki (ör. AQ.…) anahtarların kabul edilmesi için kasa kodunda (worker.js) bu kontrolün genişletilmesi gerekir.</div>`:""}`)}catch(e){toast("Eklenemedi: "+e.message)}});
   on("#kasaTest",async()=>{const o=$("#kasaOut");o.textContent="Test ediliyor…";try{const r=await fetch(kasaUrl()+"/saglik");const j=await r.json();o.innerHTML=`${j.ok?"✅":"⛔"} kasa · ${j.depo?"✅":"⛔"} depo · ${j.sifre?"✅":"⛔"} şifre`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 }
 
@@ -1638,6 +1638,12 @@ function exitApp(){try{au.pause()}catch(e){}try{stopSpeech()}catch(e){}try{if(lo
   closeModal();let o=$("#kapali");if(!o){o=document.createElement("div");o.id="kapali";document.body.appendChild(o)}
   o.innerHTML=`<div style="display:grid;gap:14px;justify-items:center;max-width:340px"><div style="font-size:54px">🌙</div><div style="font:600 24px var(--f-disp)">Maneviyat kapatıldı</div><div style="opacity:.8;font-size:15px">Ses ve zikir durduruldu. Bildirimler gelmeye devam eder.</div><button class="pill acc" id="kapAc" style="font-size:16px;padding:12px 22px">Tekrar aç</button><div style="opacity:.6;font-size:13px">${IS_IOS?"Telefondan tamamen kaldırmak istersen: ekranın altından yukarı kaydır, Maneviyat kartını yukarı fırlat.":"Telefondan tamamen kaldırmak istersen son uygulamalar ekranından kaydır."}</div></div>`;
   o.hidden=false;$("#kapAc").onclick=()=>{o.hidden=true};try{window.close()}catch(e){}}
+
+/* ---------- Anahtar ayıklama: her biçim (AIza…, AQ.… vb.) ---------- */
+function anahtarAyikla(t){t=String(t||"");const out=[];
+  (t.match(/AIza[0-9A-Za-z_\-]{35}/g)||[]).forEach(k=>{out.push(k);t=t.replace(k," ")});
+  t.split(/[\s,;|"'`]+/).forEach(x=>{x=x.trim().replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9_\-]+$/g,"");if(x.length>=20&&/^[A-Za-z0-9._\-]+$/.test(x))out.push(x)});
+  return [...new Set(out)]}
 
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
