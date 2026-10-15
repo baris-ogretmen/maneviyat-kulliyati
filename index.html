@@ -58,7 +58,7 @@ h3{font-size:15px;margin:0 0 4px}
 
 /* Zikir */
 .zcard{background:var(--surface);border-radius:22px;padding:18px 16px 16px;display:grid;gap:10px;text-align:center;user-select:none;-webkit-user-select:none}
-.zcard .ar{font-size:30px;line-height:1.7}
+.zcard .ar{font-size:calc(30px*var(--arz,1));line-height:1.7}
 .zcard .read{font-weight:600}
 .zcard .mean{font-size:13px;color:var(--muted);max-width:44ch;margin:0 auto}
 .tap{position:relative;width:min(70vw,250px);aspect-ratio:1;margin:6px auto 0;border-radius:50%;display:grid;place-items:center;touch-action:manipulation;cursor:pointer;background:radial-gradient(circle at 50% 40%,var(--surface2),var(--surface) 70%)}
@@ -107,7 +107,7 @@ h3{font-size:15px;margin:0 0 4px}
 .bigcard{background:var(--surface);border-radius:18px;padding:16px;display:grid;gap:8px;text-align:left;width:100%}
 .bigcard .ttl{font:600 18px/1.25 var(--f-disp)}
 .ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-select,input[type=search],input[type=text],input[type=number]{font:inherit;font-size:16px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+select,input[type=search],input[type=text],input[type=number],input[type=time],input[type=password]{font:inherit;font-size:16px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
 .note{font-size:13px;color:var(--muted);background:var(--surface);border-radius:14px;padding:12px 14px;margin-top:10px}
 .note b{color:var(--fg)}
 .grid160{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}
@@ -117,7 +117,7 @@ select,input[type=search],input[type=text],input[type=number]{font:inherit;font-
 .dua{background:var(--surface);border-radius:18px;padding:16px;display:grid;gap:8px;margin-bottom:10px}
 .dua .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .dua .cnt{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
-.dua .ar{font-size:23px;text-align:right}
+.dua .ar{font-size:calc(23px*var(--arz,1));text-align:right}
 .dua .read{font-style:italic;font-size:14px}
 .dua .mean{font-size:14px;color:var(--muted)}
 .dua .src{font-size:12px;color:var(--muted)}
@@ -194,6 +194,19 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
 .pill.on{background:var(--accent);color:var(--accent-ink)}
 .grid160 a.done{background:var(--surface2);color:var(--good)}
 .grid160 a.cur{outline:2px solid var(--accent)}
+.ayet.playing{outline:2px solid var(--accent);outline-offset:2px}
+.chk-b{width:28px;height:28px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:var(--accent-ink)}
+.chk-b.on{background:var(--accent);border-color:var(--accent)}
+.hat{display:grid;gap:8px;padding:12px;background:var(--surface2);border-radius:14px}
+.hat input[type=time]{width:auto}
+.gunler{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.gn{padding:6px 9px;border-radius:9px;background:var(--surface);font-size:13px;font-weight:600}
+.gn.on{background:var(--accent);color:var(--accent-ink)}
+.modal .box{max-height:88vh;overflow:auto}
+.vt{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}
+.vt th,.vt td{padding:6px 3px;text-align:center;border-bottom:1px solid var(--line)}
+.vt th{position:sticky;top:0;background:var(--surface)}
+.vt tr.bugun td{background:var(--surface2);font-weight:700;color:var(--accent)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -490,6 +503,7 @@ function loadCur(autoplay){
   if(autoplay){const g=GEN;au.play().catch(e=>{if(g===GEN&&e&&e.name==="NotAllowedError")toast("Oynatmak için ▶ tuşuna dokun")})}
   if(t.series)store.set("mk_last_"+t.series,{n:t.ep});
   addRecent(t);
+  if(t.hl){const [hs,ha]=t.hl.split("_");store.set("mk_okuma",{s:+hs,a:+ha})}
   updateMini();msPlayer();renderQueueHL();if(autoplay&&$("#sheet").hidden)toast("▶ "+t.title);
 }
 au.addEventListener("loadedmetadata",()=>{const t=Q[qi];if(!t||t.live){pendingSeek=null;return}setTone(t);if(curKey&&isFinite(au.duration)){DUR[curKey]=Math.floor(au.duration);store.set("mk_dur",DUR)}if(pendingSeek!=null){au.currentTime=pendingSeek;toast("Notun olduğu yer: "+fmt(pendingSeek));pendingSeek=null;return}const p=curKey&&POS[curKey];if(p&&p>15&&au.duration&&p<au.duration-20){au.currentTime=p;toast("Kaldığın yerden: "+fmt(p))}});
@@ -573,7 +587,7 @@ function renderSheet(){
   }
 }
 function updateSheet(){if($("#sheet").hidden)return;const b=$("#shPlay");if(b)b.innerHTML=au.paused?IC.play:IC.pause;else renderSheet()}
-function renderQueueHL(){const nf=$("#noteForm");if(!$("#sheet").hidden&&!(nf&&!nf.hidden))renderSheet();document.querySelectorAll(".row[data-key]").forEach(r=>r.classList.toggle("playing",r.dataset.key===curKey))}
+function renderQueueHL(){const nf=$("#noteForm");if(!$("#sheet").hidden&&!(nf&&!nf.hidden))renderSheet();document.querySelectorAll(".row[data-key]").forEach(r=>r.classList.toggle("playing",r.dataset.key===curKey));const hl=Q[qi]&&Q[qi].hl;document.querySelectorAll(".ayet").forEach(r=>{const o=r.dataset.hl===hl;r.classList.toggle("playing",o);if(o&&$("#sheet").hidden&&!au.paused)try{r.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}})}
 const SLEEPS=[0,15,30,45,60,"end"];let sleepIdx=0;
 function cycleSleep(){
   sleepIdx=(sleepIdx+1)%SLEEPS.length;const v=SLEEPS[sleepIdx];clearTimeout(sleepTimer);sleepAt=0;sleepEnd=false;
@@ -663,7 +677,7 @@ function paintCounter(){
 function renderTotal(){const v=hist[todayKey()]||0;const kt=$("#kpiToday");if(kt)kt.textContent=v.toLocaleString("tr-TR");$("#todayTot").textContent=v?("Bugün "+v.toLocaleString("tr-TR")+" zikir"):""}
 
 /* ===================== Görünümler ===================== */
-const TITLES={bugun:"Bugün",zikir:"Zikir",dinle:"Dinle",kutuphane:"Kütüphanem",kulliyat:"Külliyat"};
+const TITLES={bugun:"Bugün",zikir:"Zikir",dinle:"Dinle",kutuphane:"Kütüphanem",kulliyat:"Külliyat",ayarlar:"Ayarlar"};
 const mark=k=>(DONE[k]?'<span class="mk done">✓</span>':"")+(FAV[k]?'<span class="mk">♥</span>':"")+(NOTES.some(n=>n.key===k)?'<span class="mk">✎</span>':"");
 const progHTML=k=>{const p=POS[k],d=DUR[k];return p&&d?`<div class="bar2"><i style="width:${Math.min(100,p/d*100).toFixed(1)}%"></i></div>`:""};
 const ACC={bugun:["#e9a23b","#a8650f"],zikir:["#3fbf8f","#1d7a57"],dinle:["#5aa9e6","#2368a8"],kutuphane:["#c792ea","#7b3fb0"],kulliyat:["#ef7a8f","#b23a54"]};
@@ -676,8 +690,8 @@ function tintCards(){let i=0;document.querySelectorAll("#view .cards > .card").f
   let j=0;document.querySelectorAll("#view [data-hoca]").forEach(b=>{const h=HUES[j++%HUES.length];b.style.background=`color-mix(in srgb,hsl(${h} 65% 50%) ${isDark()?24:16}%,var(--surface))`})}
 function renderView(){
   $("#pageTitle").textContent=TITLES[tab];document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
-  setAccent();const v=$("#view");v.innerHTML=({bugun:vBugun,zikir:vZikir,dinle:vDinle,kutuphane:vKutup,kulliyat:vKulliyat})[tab]();
-  ({bugun:bBugun,zikir:bZikir,dinle:bDinle,kutuphane:bKutup,kulliyat:bKulliyat})[tab]();renderTotal();tintCards();
+  setAccent();const v=$("#view");v.innerHTML=({bugun:vBugun,zikir:vZikir,dinle:vDinle,kutuphane:vKutup,kulliyat:vKulliyat,ayarlar:vAyarlar}[tab]||vBugun)();
+  ({bugun:bBugun,zikir:bZikir,dinle:bDinle,kutuphane:bKutup,kulliyat:bKulliyat,ayarlar:bAyarlar}[tab]||bBugun)();renderTotal();tintCards();
 }
 
 /* --- Zikir --- */
@@ -704,7 +718,7 @@ function vZikir(){
   ${lockOn?`<div class="lockbox"><b>Şimdi ekranı kilitleyebilirsin.</b> Kilit ekranındaki çalar kutusunda sayın görünür:<ol><li><b>⏭ İleri</b> veya <b>⏯ Oynat</b> tuşu: +1</li><li><b>⏮ Geri</b> tuşu: −1</li><li>Kulaklık (AirPods) çift dokunma: +1</li></ol><div class="small muted" style="margin-top:6px">Sesi kısık tutabilirsin; sessiz bir kayıt arka planda döner. Kontrol Merkezi'nde de aynı kutu çıkar.</div></div>`:""}
   <div class="chips" id="chips">${ZIKIR.map(x=>`<button class="chip ${x.id===z.id?"on":""}" data-z="${x.id}"><b>${esc(x.r.length>26?x.r.slice(0,26)+"…":x.r)}</b><span>${(zs.counts[x.id]||0)} / ${zTarget(x)}</span></button>`).join("")}<button class="chip" id="zAdd"><b>+ Yeni zikir</b><span>Kendi virdin</span></button></div>
   <h2>Zikir defterin</h2>
-  <div class="kpis"><div class="kpi"><span class="small muted">Bugün</span><b id="kpiToday">${(hist[todayKey()]||0).toLocaleString("tr-TR")}</b></div><div class="kpi"><span class="small muted">Son 7 gün</span><b>${week.toLocaleString("tr-TR")}</b></div><div class="kpi"><span class="small muted">Toplam</span><b>${all.toLocaleString("tr-TR")}</b></div></div>
+  <div class="kpis"><div class="kpi"><span class="small muted">Bugün${SET.zhedef?" / hedef "+SET.zhedef:""}</span><b id="kpiToday">${(hist[todayKey()]||0).toLocaleString("tr-TR")}</b>${SET.zhedef?`<div class="bar2"><i style="width:${Math.min(100,(hist[todayKey()]||0)/SET.zhedef*100)}%"></i></div>`:""}</div><div class="kpi"><span class="small muted">Son 7 gün</span><b>${week.toLocaleString("tr-TR")}</b></div><div class="kpi"><span class="small muted">Toplam</span><b>${all.toLocaleString("tr-TR")}</b></div></div>
   <div class="stats" aria-label="Son 7 gün">${days.map(d=>`<div><i style="height:${Math.max(3,d.v/mx*64)}px"></i>${esc(d.l)}</div>`).join("")}</div>
   <div class="note"><b>Ekran kapalıyken zikir nasıl çalışır?</b> iPhone, internet sayfalarının yan tuşu ve ses tuşlarını okumasına izin vermez. Bu yüzden sayaç, kilit ekranındaki müzik kontrollerine bağlandı. "Ekran kapalıyken zikret"e bas, ekranı kilitle, yan tuşla ekranı uyandır ve ⏭ tuşuna dokunarak say. Kulaklıkla göz açmadan da sayabilirsin.</div>
   <div class="ctrl" style="margin-top:12px"><button class="pill ghost" id="zSound">Tık sesi: ${store.get("mk_sound",true)?"açık":"kapalı"}</button></div>`;
@@ -734,7 +748,8 @@ function addBox(pre){openModal(`<h3>Yeni zikir</h3><input type="text" id="mR" pl
 /* --- Dinle --- */
 function vDinle(){
   const seg=`<div class="seg">${[["kuran","Kur'ân"],["siyer","Siyer"],["sohbet","Sohbet"],["radyo","Radyo"],["uyku","Uyku"]].map(([k,l])=>`<button data-seg="${k}" class="${dinleSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
-  if(dinleSeg==="kuran")return seg+`
+  if(dinleSeg==="kuran"&&openSure)return seg+vSureOku();
+  if(dinleSeg==="kuran")return seg+kuranTop()+`
    <label class="small muted" for="kariSel">Hâfız</label>
    <select id="kariSel">${KARI.map(k=>`<option value="${k.id}" ${k.id===kari?"selected":""}>${esc(k.n)}</option>`).join("")}</select>
    <h2>Hazır listeler</h2>
@@ -762,9 +777,9 @@ function vDinle(){
    <div class="note">Radyolar canlı yayındır, ekran kapalıyken çalmaya devam eder. Diyanet yayınları iPhone Safari'de en iyi şekilde çalışır.</div>`;
 }
 function bDinle(){
-  document.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{dinleSeg=b.dataset.seg;store.set("mk_dseg",dinleSeg);openSeries=null;renderView()});
+  document.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{dinleSeg=b.dataset.seg;store.set("mk_dseg",dinleSeg);openSeries=null;openSure=null;renderView()});
   const ks=$("#kariSel");if(ks)ks.onchange=()=>{kari=ks.value;store.set("mk_kari2",kari);renderView();toast(kariObj().n+" seçildi")};
-  document.querySelectorAll("[data-sure]").forEach(b=>b.onclick=()=>{const n=+b.dataset.sure;playQueue(Array.from({length:115-n},(_,i)=>sureTrack(n+i)),0)});
+  document.querySelectorAll("[data-sure]").forEach(b=>b.onclick=()=>{const n=+b.dataset.sure;if(kuranMod==="oku"){openSure=n;renderView();window.scrollTo(0,0);loadSure(n);return}playQueue(Array.from({length:115-n},(_,i)=>sureTrack(n+i)),0)});
   document.querySelectorAll("[data-list]").forEach(b=>b.onclick=()=>{const l=LISTELER[+b.dataset.list];playQueue(l.s.map(sureTrack).map(t=>(t.group=l.n,t)),0)});
   const ss=$("#sSearch");if(ss)ss.oninput=()=>{const q=ss.value.trim().toLocaleLowerCase("tr");document.querySelectorAll("#sureList .row").forEach(r=>{const n=+r.dataset.sure;r.hidden=q&&!(SURE_TR[n-1].toLocaleLowerCase("tr").includes(q)||String(n)===q||SURE_AR[n-1].includes(q))})};
   document.querySelectorAll("[data-series]").forEach(b=>b.onclick=()=>{openSeries=b.dataset.series;renderView();window.scrollTo(0,0)});
@@ -779,6 +794,7 @@ function bDinle(){
   if(dinleSeg==="sohbet")bSohbet();
   if(dinleSeg==="uyku")bUyku();
   const y2=$("#yolBtn2");if(y2)y2.onclick=yolStart;
+  bKuranExtra();
   renderQueueHL();
 }
 
@@ -859,10 +875,10 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 11</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 12</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
-$("#gear").onclick=settingsBox;
+$("#gear").onclick=()=>{tab="ayarlar";renderView();window.scrollTo(0,0)};
 
 /* --- Uyku --- */
 const AMB={};
@@ -968,7 +984,7 @@ async function loadTimes(){
   const today=todayKey(),city=(SET.city||"Istanbul").trim();
   if(TIMES&&TIMES.date===today&&TIMES.city===city)return;if(timesLoading)return;timesLoading=true;
   try{const r=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=Turkey&method=13`);const j=await r.json();
-    if(j&&j.data&&j.data.timings){const t=j.data.timings;TIMES={date:today,city,lat:+(j.data.meta&&j.data.meta.latitude)||41.0082,lon:+(j.data.meta&&j.data.meta.longitude)||28.9784,t:{imsak:t.Fajr,gunes:t.Sunrise,ogle:t.Dhuhr,ikindi:t.Asr,aksam:t.Maghrib,yatsi:t.Isha}};store.set("mk_times",TIMES);if(tab==="bugun")renderView()}}catch(e){}
+    if(j&&j.data&&j.data.timings){const t=j.data.timings;TIMES={date:today,city,lat:+(j.data.meta&&j.data.meta.latitude)||41.0082,lon:+(j.data.meta&&j.data.meta.longitude)||28.9784,t:{imsak:t.Fajr,gunes:t.Sunrise,ogle:t.Dhuhr,ikindi:t.Asr,aksam:t.Maghrib,yatsi:t.Isha}};store.set("mk_times",TIMES);if(tab==="bugun")renderView();vakitOto()}}catch(e){}
   timesLoading=false;
 }
 function timesNow(){
@@ -1080,7 +1096,7 @@ function guardHandlers(){if(!("mediaSession" in navigator))return;const ms=navig
 let vecizeI=Math.floor(Math.random()*100),lastMeta=0;
 function guardMeta(force){if(!guardOn||!("mediaSession" in navigator))return;if(!force&&Date.now()-lastMeta<55000)return;lastMeta=Date.now();
   const {v,next}=curVakit(),mins=Math.max(0,Math.round((next[1]-new Date())/60000)),k=mins>=60?Math.floor(mins/60)+" sa "+(mins%60)+" dk":mins+" dk";
-  if(!force)vecizeI++;const z=SOZLER[vecizeI%SOZLER.length];
+  if(!force)vecizeI++;const pool=SOZLER.concat(VEC.map(v=>({t:v.t,s:v.s||"Risale-i Nur"})));const z=pool[vecizeI%pool.length];
   try{navigator.mediaSession.metadata=new MediaMetadata({title:next[0]+" vaktine "+k,artist:z.t+" — "+z.s,album:VAKIT_AD[v]+" vakti · Maneviyat",artwork:[{src:makeArt(next[0],k,200),sizes:"512x512",type:"image/png"}]});navigator.mediaSession.playbackState="playing"}catch(e){}}
 function vakitTick(){
   try{const {next}=curVakit(),mins=(next[1]-new Date())/60000,day=todayKey();
@@ -1108,7 +1124,7 @@ function kibleAc(){const k=kibleAci();openModal(`<h3>🧭 Kıble</h3><div class=
     window.addEventListener("deviceorientationabsolute",kibleHandler);window.addEventListener("deviceorientation",kibleHandler);$("#kibleOk").textContent="Telefonu yavaşça çevir…"}catch(e){toast("Bu cihazda pusula açılamadı")}}})}
 
 /* --- Kaza namazı takibi --- */
-const KAZA_AD=[["sabah","Sabah"],["ogle","Öğle"],["ikindi","İkindi"],["aksam","Akşam"],["yatsi","Yatsı"],["vitir","Vitir"]];
+const KAZA_AD=[["sabah","Sabah"],["ogle","Öğle"],["ikindi","İkindi"],["aksam","Akşam"],["yatsi","Yatsı"],["vitir","Vitir"],["oruc","Oruç"]];
 let KAZA=store.get("mk_kaza",{});
 function vKaza(){const top=KAZA_AD.reduce((a,[k])=>a+(KAZA[k]||0),0);
   return `<h2>Kaza namazlarım</h2><div class="small muted" style="margin-bottom:8px">Borcunu bir kez gir; kıldıkça − ile düş. Toplam kalan: <b style="color:var(--fg)">${top}</b></div>
@@ -1155,13 +1171,13 @@ function vBugun(){
   const mins=Math.max(0,Math.round((next[1]-new Date())/60000)),kalan=mins>=60?Math.floor(mins/60)+" sa "+(mins%60)+" dk":mins+" dk";
   const card=`<div class="vakit" style="background:linear-gradient(135deg,${c1},${c2})">
     <div class="vk-top"><span>ŞU AN</span><span>${esc((SET.city||"İstanbul"))}${approx?" · yaklaşık":""}</span></div>
-    <div class="vk-ad">${VAKIT_AD[v]} vakti</div><div class="vk-sub">${esc(next[0])} vaktine ${kalan}</div>
+    <div class="vk-ad">${VAKIT_AD[v]} vakti</div><div class="vk-sub">${esc(next[0])} vaktine ${kalan}</div>${ramazanLine(list)}
     <button id="remindBtn" class="vk-rem">${guardOn?"🔔 Vakit hatırlatıcı açık · kapat":"🔕 Vakitten 10 ve 5 dk önce hatırlat"}</button>
     <div class="vk-times">${list.map(([n,d])=>`<div class="${n===VAKIT_LBL[v]?"cur":n===next[0]?"nx":""}" style="${n===VAKIT_LBL[v]?"color:"+c1:""}"><span>${n}</span><b>${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</b></div>`).join("")}</div></div>`;
   const seg=`<div class="seg" style="margin-top:14px">${[["vakit","Bu vakit"],["amel","Amellerim"],["dualar","Tüm dualar"]].map(([k,l])=>`<button data-bseg="${k}" class="${bugSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
   let body="";
   if(bugSeg==="vakit"){const s=gunSoz();
-    body=`<div class="soz"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">GÜNÜN SÖZÜ</div><div class="soz-t">${esc(s.t)}</div><div class="small muted">${esc(s.s)}</div></div>
+    body=`<div class="soz"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">GÜNÜN SÖZÜ</div><div class="soz-t">${esc(s.t)}</div><div class="small muted">${esc(s.s)}</div></div>${vVecizeCard()}
     <div class="ctrl" style="margin:12px 0"><button class="pill acc" id="yolBtn">🚌 Yol modunu başlat</button><button class="pill ghost" id="yolSet" aria-label="Yol modu ayarı">⚙</button>${v==="sabah"||v==="kusluk"||v==="seher"?`<button class="pill" data-evrad="sabah">🎧 Sabah evradını dinle</button>`:""}${v==="ikindi"||v==="aksam"||v==="yatsi"?`<button class="pill" data-evrad="aksam">🎧 Akşam evradını dinle</button>`:""}${v==="ogle"||v==="ikindi"?`<button class="pill" id="tesbihatBtn">Namaz tesbihatı</button>`:""}${v==="seher"?`<button class="pill" id="seherPlay">Seher tilaveti</button>`:""}${v==="yatsi"?`<button class="pill" id="mulkBtn">Mülk sûresi</button>`:""}</div>
     <div class="note" style="margin:0 0 12px">${esc(VAKIT_NOT[v])}</div>
     <button class="pill acc" id="vakitAll" style="margin-bottom:12px">▶ Bu vaktin dualarını sırayla dinle</button>
@@ -1169,13 +1185,13 @@ function vBugun(){
   else if(bugSeg==="amel"){const a=amelToday(),cnt=AMEL.filter(([k])=>a[k]).length;
     const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");const o=AM[k]||{};days.push({l:d.toLocaleDateString("tr-TR",{weekday:"short"}),n:AMEL.filter(([x])=>o[x]).length})}
     let streak=0;for(let i=0;;i++){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");const o=AM[k]||{};if(["sabahN","ogleN","ikindiN","aksamN","yatsiN"].every(x=>o[x]))streak++;else if(i>0||true){if(i===0)continue;break}if(i>400)break}
-    body=`<div class="kpis"><div class="kpi"><span class="small muted">Bugün</span><b>${cnt} / ${AMEL.length}</b></div><div class="kpi"><span class="small muted">5 vakit serisi</span><b>${streak} gün</b></div></div>
+    body=`<div class="kpis"><div class="kpi"><span class="small muted">Bugün</span><b>${cnt} / ${AMEL.length}</b></div><div class="kpi"><span class="small muted">5 vakit serisi</span><b>${streak} gün</b></div><div class="kpi"><span class="small muted">Bugün dinleme</span><b>${dkFmt(LST[todayKey()])}</b></div></div>
     <div class="list" style="margin-top:12px">${AMEL.map(([k,l])=>`<button class="row amel ${a[k]?"ok":""}" data-amel="${k}"><span class="chk">${a[k]?"✓":""}</span><span class="t"><b>${esc(l)}</b></span></button>`).join("")}</div>
     <h2>Son 7 gün</h2><div class="stats">${days.map(d=>`<div><i style="height:${Math.max(3,d.n/AMEL.length*64)}px"></i>${esc(d.l)}</div>`).join("")}</div>
     <div class="note">Amellerin Allah'a en sevimli olanı, az da olsa devamlı olanıdır (Buhârî). Bugün bir adım yeter; yarın bir adım daha.</div>`+vKaza()}
-  else{body=`<div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher"],["kuran","Kur'an'dan"]].map(([k,l])=>`<button data-dseg2="${k}" class="${duaSeg2===k?"on":""}">${l}</button>`).join("")}</div><button class="pill acc" id="duaAll" style="margin-bottom:12px">▶ Tümünü sırayla dinle</button>`+DUALAR[duaSeg2].map((d,i)=>duaCard(d,duaSeg2+"|"+i)).join("")}
+  else{body=`<div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher"],["kuran","Kur'an'dan"],["liste","Dua listem"]].map(([k,l])=>`<button data-dseg2="${k}" class="${duaSeg2===k?"on":""}">${l}</button>`).join("")}</div>${duaSeg2==="liste"?"":`<button class="pill acc" id="duaAll" style="margin-bottom:12px">▶ Tümünü sırayla dinle</button>`}`+(duaSeg2==="liste"?vDuaListe():DUALAR[duaSeg2].map((d,i)=>duaCard(d,duaSeg2+"|"+i)).join(""))}
   const gun=new Date().getDay(),cuma=(gun===5||(gun===4&&new Date().getHours()>=18))?`<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(150 60% 45%) 18%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:hsl(150 60% ${isDark()?60:32}%)">CUMA</div><div class="soz-t">Hayırlı Cumalar</div><div class="small muted">Kehf sûresini okumak ve bolca salavat getirmek sünnettir.</div><div class="ctrl"><button class="pill" id="kehfBtn">▶ Kehf sûresi</button><button class="pill ghost" id="salBtn">Salavat 100</button></div></div>`:"";
-  return card+`<div class="ctrl" style="margin-top:12px"><button class="pill" id="kibleBtn">🧭 Kıble</button><button class="pill ghost" id="kazaBtn">Kaza takibi</button></div>`+vSimge()+vDevam()+cuma+(bugSeg==="vakit"?vMubarek():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
+  return card+vAraclar()+vBildirimDavet()+vSimge()+vDevam()+cuma+(bugSeg==="vakit"?vMubarek():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
 }
 function bBugun(){
   document.querySelectorAll("[data-bseg]").forEach(b=>b.onclick=()=>{bugSeg=b.dataset.bseg;renderView()});
@@ -1198,18 +1214,21 @@ function bBugun(){
   const sb=$("#salBtn");if(sb)sb.onclick=()=>{zs.cur="salavat";zs.counts.salavat=0;zs.targets.salavat=100;zs.chain=false;saveZ();tab="zikir";renderView();window.scrollTo(0,0)};
   if(bugSeg==="amel")bKaza();
   const dv=$("#devamBtn");if(dv)dv.onclick=()=>{const r=RECENT.find(x=>x.ctx&&x.ctx.type!=="radio");if(r)openCtx(r.ctx)};
+  bBugunExtra();
   bindDua($("#view"));
 }
 
 /* --- Külliyat --- */
 function vKulliyat(){
-  const seg=`<div class="seg">${[["soz","Sözler"],["esma","Esmâ"],["ilahi","İlahiler"],["film","Film"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  const seg=`<div class="seg">${[["soz","Sözler"],["risale","Risale-i Nur"],["hadis","Kırk Hadis"],["esma","Esmâ"],["ilahi","İlahiler"],["film","Film"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  if(kulSeg==="risale")return seg+vRisale();
+  if(kulSeg==="hadis")return seg+vHadis();
   if(kulSeg==="soz")return seg+`<h2 style="margin-top:4px">Âyetler, hadisler, Yunus Emre</h2>${SOZLER.map(x=>`<div class="soz" style="margin-bottom:10px"><div class="soz-t">${esc(x.t)}</div><div class="small muted">${esc(x.s)}</div></div>`).join("")}
    <h2>Ashâb-ı Bedir</h2><div class="bigcard" style="background:color-mix(in srgb,hsl(38 70% 50%) 16%,var(--surface))"><div class="muted small">Bedir'de bulunan 313 sahabînin en bilinenleri. İsimleri anıldığında “radıyallâhu anhüm” denir. Tam listenin okunuşunu aşağıdan dinleyebilirsin.</div>
    <div class="bedir">${BEDIR.map(n=>`<span>${esc(n)}</span>`).join("")}</div>
    <div class="ctrl"><a class="pill acc" target="_blank" rel="noopener" href="${yt("Esmâ-i Ashâb-ı Bedir okunuşu")}">▶ Esmâ-i Ashâb-ı Bedir</a><button class="pill" data-qs="Ashab-ı Bedir">🎧 Sesli ara</button></div></div>
    <h2>Hasan el-Bennâ'nın on tavsiyesi</h2><div class="list">${BENNA.map((t,i)=>`<div class="nrow"><span class="ts">${i+1}</span><span class="tx">${esc(t)}</span></div>`).join("")}</div>
-   <h2>Risale-i Nur Külliyatı</h2><div class="bigcard"><div class="muted small">Külliyatın tamamı ücretsiz okunabiliyor ve sesli dinlenebiliyor. Vecizeleri buraya tek tek yazmadım; eserler hâlâ telif koruması altında. Aşağıdan doğrudan okuyabilir ya da sesli derslerini dinleyebilirsin.</div>
+   <h2>Risale-i Nur Külliyatı</h2><div class="bigcard"><div class="muted small">Okuma yolculuğu, vecize defteri ve sesli dersler artık kendi sekmesinde.</div><button class="pill acc" data-kgo="risale" style="justify-self:start">📚 Risale-i Nur sekmesini aç</button>
    <div class="ctrl"><a class="pill acc" href="https://www.erisale.com" target="_blank" rel="noopener">Külliyatı oku (erisale.com)</a><button class="pill" data-qs="Risale-i Nur sesli">🎧 Sesli Risale-i Nur</button><button class="pill" data-qs="Risale-i Nur dersleri">🎧 Risale dersleri</button></div></div>
    <h2>Zübeyir Gündüzalp</h2><div class="bigcard"><div class="muted small">Mektupları ve hayatı.</div><div class="ctrl"><button class="pill" data-qs="Zübeyir Gündüzalp">🎧 Sesli dinle</button><a class="pill ghost" target="_blank" rel="noopener" href="${yt("Zübeyir Gündüzalp mektupları")}">YouTube'da ara</a></div></div>`;
   if(kulSeg==="esma")return seg+`<button class="pill acc" id="esmaAll">▶ 99 ismi anlamlarıyla dinle</button><div class="note">Allah'ın 99 güzel ismi. Bir isme dokunursan zikirmatiğe alınır.</div><div class="list" style="margin-top:12px">${ESMA.map(([a,t,m],i)=>`<button class="row" data-esma="${i}"><span class="no">${i+1}</span><span class="t"><b>${esc(t)}</b><span>${esc(m)}</span></span><span class="ar">${esc(a)}</span></button>`).join("")}</div>`;
@@ -1229,13 +1248,306 @@ function bKulliyat(){
   document.querySelectorAll("[data-esma]").forEach(b=>b.onclick=()=>{const [a,t,m]=ESMA[+b.dataset.esma];const r=t==="Allah"?"Allah":"Yâ "+t.replace(/^(el|er|es|eş|ez|et|ed|en)-/,"").replace(/^./,c=>c.toLocaleUpperCase("tr"));goZikir({ar:a,r,m,n:r,z:{t:33}})});
   document.querySelectorAll("[data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);window.scrollTo(0,0)});
   document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>playQueue(RADIO_Q(),+b.dataset.r));
+  bKulExtra();
+}
+
+/* ===================== Sürüm 12 · yeni modüller ===================== */
+const SURUM=12;
+const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
+const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
+const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
+const appUrl=h=>location.origin+location.pathname+(h||"");
+const pad2=n=>String(n).padStart(2,"0");
+const sehirKod=()=>(SET.city||"Istanbul").toLocaleLowerCase("tr").replace(/[çğıöşüâîû]/g,c=>({ç:"c",ğ:"g",ı:"i",ö:"o",ş:"s",ü:"u",â:"a",î:"i",û:"u"}[c])).replace(/[^a-z0-9]/g,"");
+const cihazId=(()=>{let i=store.get("mk_cihaz","");if(!i){i="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);store.set("mk_cihaz",i)}return i})();
+
+/* ---------- Tema ve yazı boyutu ---------- */
+function applyTheme(){const t=SET.tema;if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;document.documentElement.style.setProperty("--arz",String(SET.arz||1))}
+
+/* ---------- Kasa çağrıları ---------- */
+async function kasaPost(path,body){
+  const k=kasaUrl();if(!k)throw new Error("Kasa adresi boş");
+  const r=await fetch(k+path,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(body)});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok||j.ok===false||j.hata||j.error)throw new Error(j.hata||j.error||j.mesaj||("Kasa yanıtı "+r.status));
+  return j;
+}
+function olay(hedef,veri){const body=JSON.stringify({hedef:Object.assign({uyg:UYG},hedef),veri});const u=kasaUrl()+"/olay";
+  try{if(navigator.sendBeacon&&navigator.sendBeacon(u,new Blob([body],{type:"text/plain"})))return true}catch(e){}
+  try{fetch(u,{method:"POST",headers:{"Content-Type":"text/plain"},body,keepalive:true}).catch(()=>{})}catch(e){}return true}
+
+/* ---------- Bildirim (push) ---------- */
+let PUSH_REG=null;
+const urlB64=s=>{const p="=".repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(b,c=>c.charCodeAt(0))};
+function getPushReg(){if(PUSH_REG)return Promise.resolve(PUSH_REG);if(!("serviceWorker" in navigator)||location.protocol!=="https:")return Promise.resolve(null);
+  return navigator.serviceWorker.getRegistration("./").then(r=>r||navigator.serviceWorker.register("sw.js",{scope:"./"})).then(r=>{PUSH_REG=r;return r}).catch(()=>null)}
+function waitActive(r){return new Promise(res=>{if(!r||r.active)return res(r);const w=r.installing||r.waiting;if(!w)return res(r);w.addEventListener("statechange",()=>{if(w.state==="activated")res(r)});setTimeout(()=>res(r),8000)})}
+function pushDestek(){if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window))return IS_IOS&&!IS_APP?"iPhone'da önce Paylaş ⬆️ → Ana Ekrana Ekle, sonra ana ekrandaki simgeden aç.":"Bu tarayıcı bildirim desteklemiyor.";if(location.protocol!=="https:")return"Bildirimler yalnız https adresinde çalışır.";return""}
+async function pushSubscribe(){
+  const e=pushDestek();if(e)throw new Error(e);if(Notification.permission!=="granted")throw new Error("Bildirim izni yok");
+  const r=await waitActive(await getPushReg());if(!r)throw new Error("Bildirim servisi (sw.js) bulunamadı");
+  let s=await r.pushManager.getSubscription();if(!s)s=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64(VAPID)});
+  const j=s.toJSON();
+  await kasaPost("/abone",{s:{endpoint:j.endpoint,keys:j.keys},rol:"kullanici",ogrId:cihazId,sinif:sehirKod(),sube:"",ad:SET.ad||"",uyg:UYG});
+  store.set("mk_push_t",Date.now());store.set("mk_push_on",true);return s;
+}
+async function pushEnable(){
+  try{const e=pushDestek();if(e){toast(e);return false}
+    const p=await Notification.requestPermission();if(p!=="granted"){toast("Bildirim izni verilmedi. Telefon Ayarları → Bildirimler'den açabilirsin.");return false}
+    await pushSubscribe();toast("🔔 Bildirimler açık");return true}catch(e){toast("Açılamadı: "+e.message);return false}}
+async function pushDisable(){try{const r=await getPushReg();const s=r&&await r.pushManager.getSubscription();if(s)await s.unsubscribe()}catch(e){}store.set("mk_push_on",false);toast("Bildirimler kapatıldı")}
+function pushCheck(){try{if(!store.get("mk_push_on",false)||!("Notification" in window)||Notification.permission!=="granted")return;const t=store.get("mk_push_t",0);
+  getPushReg().then(r=>r&&r.pushManager.getSubscription()).then(s=>{if(!s||Date.now()-t>7*864e5)pushSubscribe().catch(()=>{})}).catch(()=>{})}catch(e){}}
+function clearBadge(){try{navigator.clearAppBadge&&navigator.clearAppBadge().catch(()=>{})}catch(e){}
+  try{navigator.serviceWorker&&navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.getNotifications&&r.getNotifications().then(l=>l.forEach(n=>n.close())).catch(()=>{}))).catch(()=>{})}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){clearBadge();routeHash()}});
+window.addEventListener("focus",clearBadge);window.addEventListener("pageshow",()=>{clearBadge();routeHash()});
+window.addEventListener("hashchange",routeHash);
+
+/* ---------- Bildirime dokununca ilgili bölüm ---------- */
+function routeHash(){const h=(location.hash||"").slice(1);if(!h)return;
+  const map={bugun:["bugun"],cuma:["bugun"],zikir:["zikir"],kuran:["dinle","kuran"],uyku:["dinle","uyku"],siyer:["dinle","siyer"],sohbet:["dinle","sohbet"],radyo:["dinle","radyo"],risale:["kulliyat","risale"],hadis:["kulliyat","hadis"],esma:["kulliyat","esma"],kutuphane:["kutuphane"],ayarlar:["ayarlar"]};
+  const m=map[h];if(!m)return;tab=m[0];if(m[1]){if(m[0]==="dinle"){dinleSeg=m[1];openSeries=null;openSure=null}else kulSeg=m[1]}
+  try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+  renderView();window.scrollTo(0,0)}
+
+/* ---------- Hatırlatmalar (kasa) ---------- */
+let HAT=store.get("mk_hat",[]);
+const GUN=["Pz","Pt","Sa","Ça","Pe","Cu","Ct"];
+const HAT_ONERI=[
+ {id:"sabah",saat:"07:30",gunler:[],baslik:"🕌 Maneviyat · Sabah evradı",govde:"Güne Allah'ın adıyla başla: Âyetü'l-Kürsî, üç İhlâs ve sabah duaları seni bekliyor.",url:"#bugun"},
+ {id:"zikir",saat:"13:30",gunler:[],baslik:"📿 Maneviyat · Bir dakikalık zikir",govde:"33 Sübhânallâh, 33 Elhamdülillâh, 33 Allâhu Ekber. Kalbin tazelensin.",url:"#zikir"},
+ {id:"cuma",saat:"11:30",gunler:[5],baslik:"🕌 Maneviyat · Hayırlı Cumalar",govde:"Bugün Kehf sûresini oku ya da dinle, bolca salavat getir.",url:"#cuma"},
+ {id:"risale",saat:"20:00",gunler:[],baslik:"📚 Maneviyat · Risale-i Nur vakti",govde:"Bugün bir sayfa oku; kalbine dokunan cümleyi vecize defterine yaz.",url:"#risale"},
+ {id:"kuran",saat:"21:00",gunler:[],baslik:"📖 Maneviyat · Kur'an saati",govde:"Kaldığın âyetten devam et; birkaç âyet bile yeter.",url:"#kuran"},
+ {id:"yatsi",saat:"22:45",gunler:[],baslik:"🌙 Maneviyat · Yatmadan önce",govde:"Âmenerrasûlü, Mülk sûresi ve üç İhlâs ile günü kapat.",url:"#uyku"},
+ {id:"oruc",saat:"21:30",gunler:[0,3],baslik:"🌙 Maneviyat · Yarın sünnet oruç günü",govde:"Pazartesi ve perşembe orucu sünnettir. Sahura kalkmayı niyet etmek ister misin?",url:"#bugun"}
+];
+function vakitItems(){const {t}=timesNow();const sk=sehirKod(),city=SET.city||"İstanbul";
+  return [["imsak","Sabah","Sabah namazının vakti giriyor; güne secdeyle başla."],["ogle","Öğle","Dünya işlerine kısa bir ara: öğle namazı yaklaşıyor."],["ikindi","İkindi","Günün yorgunluğunda kalbini tazele: ikindi yaklaşıyor."],["aksam","Akşam","Güneş batıyor; akşam namazı ve akşam evradı vakti."],["yatsi","Yatsı","Günü yatsı namazıyla kapat."]].map(([k,n,g])=>{
+    const d=hm(t[k]);d.setMinutes(d.getMinutes()-10);
+    return{id:"vakit_"+k,saat:pad2(d.getHours())+":"+pad2(d.getMinutes()),gunler:[],baslik:"🕌 Maneviyat · "+n+" vaktine 10 dk",govde:g+" ("+city+")",url:appUrl("#bugun"),hedef:{sinif:sk},aktif:true}})}
+async function hatListe(sifre){const j=await kasaPost("/hatirlatma/liste",{sifre,uyg:UYG});return Array.isArray(j)?j:(j.liste||j.hatirlatmalar||[])}
+const hatTemiz=h=>({id:String(h.id||("h"+Date.now())),saat:h.saat||"08:00",gunler:(h.gunler||[]).map(Number),baslik:h.baslik||"🕌 Maneviyat",govde:h.govde||"",url:String(h.url||"#bugun").startsWith("#")?appUrl(h.url||"#bugun"):h.url,hedef:h.hedef||{},aktif:h.aktif!==false});
+async function vakitOto(){try{if(!store.get("mk_hat_auto",false))return;const s=store.get("mk_kasa_sifre","");
+  if(!s||!TIMES||TIMES.date!==todayKey()||store.get("mk_hat_vakit_t","")===todayKey())return;
+  const l=(await hatListe(s)).filter(h=>!String(h.id).startsWith("vakit_")).map(hatTemiz).concat(vakitItems());
+  await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste:l});store.set("mk_hat_vakit_t",todayKey());HAT=l;store.set("mk_hat",HAT)}catch(e){}}
+function hatRender(){const el=$("#hatList");if(!el)return;store.set("mk_hat",HAT);
+  el.innerHTML=HAT.length?HAT.map((h,i)=>`<div class="hat" data-i="${i}">
+   <div class="ctrl"><input type="time" data-hf="saat" value="${esc(h.saat||"08:00")}"><label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-hf="aktif" ${h.aktif!==false?"checked":""} style="width:20px;height:20px">Açık</label>${String(h.id).startsWith("vakit_")?'<span class="small muted">🕌 vakte göre, otomatik</span>':""}<button class="x" data-hdel="${i}" aria-label="Sil" style="margin-left:auto;font-size:22px">🗑️</button></div>
+   <div class="gunler">${GUN.map((g,d)=>`<button class="gn ${(h.gunler||[]).includes(d)?"on":""}" data-gn="${d}">${g}</button>`).join("")}<span class="small muted">${(h.gunler||[]).length?"":"her gün"}</span></div>
+   <input type="text" data-hf="baslik" value="${esc(h.baslik||"")}" placeholder="Başlık (🕌 Maneviyat · …)">
+   <textarea data-hf="govde" style="min-height:56px" placeholder="Bildirim metni">${esc(h.govde||"")}</textarea></div>`).join(""):`<div class="empty">Henüz hatırlatma yok. Aşağıdaki önerilerden tek dokunuşla ekle.</div>`;
+  el.querySelectorAll(".hat").forEach(box=>{const i=+box.dataset.i,h=HAT[i];
+    box.querySelectorAll("[data-hf]").forEach(inp=>inp.onchange=()=>{const f=inp.dataset.hf;h[f]=f==="aktif"?inp.checked:inp.value;store.set("mk_hat",HAT)});
+    box.querySelectorAll("[data-gn]").forEach(b=>b.onclick=()=>{const d=+b.dataset.gn;h.gunler=(h.gunler||[]).includes(d)?h.gunler.filter(x=>x!==d):(h.gunler||[]).concat(d).sort();hatRender()});
+    box.querySelector("[data-hdel]").onclick=()=>{HAT.splice(i,1);hatRender()}});
+  const on=$("#hatOneri");if(on)on.innerHTML=HAT_ONERI.filter(o=>!HAT.some(h=>h.id===o.id)).map(o=>`<button class="pill ghost" data-hon="${o.id}">➕ ${esc(o.baslik.replace(/^.*· /,""))} · ${o.saat}${o.gunler.length?" ("+o.gunler.map(d=>GUN[d]).join(", ")+")":""}</button>`).join("")||'<span class="small muted">Bütün öneriler eklendi.</span>';
+  document.querySelectorAll("[data-hon]").forEach(b=>b.onclick=()=>{const o=HAT_ONERI.find(x=>x.id===b.dataset.hon);HAT.push(Object.assign({aktif:true,hedef:{}},o,{gunler:o.gunler.slice()}));hatRender()});
+}
+
+/* ---------- Risale-i Nur ---------- */
+let VEC=store.get("mk_vecize",[]);
+const saveVec=()=>store.set("mk_vecize",VEC);
+const RN_SOZLER=["Bismillah'ın bereketi; her işe Allah'ın adıyla başlamak","İmanın insana kazandırdığı saadet ve huzur","İbadetin kıymeti; iki asker temsili","Namazın değeri; günün küçük bir kısmıyla kazanılan büyük sermaye","Namaz ve büyük günahlardan kaçınmanın asıl vazife oluşu","Nefsi ve malı Allah'a emanet olarak satmanın kârlı ticareti","İki tılsım: Allah'a ve âhirete iman","Dünya hayatı ve insanın hâli; kuyu temsili","Beş vakit namazın vakitlerindeki hikmetler","Haşir: âhiretin varlığına deliller (Haşir Risalesi)","Kâinatın ve insanın yaratılış hikmeti; ibadetin sırrı","Kur'an hikmeti ile felsefenin karşılaştırılması","Kur'an'ın şiirden farkı; gençlere nasihatler","Bazı âyetlerin hikmeti ve yaratılışın aşamaları","Göklerin katları ve şeytanların taşlanması meselesi","Allah'ın birliği ile her yerde tasarrufunun sırrı","Dünyanın güzelliği ve geçiciliği; teselliler","Nefsin gururu, kâinattaki güzellik ve risalet","Peygamberimizin (s.a.v.) risaletine deliller","Peygamber mucizelerinin işaret ettikleri","Namazdaki usanç ve vesveseye karşı tedbirler","Allah'ın birliğine kâinattan deliller","İmanın güzellikleri ve insanın mahiyeti","Esmâ-i Hüsnâ ve bazı hakikatler","Kur'an'ın mucizeliği (Mu'cizât-ı Kur'âniye)","Kader ve insanın iradesi (Kader Risalesi)","İçtihad meselesi ve sahâbenin fazileti","Cennet ve cennet hayatıyla ilgili sorular","Meleklerin varlığı, ruhun bekâsı ve haşir","Ene (benlik) ve zerrelerin hareketi","Mi'rac (Mi'rac Risalesi)","Şirkin imkânsızlığı ve tevhid","Otuz üç pencere: Allah'ı tanımaya açılan deliller"];
+const RN_RISALE=[["Gençlik Rehberi","Derleme","Gençlere iman ve iffet dersleri"],["Hastalar Risalesi","25. Lem'a","Hastalara teselli ve şifalar"],["İhtiyarlar Risalesi","26. Lem'a","Yaşlılara ümit ve teselli"],["İhlâs Risalesi","20. ve 21. Lem'a","Hizmette ihlâs ve kardeşlik"],["İktisat Risalesi","19. Lem'a","İsraftan sakınma, kanaat"],["Tabiat Risalesi","23. Lem'a","Tabiatçı düşünceye cevap"],["Tesettür Risalesi","24. Lem'a","Örtünmenin hikmetleri"],["Uhuvvet Risalesi","22. Mektup","Kardeşlik, kin ve hasede karşı"],["Mu'cizât-ı Ahmediye","19. Mektup","Peygamberimizin mucizeleri"],["Ramazan Risalesi","29. Mektup, 1. Kısım","Ramazan ve orucun hikmetleri"],["Hz. Yûnus'un münâcâtı","1. Lem'a","Sıkıntıda Allah'a sığınmak"],["Hz. Eyyûb'un münâcâtı","2. Lem'a","Sabır ve manevi hastalıklar"],["Âyetü'l-Kübrâ","7. Şuâ","Kâinatın Allah'ı tanıtması"],["Meyve Risalesi","11. Şuâ","İman esasları, gençlere dersler"]];
+const RN_ESER=[["Sözler","33 Söz ve ekleri"],["Mektubat","33 Mektup"],["Lem'alar","33 Lem'a"],["Şuâlar","İmanî dersler"],["Mesnevî-i Nuriye","Arapça eserlerin tercümesi"],["İşârâtü'l-İ'câz","Fâtiha ve Bakara tefsiri"],["Asâ-yı Mûsâ","Seçilmiş iman dersleri"],["Barla Lâhikası","Mektuplar"],["Kastamonu Lâhikası","Mektuplar"],["Emirdağ Lâhikası","Mektuplar"],["Tarihçe-i Hayat","Bediüzzaman'ın hayatı"],["Sikke-i Tasdîk-i Gaybî","Derleme"],["Muhâkemât","İlk dönem eseri"],["Hutbe-i Şâmiye","Şam'da okunan hutbe"]];
+const rnLink=q=>"https://www.google.com/search?q="+encodeURIComponent("erisale "+q);
+function rnRow(k,n,d,q,ok){return `<div class="nrow" style="align-items:center"><button class="chk-b ${ok[k]?"on":""}" data-rnok="${k}" aria-label="Okudum">${ok[k]?"✓":""}</button><span class="tx"><b style="display:block">${esc(n)}</b><span>${esc(d)}</span></span><a class="pill ghost" style="padding:6px 10px;font-size:13px" target="_blank" rel="noopener" href="${rnLink(q)}">Oku</a><a class="pill ghost" style="padding:6px 10px;font-size:13px" target="_blank" rel="noopener" href="${yt("Risale-i Nur "+q+" sesli")}" aria-label="Sesli">🎧</a></div>`}
+function vRisale(){const ok=store.get("mk_risale_ok",{});const nS=RN_SOZLER.filter((_,i)=>ok["s"+(i+1)]).length,nR=RN_RISALE.filter((_,i)=>ok["r"+i]).length;
+  return `<div class="bigcard" style="background:color-mix(in srgb,hsl(150 55% 40%) 20%,var(--surface))"><span class="small" style="font-weight:700;letter-spacing:.06em;color:var(--accent)">RİSALE-İ NUR KÜLLİYATI</span><div class="ttl">Bediüzzaman Said Nursî</div><div class="muted small">Okuma yolculuğun, vecize defterin ve sesli dersler. Metnin aslı erisale.com'da ücretsiz okunur.</div>
+  <div class="ctrl"><a class="pill acc" href="https://www.erisale.com" target="_blank" rel="noopener">📖 erisale.com</a><button class="pill" data-qs="Risale-i Nur sesli">🎧 Sesli Risale</button><button class="pill" data-qs="Risale-i Nur dersleri">🎧 Risale dersleri</button></div></div>
+  <h2>✍️ Vecize defterim <span class="small muted">${VEC.length}</span></h2>
+  <div class="bigcard"><div class="muted small">Okurken kalbine dokunan cümleyi buraya yapıştır. Defterindeki vecizeler Bugün sayfasında “günün vecizesi” olarak döner, kilit ekranında da görünür.</div>
+  <textarea id="vcT" placeholder="Vecizeyi buraya yapıştır…"></textarea><input type="text" id="vcS" placeholder="Kaynak (ör. Sözler, 23. Söz)">
+  <div class="ctrl"><button class="pill acc" id="vcAdd">➕ Deftere ekle</button><button class="pill ghost" id="vcBulk">Toplu ekle</button>${VEC.length?`<button class="pill ghost" id="vcRead">🔊 Hepsini sesli oku</button><button class="pill ghost" id="vcCopy">Kopyala</button>`:""}</div></div>
+  ${VEC.length?`<div class="list" style="margin-top:10px">${VEC.slice().reverse().map(v=>`<div class="nrow"><span class="ts">❝</span><span class="tx">${esc(v.t)}<span>${esc(v.s||"")}</span></span><button class="x" data-vcdel="${v.id}" aria-label="Sil">×</button></div>`).join("")}</div>`:`<div class="empty" style="margin-top:10px">Defterin boş. erisale.com'da okurken beğendiğin cümleyi kopyala, buraya yapıştır.</div>`}
+  <h2>📚 Sözler · okuma yolculuğu <span class="small muted">${nS}/33</span></h2><div class="bar2" style="height:6px;margin-bottom:10px"><i style="width:${nS/33*100}%"></i></div>
+  <div class="list">${RN_SOZLER.map((d,i)=>rnRow("s"+(i+1),(i+1)+". Söz",d,(i+1)+". Söz",ok)).join("")}</div>
+  <h2>Sık okunan risaleler <span class="small muted">${nR}/${RN_RISALE.length}</span></h2><div class="list">${RN_RISALE.map(([n,y,d],i)=>rnRow("r"+i,n,y+" · "+d,n,ok)).join("")}</div>
+  <h2>Külliyatın eserleri</h2><div class="cards">${RN_ESER.map(([n,d])=>`<a class="card" target="_blank" rel="noopener" href="${rnLink(n)}"><span class="tag">Oku</span><b>${esc(n)}</b><span>${esc(d)}</span></a>`).join("")}</div>
+  <div class="note">Konu özetleri yönlendirme içindir, metnin kendisi değildir. Eserlerin telif hakkı sürdüğü için metinler uygulamaya gömülmedi; okuduklarını vecize defterine sen ekleyebilirsin.</div>`}
+function bRisale(){
+  document.querySelectorAll("[data-rnok]").forEach(b=>b.onclick=()=>{const ok=store.get("mk_risale_ok",{}),k=b.dataset.rnok;if(ok[k])delete ok[k];else ok[k]=todayKey();store.set("mk_risale_ok",ok);renderView()});
+  const add=$("#vcAdd");if(add)add.onclick=()=>{const t=$("#vcT").value.trim();if(!t){toast("Vecizeyi yapıştır");return}VEC.push({id:"v"+Date.now(),t,s:$("#vcS").value.trim()});saveVec();toast("Defterine eklendi");renderView()};
+  const bulk=$("#vcBulk");if(bulk)bulk.onclick=()=>openModal(`<h3>Toplu ekle</h3><div class="small muted">Her satıra bir vecize. Kaynağı “—” işaretinden sonra yazabilirsin.<br>Örnek: <i>vecize metni — Sözler, 23. Söz</i></div><textarea id="vbT" style="min-height:200px"></textarea><div class="ctrl"><button class="pill acc" id="mOk">Ekle</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{
+    $("#mOk").onclick=()=>{let n=0;$("#vbT").value.split(/\n+/).forEach((l,i)=>{l=l.trim();if(!l)return;const p=l.split(/\s+[—–|]\s+/);VEC.push({id:"v"+Date.now()+"_"+i,t:p[0].trim(),s:(p.slice(1).join(" — ")||"").trim()});n++});saveVec();closeModal();toast(n+" vecize eklendi");renderView()};$("#mNo").onclick=closeModal});
+  const rd=$("#vcRead");if(rd)rd.onclick=()=>{const art=makeArt("❝","Vecize defterim",150),q=[];VEC.forEach(v=>chunkText(v.t,180).forEach(c=>q.push(ttsTrack(c,"tr-TR","Vecize defterim",v.s||"Risale-i Nur",art,"Vecize defterim"))));playQueue(q,0)};
+  const cp=$("#vcCopy");if(cp)cp.onclick=()=>{const txt=VEC.map(v=>"❝ "+v.t+(v.s?"\n— "+v.s:"")).join("\n\n");try{navigator.clipboard.writeText(txt).then(()=>toast("Defter kopyalandı"),()=>toast("Kopyalanamadı"))}catch(e){toast("Kopyalanamadı")}};
+  document.querySelectorAll("[data-vcdel]").forEach(b=>b.onclick=()=>confirmBox("Vecize silinsin mi?","Defterinden kalıcı olarak silinecek.","Sil",()=>{VEC=VEC.filter(v=>v.id!==b.dataset.vcdel);saveVec();renderView()}));
+}
+function vVecizeCard(){if(!VEC.length)return `<button class="row" id="vcGo" style="border-radius:16px;margin-top:10px"><span class="no" style="font-size:20px">📚</span><span class="t"><b>Risale-i Nur vecize defteri</b><span>Okuduğun cümleleri biriktir; her gün biri karşına çıksın</span></span><span class="go">›</span></button>`;
+  const d=new Date(),n=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5),v=VEC[n%VEC.length];
+  return `<div class="soz" style="margin-top:10px;background:color-mix(in srgb,hsl(150 55% 40%) 16%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">GÜNÜN VECİZESİ · DEFTERİNDEN</div><div class="soz-t">${esc(v.t)}</div><div class="small muted">${esc(v.s||"Risale-i Nur")}</div></div>`}
+
+/* ---------- Kırk Hadis (İmam Nevevî'den seçmeler, mana olarak) ---------- */
+const KIRK=[[1,"Ameller ancak niyetlere göredir; herkese niyet ettiği şey vardır.","Buhârî, Müslim"],[2,"İhsan, Allah'ı görüyormuş gibi ibadet etmendir; sen O'nu görmesen de O seni görür.","Müslim"],[3,"İslâm beş temel üzerine kurulmuştur: kelime-i şehâdet, namaz, zekât, hac ve Ramazan orucu.","Buhârî, Müslim"],[5,"Kim bu dinimizde ondan olmayan bir şey ortaya çıkarırsa, o reddedilir.","Buhârî, Müslim"],[6,"Helal de haram da bellidir, aralarında şüpheli şeyler vardır. Bedende bir et parçası vardır; o düzelirse bütün beden düzelir: o da kalptir.","Buhârî, Müslim"],[7,"Din nasihattir (samimiyettir).","Müslim"],[9,"Size yasakladığım şeyden kaçının, emrettiğimi gücünüz yettiğince yapın.","Buhârî, Müslim"],[10,"Allah temizdir, yalnızca temiz olanı kabul eder.","Müslim"],[11,"Seni şüpheye düşüreni bırak, şüphe vermeyene yönel.","Tirmizî, Nesâî"],[12,"Kişinin kendisini ilgilendirmeyen şeyi bırakması, Müslümanlığının güzelliğindendir.","Tirmizî"],[13,"Biriniz kendisi için istediğini kardeşi için de istemedikçe kâmil mü'min olamaz.","Buhârî, Müslim"],[15,"Allah'a ve âhiret gününe inanan ya hayır söylesin ya sussun; komşusuna ve misafirine ikram etsin.","Buhârî, Müslim"],[16,"Öfkelenme.","Buhârî"],[17,"Allah her şeyde ihsanı (en güzel şekilde yapmayı) yazmıştır.","Müslim"],[18,"Nerede olursan ol Allah'tan kork; kötülüğün ardından bir iyilik yap ki onu silsin; insanlarla güzel ahlakla geçin.","Tirmizî"],[19,"Allah'ın emirlerini gözet ki Allah da seni gözetsin. İstediğinde Allah'tan iste, yardım dilediğinde Allah'tan dile.","Tirmizî"],[20,"Utanmıyorsan dilediğini yap.","Buhârî"],[21,"“Allah'a inandım” de, sonra dosdoğru ol.","Müslim"],[23,"Temizlik imanın yarısıdır; “Elhamdülillâh” mizanı doldurur.","Müslim"],[25,"Her tesbih, her tekbir, her tahmid, her tehlîl sadakadır; iyiliği emretmek de sadakadır.","Müslim"],[26,"İki kişinin arasını adaletle bulman, güzel söz, namaza attığın her adım ve yoldan eziyet veren şeyi kaldırman sadakadır.","Buhârî, Müslim"],[27,"İyilik güzel ahlaktır; günah ise içini tırmalayan ve insanların bilmesinden hoşlanmadığın şeydir.","Müslim"],[31,"Dünyaya gönül bağlama ki Allah seni sevsin; insanların elindekine göz dikme ki insanlar seni sevsin.","İbn Mâce"],[32,"Zarar vermek de zarara zararla karşılık vermek de yoktur.","İbn Mâce"],[34,"Biriniz bir kötülük görürse eliyle düzeltsin; gücü yetmezse diliyle, ona da gücü yetmezse kalbiyle karşı çıksın; bu imanın en zayıfıdır.","Müslim"],[35,"Birbirinize haset etmeyin, kin tutmayın, sırt çevirmeyin; ey Allah'ın kulları, kardeş olun.","Müslim"],[36,"Kim bir mü'minin dünya sıkıntılarından birini giderirse, Allah da kıyamet günü onun bir sıkıntısını giderir. Kul kardeşinin yardımında oldukça Allah da onun yardımındadır.","Müslim"],[39,"Allah ümmetimden hatayı, unutmayı ve zorla yaptırılanı bağışlamıştır.","İbn Mâce"],[40,"Dünyada bir garip ya da yolcu gibi ol.","Buhârî"],[42,"Ey âdemoğlu! Bana dua edip benden ümit ettikçe, senden olanı bağışlarım.","Tirmizî (hadis-i kudsî)"]];
+const hadisTrack=([no,t,s])=>ttsTrack(no+". hadis. "+t,"tr-TR",no+". hadis",s,makeArt("حديث","Kırk Hadis",30),"Kırk Hadis");
+function vHadis(){const ez=store.get("mk_hadis_ez",{}),n=KIRK.filter(([no])=>ez[no]).length;
+  return `<div class="bigcard"><span class="small" style="font-weight:700;letter-spacing:.06em;color:var(--accent)">İMAM NEVEVÎ · KIRK HADİS</span><div class="ttl">Seçilmiş ${KIRK.length} hadis</div><div class="muted small">Hadisler mana olarak Türkçeleştirildi; numara, Nevevî'nin derlemesindeki sıradır. Ezberlediğini işaretle.</div>
+  <div class="bar2" style="height:6px"><i style="width:${n/KIRK.length*100}%"></i></div><div class="ctrl"><button class="pill acc" id="hdAll">▶ Hepsini sesli dinle</button><span class="small muted">${n}/${KIRK.length} ezberlendi</span></div></div>
+  <div class="list" style="margin-top:10px">${KIRK.map(([no,t,s])=>`<div class="nrow" style="align-items:center"><button class="chk-b ${ez[no]?"on":""}" data-hdez="${no}" aria-label="Ezberledim">${ez[no]?"✓":""}</button><span class="tx"><b style="display:block;color:var(--accent)">${no}. hadis</b>${esc(t)}<span>${esc(s)}</span></span><button class="pill ghost" data-hdp="${no}" style="padding:6px 10px" aria-label="Dinle">🔊</button></div>`).join("")}</div>`}
+function bHadis(){const ha=$("#hdAll");if(ha)ha.onclick=()=>playQueue(KIRK.map(hadisTrack),0);
+  document.querySelectorAll("[data-hdp]").forEach(b=>b.onclick=()=>{const i=KIRK.findIndex(x=>String(x[0])===b.dataset.hdp);playQueue(KIRK.map(hadisTrack),i)});
+  document.querySelectorAll("[data-hdez]").forEach(b=>b.onclick=()=>{const ez=store.get("mk_hadis_ez",{}),k=b.dataset.hdez;if(ez[k])delete ez[k];else ez[k]=1;store.set("mk_hadis_ez",ez);renderView()})}
+function bKulExtra(){if(kulSeg==="risale")bRisale();if(kulSeg==="hadis")bHadis();
+  document.querySelectorAll("[data-kgo]").forEach(b=>b.onclick=()=>{kulSeg=b.dataset.kgo;renderView();window.scrollTo(0,0)});
+  document.querySelectorAll("#view [data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);window.scrollTo(0,0)})}
+
+/* ---------- Kur'an: oku ve âyet âyet dinle ---------- */
+let kuranMod=store.get("mk_kmod","dinle"),openSure=null,sureLoading=false,sureErr="",tekrar=store.get("mk_tekrar",1),mealSes=store.get("mk_mealses",false),mealGoster=store.get("mk_mealg",true);
+const SURE_TXT={};
+async function loadSure(n){if(SURE_TXT[n]||sureLoading)return;sureLoading=true;sureErr="";if(tab==="dinle")renderView();
+  try{const r=await fetch(`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,tr.diyanet`);const j=await r.json();const a=j.data[0].ayahs,m=j.data[1].ayahs;SURE_TXT[n]=a.map((x,i)=>({ar:x.text,tr:m[i]?m[i].text:""}))}
+  catch(e){sureErr="Sûre metni yüklenemedi. İnternet bağlantını kontrol et."}
+  sureLoading=false;if(tab==="dinle"&&dinleSeg==="kuran"&&openSure===n){renderView();const o=store.get("mk_okuma",null);if(o&&o.s===n&&o.a>1)setTimeout(()=>{const el=document.querySelector(`.ayet[data-hl="${n}_${o.a}"]`);if(el)el.scrollIntoView({block:"center"})},80)}}
+function ayetTracks(s,from){const out=[],txt=SURE_TXT[s]||[],art=makeArt(SURE_AR[s-1],"Âyet âyet",168),grp=SURE_TR[s-1]+" · Okuma";
+  for(let a=from;a<=AYET[s-1];a++){const g=gAyah(s,a);
+    for(let k=0;k<tekrar;k++)out.push({title:SURE_TR[s-1]+" · "+a+". âyet"+(tekrar>1?" ("+(k+1)+"/"+tekrar+")":""),sub:"el-Afâsî · âyet âyet",src:[`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${g}.mp3`,`https://everyayah.com/data/Alafasy_128kbps/${p3(s)}${p3(a)}.mp3`,`https://cdn.islamic.network/quran/audio/64/ar.alafasy/${g}.mp3`],art,hl:s+"_"+a,group:grp});
+    if(mealSes&&txt[a-1]&&txt[a-1].tr)chunkText(txt[a-1].tr,180).forEach(c=>out.push(Object.assign(ttsTrack(c,"tr-TR",SURE_TR[s-1]+" · "+a+". âyet meali","Diyanet meali",art,grp),{hl:s+"_"+a})))}
+  return out}
+function kuranTop(){const o=store.get("mk_okuma",null);
+  return `<div class="seg"><button data-kmod="dinle" class="${kuranMod==="dinle"?"on":""}">🎧 Sûre dinle</button><button data-kmod="oku" class="${kuranMod==="oku"?"on":""}">📖 Oku · âyet âyet</button></div>
+  ${o&&o.s?`<button class="row" id="okDevam" style="border-radius:16px;margin-bottom:12px"><span class="no" style="font-size:20px">🔖</span><span class="t"><b>Kaldığın yer: ${esc(SURE_TR[o.s-1])}, ${o.a}. âyet</b><span>Okumaya ve dinlemeye oradan devam et</span></span><span class="go">›</span></button>`:""}
+  ${kuranMod==="oku"?`<div class="note" style="margin:0 0 12px">Bir sûreye dokun: Arapça metin ve Diyanet meali açılır, âyet âyet dinlersin. Ezber için her âyeti 3 ya da 5 kez tekrarlatabilirsin.</div>`:""}`}
+function vSureOku(){const n=openSure,txt=SURE_TXT[n],o=store.get("mk_okuma",null);
+  return `<button class="pill ghost" id="okBack">‹ Sûreler</button>
+  <div class="bigcard" style="margin-top:12px"><div class="ttl">${n}. ${esc(SURE_TR[n-1])} Sûresi <span class="ar" style="font-size:22px">${SURE_AR[n-1]}</span></div><div class="muted small">${AYET[n-1]} âyet · Arapça metin, Diyanet meali, el-Afâsî tilaveti</div>
+  <div class="ctrl"><button class="pill acc" data-ayp="1">▶ Baştan dinle</button>${o&&o.s===n?`<button class="pill" data-ayp="${o.a}">🔖 ${o.a}. âyetten</button>`:""}<button class="pill ghost" id="okTek">Tekrar ${tekrar}×</button><button class="pill ghost" id="okMs">Meal sesli: ${mealSes?"açık":"kapalı"}</button><button class="pill ghost" id="okMg">Meal ${mealGoster?"görünür":"gizli"}</button></div></div>
+  ${sureLoading?`<div class="empty" style="margin-top:12px">Sûre yükleniyor…</div>`:""}${sureErr?`<div class="empty" style="margin-top:12px">${esc(sureErr)} <button class="pill" id="okRetry">Tekrar dene</button></div>`:""}
+  ${txt?`<div style="display:grid;gap:8px;margin-top:12px">${txt.map((x,i)=>`<div class="dua ayet" data-hl="${n}_${i+1}"><div class="head"><span class="cnt">${i+1}. âyet</span><span class="ctrl"><button class="pill" data-ayp="${i+1}" style="padding:6px 12px">▶ Buradan</button><button class="pill ghost" data-aybm="${i+1}" style="padding:6px 12px" aria-label="Kaldığım yer">🔖</button></span></div><div class="ar">${esc(x.ar)}</div>${mealGoster?`<div class="mean">${esc(x.tr)}</div>`:""}</div>`).join("")}</div>
+  <div class="small muted" style="margin-top:10px">Metin ve meal: alquran.cloud (Diyanet İşleri meali).</div>`:""}`}
+function bKuranExtra(){
+  document.querySelectorAll("[data-kmod]").forEach(b=>b.onclick=()=>{kuranMod=b.dataset.kmod;store.set("mk_kmod",kuranMod);renderView()});
+  const dv=$("#okDevam");if(dv)dv.onclick=()=>{const o=store.get("mk_okuma",null);if(!o)return;openSure=o.s;kuranMod="oku";store.set("mk_kmod","oku");renderView();window.scrollTo(0,0);loadSure(o.s)};
+  if(!openSure)return;const n=openSure;
+  $("#okBack").onclick=()=>{openSure=null;renderView()};
+  const rt=$("#okRetry");if(rt)rt.onclick=()=>{sureErr="";loadSure(n)};
+  $("#okTek").onclick=()=>{const t=[1,3,5,7];tekrar=t[(t.indexOf(tekrar)+1)%t.length];store.set("mk_tekrar",tekrar);renderView()};
+  $("#okMs").onclick=()=>{mealSes=!mealSes;store.set("mk_mealses",mealSes);renderView()};
+  $("#okMg").onclick=()=>{mealGoster=!mealGoster;store.set("mk_mealg",mealGoster);renderView()};
+  document.querySelectorAll("[data-ayp]").forEach(b=>b.onclick=()=>playQueue(ayetTracks(n,+b.dataset.ayp),0));
+  document.querySelectorAll("[data-aybm]").forEach(b=>b.onclick=()=>{store.set("mk_okuma",{s:n,a:+b.dataset.aybm});toast("🔖 "+SURE_TR[n-1]+" "+b.dataset.aybm+". âyet işaretlendi")});
+}
+
+/* ---------- Bugün araçları ---------- */
+let DLIST=store.get("mk_dlist",[]),LST=store.get("mk_lst",{}),lastTU=0;
+au.addEventListener("timeupdate",()=>{const now=Date.now();if(!au.paused&&lastTU&&now-lastTU<3000){const k=todayKey();LST[k]=(LST[k]||0)+(now-lastTU)/1000;if(Math.floor(LST[k])%15===0)store.set("mk_lst",LST)}lastTU=now});
+au.addEventListener("pause",()=>{lastTU=0;store.set("mk_lst",LST)});
+const dkFmt=s=>{const m=Math.round((s||0)/60);return m>=60?Math.floor(m/60)+" sa "+(m%60)+" dk":m+" dk"};
+function ramazanLine(list){const h=hijriOf(new Date());if(!h||h.m!==9)return"";const now=new Date(),I=list[0][1],A=list[4][1];
+  let hedef,ad;if(now<I){hedef=I;ad="Sahura (imsak)"}else if(now<A){hedef=A;ad="İftara"}else{hedef=new Date(I.getTime()+864e5);ad="Sahura (imsak)"}
+  const m=Math.max(0,Math.round((hedef-now)/60000));return `<div class="vk-sub">🌙 Ramazan-ı Şerif · ${ad} ${m>=60?Math.floor(m/60)+" sa "+(m%60)+" dk":m+" dk"}</div>`}
+function vAraclar(){return `<div class="cards" style="margin-top:12px;grid-template-columns:repeat(auto-fill,minmax(96px,1fr))">${[["kibleBtn","🧭","Kıble"],["aylikBtn","📅","Aylık vakit"],["zekatBtn","💰","Zekât"],["kazaBtn","📋","Kaza"],["dlistBtn","🤲","Dua listem"],["risaleBtn","📚","Risale-i Nur"],["hadisBtn","📜","Kırk Hadis"],["okuBtn","📖","Kur'an oku"]].map(([id,i,l])=>`<button class="card" id="${id}" style="text-align:center;justify-items:center;padding:12px 6px"><span style="font-size:24px">${i}</span><b style="font-size:13px">${l}</b></button>`).join("")}</div>`}
+function vBildirimDavet(){if(store.get("mk_push_on",false)||store.get("mk_push_gizle",false))return"";
+  return `<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(205 70% 50%) 16%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">🔔 BİLDİRİMLER</div><div class="small">Vakit, sabah evradı, Cuma ve Kur'an hatırlatmaları uygulama kapalıyken de telefonuna gelsin.${IS_IOS&&!IS_APP?" <b>iPhone'da önce Ana Ekrana Ekle.</b>":""}</div><div class="ctrl"><button class="pill acc" id="davetAc">🔔 Bildirimleri aç</button><button class="pill ghost" id="davetGizle">Sonra</button></div></div>`}
+function vDuaListe(){
+  return `<div class="note" style="margin:0 0 12px">Dua edeceğin kişileri ve niyetleri unutma. Mü'minin, kardeşinin gıyabında yaptığı dua kabul olunur; yanındaki melek “sana da onun benzeri olsun” der (Müslim).</div>
+  <div class="bigcard"><input type="text" id="dlAd" placeholder="Kim için? (ör. Annem, hasta komşum)"><input type="text" id="dlNot" placeholder="Niyet (isteğe bağlı: şifa, hidayet, sınav…)"><button class="pill acc" id="dlEkle" style="justify-self:start">➕ Listeye ekle</button></div>
+  ${DLIST.length?`<div class="list" style="margin-top:10px">${DLIST.map(d=>`<div class="nrow" style="align-items:center"><button class="chk-b ${d.son===todayKey()?"on":""}" data-dlok="${d.id}" aria-label="Bugün dua ettim">${d.son===todayKey()?"✓":""}</button><span class="tx"><b style="display:block">${esc(d.ad)}</b><span>${esc(d.not||"")}${d.say?" · "+d.say+" gün dua edildi":""}</span></span><button class="x" data-dldel="${d.id}" aria-label="Sil">×</button></div>`).join("")}</div>`:`<div class="empty" style="margin-top:10px">Liste boş.</div>`}`}
+function aylikAc(){openModal(`<h3>📅 ${esc(SET.city||"İstanbul")} · bu ayın vakitleri</h3><div id="ayl" class="small muted">Yükleniyor…</div><button class="pill ghost" id="mNo">Kapat</button>`,()=>{$("#mNo").onclick=closeModal});
+  const d=new Date();fetch(`https://api.aladhan.com/v1/calendarByCity/${d.getFullYear()}/${d.getMonth()+1}?city=${encodeURIComponent(SET.city||"Istanbul")}&country=Turkey&method=13`).then(r=>r.json()).then(j=>{
+    const c=s=>String(s).slice(0,5),td=d.getDate();
+    const rows=j.data.map(x=>{const t=x.timings,day=+x.date.gregorian.day;return `<tr${day===td?' class="bugun"':""}><td>${day}</td><td>${c(t.Fajr)}</td><td>${c(t.Sunrise)}</td><td>${c(t.Dhuhr)}</td><td>${c(t.Asr)}</td><td>${c(t.Maghrib)}</td><td>${c(t.Isha)}</td></tr>`}).join("");
+    const el=$("#ayl");if(el)el.outerHTML=`<div style="max-height:62vh;overflow:auto"><table class="vt"><thead><tr><th>Gün</th><th>İmsak</th><th>Güneş</th><th>Öğle</th><th>İkindi</th><th>Akşam</th><th>Yatsı</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const b=document.querySelector(".vt .bugun");if(b)b.scrollIntoView({block:"center"})
+  }).catch(()=>{const el=$("#ayl");if(el)el.textContent="Vakitler alınamadı. İnternet bağlantını kontrol et."})}
+function zekatAc(){const z=store.get("mk_zekat",{});const f=[["altinFiyat","Altının gram fiyatı (TL)"],["nakit","Nakit ve banka (TL)"],["altin","Altın (gram)"],["doviz","Döviz, hisse vb. (TL karşılığı)"],["ticari","Ticaret malı (TL)"],["alacak","Tahsili umulan alacak (TL)"],["borc","Borçlar (TL)"]];
+  openModal(`<h3>💰 Zekât hesapla</h3>${f.map(([k,l])=>`<label class="small muted" style="display:grid;gap:4px">${l}<input type="number" inputmode="decimal" data-zk="${k}" value="${z[k]||""}"></label>`).join("")}<div id="zkOut" class="soz"></div><div class="small muted">Diyanet İşleri Başkanlığı'na göre nisap 80,18 gram altın değerindedir; ihtiyaç fazlası olup üzerinden bir kamerî yıl geçen servetin kırkta biri (%2,5) verilir. Özel durumlar için müftülüğe danış.</div><button class="pill ghost" id="mNo">Kapat</button>`,()=>{
+    const calc=()=>{const v={};document.querySelectorAll("[data-zk]").forEach(i=>v[i.dataset.zk]=parseFloat(String(i.value).replace(",","."))||0);store.set("mk_zekat",v);
+      const top=v.nakit+v.altin*v.altinFiyat+v.doviz+v.ticari+v.alacak-v.borc,nis=80.18*v.altinFiyat,tl=x=>x.toLocaleString("tr-TR",{maximumFractionDigits:2})+" TL";
+      $("#zkOut").innerHTML=!v.altinFiyat?"Önce altının gram fiyatını yaz.":`<div>Net servet: <b>${tl(top)}</b></div><div>Nisap: <b>${tl(nis)}</b></div><div class="soz-t">${top>=nis?"Vermen gereken zekât: "+tl(top/40):"Nisaba ulaşmıyor; zekât düşmez."}</div>`};
+    document.querySelectorAll("[data-zk]").forEach(i=>i.oninput=calc);calc();$("#mNo").onclick=closeModal})}
+function bBugunExtra(){
+  const go=(t,s)=>{tab=t;if(t==="kulliyat")kulSeg=s;if(t==="dinle"){dinleSeg=s;openSeries=null}renderView();window.scrollTo(0,0)};
+  const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+  on("#aylikBtn",aylikAc);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));
+  on("#okuBtn",()=>{kuranMod="oku";store.set("mk_kmod","oku");openSure=null;go("dinle","kuran")});
+  on("#dlistBtn",()=>{bugSeg="dualar";duaSeg2="liste";renderView();setTimeout(()=>{const s=document.querySelector("[data-dseg2]");if(s)s.scrollIntoView({block:"start"})},50)});
+  on("#davetAc",async()=>{if(await pushEnable())renderView()});on("#davetGizle",()=>{store.set("mk_push_gizle",true);renderView()});
+  on("#dlEkle",()=>{const a=$("#dlAd").value.trim();if(!a){toast("İsim yaz");return}DLIST.push({id:"d"+Date.now(),ad:a,not:$("#dlNot").value.trim(),say:0,son:""});store.set("mk_dlist",DLIST);renderView()});
+  document.querySelectorAll("[data-dlok]").forEach(b=>b.onclick=()=>{const d=DLIST.find(x=>x.id===b.dataset.dlok);if(!d)return;if(d.son===todayKey()){d.son="";d.say=Math.max(0,(d.say||0)-1)}else{d.son=todayKey();d.say=(d.say||0)+1}store.set("mk_dlist",DLIST);renderView()});
+  document.querySelectorAll("[data-dldel]").forEach(b=>b.onclick=()=>{DLIST=DLIST.filter(x=>x.id!==b.dataset.dldel);store.set("mk_dlist",DLIST);renderView()});
+}
+
+/* ---------- Yedekle / geri yükle ---------- */
+function yedekAl(){try{const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("mk_")&&k!=="mk_kasa_sifre")o[k]=localStorage.getItem(k)}
+  const txt=JSON.stringify({app:"maneviyat",v:SURUM,t:new Date().toISOString(),d:o});const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));a.download="maneviyat-yedek-"+todayKey()+".json";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),800);toast("Yedek dosyası hazırlandı")}catch(e){toast("Yedek alınamadı")}}
+function yedekYukle(file){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(!j||j.app!=="maneviyat"||!j.d)throw 0;
+  confirmBox("Yedek yüklensin mi?","Bu cihazdaki zikir, not, defter ve ayarların yedektekiyle değiştirilecek.","Yükle",()=>{Object.entries(j.d).forEach(([k,v])=>{if(k.startsWith("mk_"))try{localStorage.setItem(k,v)}catch(e){}});location.reload()})}catch(e){toast("Bu dosya geçerli bir Maneviyat yedeği değil")}};r.readAsText(file)}
+
+/* ---------- Ayarlar sayfası ---------- */
+function vAyarlar(){const perm=("Notification" in window)?Notification.permission:"yok",acik=store.get("mk_push_on",false)&&perm==="granted",ok=b=>b?"✅":"⛔";
+  return `<button class="pill ghost" id="ayGeri">‹ Geri</button>
+  <h2>🔔 Bildirimler</h2>
+  <div class="bigcard"><div class="muted small">Namaz vakti, sabah evradı, Cuma, Kur'an ve yatsı hatırlatmaları uygulama kapalıyken de telefonuna gelir.</div>
+   ${IS_IOS&&!IS_APP?`<div class="note" style="margin:0"><b>iPhone'da önce:</b> Safari'de Paylaş ⬆️ → <b>Ana Ekrana Ekle</b> → ana ekrandaki hilal simgesinden aç, sonra bu düğmeye bas.</div>`:""}
+   <div class="ctrl"><button class="pill acc" id="pushOn" style="font-size:16px;padding:12px 18px">${acik?"🔔 Bildirimler açık · yenile":"🔔 Bildirimleri aç"}</button>${store.get("mk_push_on",false)?`<button class="pill ghost" id="pushOff">Kapat</button>`:""}</div>
+   <div class="small muted">Bu cihaz: ${ok(perm==="granted")} izin · ${ok(IS_APP||!IS_IOS)} ana ekran · ${ok(acik)} abonelik</div></div>
+  <h2>🔔 Bildirim durumu</h2>
+  <div class="bigcard"><div class="ctrl"><button class="pill" id="durumBtn">🔄 Durumu göster</button><button class="pill" id="kaydetBtn">📲 Bu cihazı kaydet</button><button class="pill" id="denemeBtn">🧪 Bana dene</button></div><div id="durumOut" class="small"></div></div>
+  <h2>⏰ Hatırlatmalar <span class="small muted">(uygulama sahibi)</span></h2>
+  <div class="bigcard"><div class="muted small">Bu liste, uygulamayı ana ekrana ekleyip bildirimi açan herkese gider. Değiştirmek için kasa şifresi gerekir.</div>
+   <input type="password" id="hatSifre" placeholder="🔒 Kasa şifresi" value="${esc(store.get("mk_kasa_sifre",""))}" autocomplete="off">
+   <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hatHatirla" ${store.get("mk_kasa_sifre","")?"checked":""} style="width:20px;height:20px">Şifreyi bu cihazda hatırla</label>
+   <div class="ctrl"><button class="pill" id="hatGetir">📥 Kasadan getir</button><button class="pill ghost" id="hatYeni">➕ Ekle</button></div>
+   <div id="hatList" style="display:grid;gap:10px"></div>
+   <div class="small muted">Hazır öneriler:</div><div class="ctrl" id="hatOneri"></div>
+   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatAuto" ${store.get("mk_hat_auto",false)?"checked":""} style="width:20px;height:20px;flex:none">🕌 Namaz vakitlerinden 10 dk önce hatırlat (${esc(SET.city||"İstanbul")} saatleriyle; şifre hatırlanıyorsa uygulamayı her gün ilk açışında kendini günceller)</label>
+   <button class="pill acc" id="hatKaydet" style="justify-self:start;font-size:16px;padding:12px 18px">💾 Kasaya kaydet</button></div>
+  <h2>Genel</h2>
+  <div class="bigcard">
+   <label class="small muted" style="display:grid;gap:4px">Şehir (namaz vakitleri)<input type="text" id="aCity" value="${esc(SET.city||"")}" placeholder="Istanbul"></label>
+   <label class="small muted" style="display:grid;gap:4px">Adın (isteğe bağlı)<input type="text" id="aAd" value="${esc(SET.ad||"")}" placeholder="Barış"></label>
+   <label class="small muted" style="display:grid;gap:4px">Tema<select id="aTema"><option value="">Telefona göre</option><option value="light" ${SET.tema==="light"?"selected":""}>Açık</option><option value="dark" ${SET.tema==="dark"?"selected":""}>Koyu</option></select></label>
+   <label class="small muted" style="display:grid;gap:4px">Arapça yazı boyutu<select id="aArz">${[[0.9,"Küçük"],[1,"Normal"],[1.2,"Büyük"],[1.45,"Çok büyük"]].map(([v,l])=>`<option value="${v}" ${(SET.arz||1)==v?"selected":""}>${l}</option>`).join("")}</select></label>
+   <label class="small muted" style="display:grid;gap:4px">Günlük zikir hedefi (0 = kapalı)<input type="number" inputmode="numeric" id="aZh" value="${SET.zhedef||0}"></label>
+   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="aTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
+   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="aMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
+   <button class="pill acc" id="aKaydet" style="justify-self:start">💾 Kaydet</button></div>
+  <h2>Sohbet araması (isteğe bağlı)</h2>
+  <div class="bigcard"><div class="small muted"><b style="color:var(--fg)">Podcast Index</b> bir hocanın tüm arşivini getirir (api.podcastindex.org'dan ücretsiz anahtar). <b style="color:var(--fg)">YouTube Data API</b> aramada videoları da listeler.</div>
+   <input type="text" id="sPk" placeholder="Podcast Index API Key" value="${esc(SET.piKey||"")}" autocomplete="off" autocapitalize="off"><input type="text" id="sPs" placeholder="Podcast Index API Secret" value="${esc(SET.piSecret||"")}" autocomplete="off" autocapitalize="off"><input type="text" id="sYt" placeholder="YouTube API anahtarı" value="${esc(SET.yt||"")}" autocomplete="off" autocapitalize="off">
+   <button class="pill" id="sKaydet" style="justify-self:start">💾 Kaydet</button></div>
+  <h2>💾 Yedek</h2>
+  <div class="bigcard"><div class="small muted">Zikir sayıların, notların, vecize defterin, amellerin ve ayarların tek dosyada. Telefon değiştirirken işine yarar.</div><div class="ctrl"><button class="pill" id="yedekAl">⬇️ Yedek al</button><label class="pill ghost" style="cursor:pointer">⬆️ Yedeği yükle<input type="file" id="yedekDosya" accept="application/json,.json" hidden></label></div></div>
+  <h2>🔐 Kasa</h2>
+  <div class="bigcard"><div class="small muted">Bildirim sunucusunun adresi. Değiştirmen gerekmez.</div><input type="text" id="kasaAdr" value="${esc(kasaUrl())}" autocomplete="off" autocapitalize="off"><div class="ctrl"><button class="pill" id="kasaKaydet">💾 Kaydet</button><button class="pill" id="kasaTest">🩺 Test et</button></div><div id="kasaOut" class="small"></div></div>
+  <div class="small muted" style="text-align:center;margin-top:18px">Maneviyat Külliyatı · sürüm ${SURUM}</div>`}
+function bAyarlar(){
+  const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+  on("#ayGeri",()=>{tab=store.get("mk_tab","bugun");renderView()});
+  on("#pushOn",async()=>{await pushEnable();renderView()});on("#pushOff",async()=>{await pushDisable();renderView()});
+  on("#durumBtn",async()=>{const o=$("#durumOut");o.textContent="Soruluyor…";try{const r=await getPushReg();const s=r&&await r.pushManager.getSubscription();
+    const j=await kasaPost("/abone/durum",{endpoint:s?s.endpoint:"",uyg:UYG});const ben=(j.ben||[]).length,sh=j.sinif||{};
+    o.innerHTML=`<div>${ben?"✅":"⛔"} Bu cihaz kasada ${ben?"kayıtlı":"kayıtlı değil"}</div><div>👥 Bu uygulamada toplam <b>${j.toplam||0}</b> abone</div>${Object.keys(sh).length?`<div>🏙️ ${Object.entries(sh).map(([k,v])=>esc(k)+": "+v).join(" · ")}</div>`:""}`}catch(e){o.textContent="⛔ "+e.message}});
+  on("#kaydetBtn",async()=>{try{if(Notification.permission!=="granted"){await pushEnable();return}await pushSubscribe();toast("📲 Bu cihaz kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
+  on("#denemeBtn",async()=>{try{if(!store.get("mk_push_on",false))await pushSubscribe()}catch(e){toast("Önce bildirimleri aç: "+e.message);return}
+    olay({ogrId:cihazId},{baslik:"🕌 Maneviyat · Deneme",govde:"Bildirimler çalışıyor. Allah kabul etsin.",url:appUrl("#bugun"),etiket:"deneme-"+Date.now()});toast("🧪 Gönderildi; birkaç saniye içinde gelmeli. Uygulamayı kapatıp bekleyebilirsin.")});
+  hatRender();
+  const sif=()=>{const s=$("#hatSifre").value.trim();if(!s){toast("Kasa şifresini yaz");return""}store.set("mk_kasa_sifre",$("#hatHatirla").checked?s:"");return s};
+  on("#hatGetir",async()=>{const s=sif();if(!s)return;try{HAT=await hatListe(s);hatRender();toast("📥 "+HAT.length+" hatırlatma getirildi")}catch(e){toast("Getirilemedi: "+e.message)}});
+  on("#hatYeni",()=>{HAT.push({id:"h"+Date.now(),saat:"08:00",gunler:[],baslik:"🕌 Maneviyat · ",govde:"",url:"#bugun",hedef:{},aktif:true});hatRender()});
+  const ha=$("#hatAuto");if(ha)ha.onchange=()=>store.set("mk_hat_auto",ha.checked);
+  on("#hatKaydet",async()=>{const s=sif();if(!s)return;let liste=HAT.map(hatTemiz);if(store.get("mk_hat_auto",false))liste=liste.filter(h=>!h.id.startsWith("vakit_")).concat(vakitItems());
+    try{await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste});HAT=liste;if(store.get("mk_hat_auto",false))store.set("mk_hat_vakit_t",todayKey());hatRender();toast("✅ "+liste.length+" hatırlatma kasaya kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
+  on("#aKaydet",()=>{const c=$("#aCity").value.trim();if(c!==(SET.city||"")){TIMES=null;store.set("mk_hat_vakit_t","")}
+    Object.assign(SET,{city:c,ad:$("#aAd").value.trim(),tema:$("#aTema").value,arz:parseFloat($("#aArz").value)||1,zhedef:Math.max(0,parseInt($("#aZh").value,10)||0),ton:$("#aTon").checked?"kalin":"normal",meal:$("#aMeal").checked});
+    store.set("mk_set",SET);applyTheme();setAccent();toast("Ayarlar kaydedildi");if(store.get("mk_push_on",false))pushSubscribe().catch(()=>{})});
+  on("#sKaydet",()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim()});store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);toast("Kaydedildi")});
+  on("#yedekAl",yedekAl);const yd=$("#yedekDosya");if(yd)yd.onchange=()=>{if(yd.files[0])yedekYukle(yd.files[0])};
+  on("#kasaKaydet",()=>{store.set("mk_kasa",$("#kasaAdr").value.trim().replace(/\/+$/,"")||KASA_VARS);toast("Kasa adresi kaydedildi")});
+  on("#kasaTest",async()=>{const o=$("#kasaOut");o.textContent="Test ediliyor…";try{const r=await fetch(kasaUrl()+"/saglik");const j=await r.json();o.innerHTML=`${j.ok?"✅":"⛔"} kasa · ${j.depo?"✅":"⛔"} depo · ${j.sifre?"✅":"⛔"} şifre`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 }
 
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
   const base=location.pathname.replace(/[^/]*$/,"");
   navigator.serviceWorker.getRegistrations().then(rs=>{rs.forEach(r=>{try{const sc=new URL(r.scope).pathname;if(!sc.startsWith(base))r.unregister()}catch(e){}})}).catch(()=>{});
-  navigator.serviceWorker.register("sw.js",{scope:"./"}).catch(()=>{});
+  navigator.serviceWorker.register("sw.js",{scope:"./"}).then(r=>{PUSH_REG=r;pushCheck()}).catch(()=>{});
+  /* çevrimdışı açılış: yalnız bu sayfayı kapsayan ayrı yardımcı (bildirim sw.js'ine dokunmaz) */
+  const page=location.pathname;if(!page.endsWith("/"))navigator.serviceWorker.register("maneviyat-sw.js",{scope:page}).catch(()=>{});
   try{const man={name:"Maneviyat Külliyatı",short_name:"Maneviyat",display:"standalone",background_color:"#0e1517",theme_color:"#0e1517",start_url:location.origin+base,scope:location.origin+base,icons:[{src:document.querySelector('link[rel="apple-touch-icon"]').href,sizes:"180x180",type:"image/png"}]};
     document.querySelector('link[rel="manifest"]').href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}))}catch(e){}
 })();
@@ -1244,7 +1556,11 @@ function bKulliyat(){
 document.addEventListener("touchend",()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}},{once:true});
 try{$("#logo").src=document.querySelector('link[rel="apple-touch-icon"]').href}catch(e){}
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;store.set("mk_tab",tab);renderView();window.scrollTo(0,0)});
+applyTheme();
 renderView();
+routeHash();
+clearBadge();
+setTimeout(vakitOto,4000);
 </script>
 </body>
 </html>
