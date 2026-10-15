@@ -883,7 +883,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 17</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 18</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1261,7 +1261,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=17;
+const SURUM=18;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1612,9 +1612,9 @@ function bAyarlar(){
       o.innerHTML=r.ok&&t?`✅ Yapay zekâ çalışıyor. Cevap: “${esc(t.slice(0,60))}”<br><span class="muted">Kasa, kotası dolan anahtarı atlayıp sıradakini kullanır.</span>`:`⛔ Çalışmadı (${r.status}). ${esc((j.error&&j.error.message)||j.hata||"Kasada geçerli anahtar yok ya da kotası dolu.")}`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 
   on("#akEkle",async()=>{const s=akS();if(!s)return;const t=$("#akYeni").value.trim();if(!t){toast("Anahtarları yapıştır");return}
-    const bul=anahtarAyikla(t);if(!bul.length){toast("Yapıştırdığın metinde anahtar bulunamadı");return}
+    const bul=anahtarAyikla(t);const say=x=>Array.isArray(x)?x.length:(+x||0);if(!bul.length){toast("Yapıştırdığın metinde anahtar bulunamadı");return}
     try{const j=await kasaPost("/anahtar/ekle",{sifre:s,anahtarlar:bul.join("\n")});$("#akYeni").value="";await akListe();
-      $("#akOut").insertAdjacentHTML("afterbegin",`<div>🔎 ${bul.length} anahtar gönderildi → ✅ eklenen: ${j.eklenen||0} · zaten vardı: ${j.zatenVardi||0} · ⛔ kasanın reddettiği: ${j.gecersiz||0} · kasada toplam: ${j.toplam||0}</div>${j.gecersiz?`<div class="muted">Reddedilen anahtar(lar), kasanın kodundaki biçim kontrolüne takıldı (kasa kodu şu an yalnız AIza… biçimini kabul ediyor olabilir). Uygulama her biçimi gönderiyor; yeni biçimdeki (ör. AQ.…) anahtarların kabul edilmesi için kasa kodunda (worker.js) bu kontrolün genişletilmesi gerekir.</div>`:""}`)}catch(e){toast("Eklenemedi: "+e.message)}});
+      $("#akOut").insertAdjacentHTML("afterbegin",`<div>🔎 ${bul.length} anahtar gönderildi → ✅ eklenen: ${say(j.eklenen)} · zaten vardı: ${say(j.zatenVardi)} · ⛔ kasanın almadığı: ${Math.max(say(j.gecersiz),bul.length-say(j.eklenen)-say(j.zatenVardi))} · kasada toplam: ${say(j.toplam)}</div>${bul.length>say(j.eklenen)+say(j.zatenVardi)?`<div class="muted">Reddedilen anahtar(lar), kasanın kodundaki biçim kontrolüne takıldı (kasa kodu şu an yalnız AIza… biçimini kabul ediyor olabilir). Uygulama her biçimi gönderiyor; yeni biçimdeki (ör. AQ.…) anahtarların kabul edilmesi için kasa kodunda (worker.js) bu kontrolün genişletilmesi gerekir.</div>`:""}`)}catch(e){toast("Eklenemedi: "+e.message)}});
   on("#kasaTest",async()=>{const o=$("#kasaOut");o.textContent="Test ediliyor…";try{const r=await fetch(kasaUrl()+"/saglik");const j=await r.json();o.innerHTML=`${j.ok?"✅":"⛔"} kasa · ${j.depo?"✅":"⛔"} depo · ${j.sifre?"✅":"⛔"} şifre`}catch(e){o.textContent="⛔ Kasaya ulaşılamadı"}});
 }
 
