@@ -214,6 +214,18 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
 .vk-times .cur{font-weight:700}
 .vk-times .cur b{font-size:15px}
 .simdi{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;background:#ffd36a;color:#3a2600;border-radius:6px;padding:1px 5px;text-shadow:none}
+#takip{position:fixed;inset:0;z-index:90;background:linear-gradient(180deg,#fbf5e6,#f3e9cf);color:#2b2418;display:grid;grid-template-rows:auto 1fr auto;padding:max(14px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom))}
+.tk-ust{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#6d5a35;gap:10px}
+.tk-x{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.07);font-size:18px;color:#2b2418}
+.tk-orta{display:grid;align-content:center;justify-items:center;gap:18px;text-align:center;overflow:auto;padding:10px 0}
+.tk-ar{font-family:var(--f-ar,serif);font-size:clamp(30px,8.5vw,52px);line-height:1.9;direction:rtl}
+.tk-no{display:inline-grid;place-items:center;width:1.3em;height:1.3em;border-radius:50%;background:#b08a4a;color:#fff;font-size:.45em;vertical-align:middle;font-family:system-ui}
+.tk-ok{font-size:clamp(16px,4.4vw,21px);font-style:italic;color:#7a6440}
+.tk-tr{font-size:clamp(19px,5.4vw,28px);font-weight:700;line-height:1.35;max-width:640px}
+.tk-tef{background:rgba(0,0,0,.06)!important;color:#5a4626!important;border-color:rgba(0,0,0,.12)!important}
+.tk-alt{display:flex;justify-content:center;align-items:center;gap:26px;border-top:3px solid #c9a75e;padding-top:14px}
+.tk-b{width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.07);font-size:22px;color:#2b2418}
+.tk-oy{width:72px;height:72px;background:#b08a4a;color:#fff;font-size:28px}
 #kapali{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 30%,#1b2450,#05080a 70%);color:#ebe7dc;display:grid;place-items:center;text-align:center;padding:24px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -883,7 +895,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 20</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 21</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1262,7 +1274,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=20;
+const SURUM=21;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1439,10 +1451,10 @@ function bKulExtra(){if(kulSeg==="risale")bRisale();if(kulSeg==="hadis")bHadis()
   document.querySelectorAll("#view [data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);toTop()})}
 
 /* ---------- Kur'an: oku ve âyet âyet dinle ---------- */
-let kuranMod=store.get("mk_kmod","dinle"),openSure=null,sureLoading=false,sureErr="",tekrar=store.get("mk_tekrar",1),mealSes=store.get("mk_mealses",false),mealGoster=store.get("mk_mealg",true);
+let okGoster=store.get("mk_okg",true),kuranMod=store.get("mk_kmod","dinle"),openSure=null,sureLoading=false,sureErr="",tekrar=store.get("mk_tekrar",1),mealSes=store.get("mk_mealses",false),mealGoster=store.get("mk_mealg",true);
 const SURE_TXT={};
 async function loadSure(n){if(SURE_TXT[n]||sureLoading)return;sureLoading=true;sureErr="";if(tab==="dinle")renderView();
-  try{const r=await fetch(`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,tr.diyanet`);const j=await r.json();const a=j.data[0].ayahs,m=j.data[1].ayahs;SURE_TXT[n]=a.map((x,i)=>({ar:x.text,tr:m[i]?m[i].text:""}))}
+  try{const r=await fetch(`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,tr.diyanet`);const j=await r.json();const a=j.data[0].ayahs,m=j.data[1].ayahs;SURE_TXT[n]=a.map((x,i)=>({ar:x.text,tr:m[i]?m[i].text:""}));okunusYukle(n)}
   catch(e){sureErr="Sûre metni yüklenemedi. İnternet bağlantını kontrol et."}
   sureLoading=false;if(tab==="dinle"&&dinleSeg==="kuran"&&openSure===n){renderView();const o=store.get("mk_okuma",null);if(o&&o.s===n&&o.a>1)setTimeout(()=>{const el=document.querySelector(`.ayet[data-hl="${n}_${o.a}"]`);if(el)el.scrollIntoView({block:"center"})},80)}}
 function ayetTracks(s,from){const out=[],txt=SURE_TXT[s]||[],art=makeArt(SURE_AR[s-1],"Âyet âyet",168),grp=SURE_TR[s-1]+" · Okuma";
@@ -1453,13 +1465,13 @@ function ayetTracks(s,from){const out=[],txt=SURE_TXT[s]||[],art=makeArt(SURE_AR
 function kuranTop(){const o=store.get("mk_okuma",null);
   return `<div class="seg"><button data-kmod="dinle" class="${kuranMod==="dinle"?"on":""}">🎧 Sûre dinle</button><button data-kmod="oku" class="${kuranMod==="oku"?"on":""}">📖 Oku · âyet âyet</button></div>
   ${o&&o.s?`<button class="row" id="okDevam" style="border-radius:16px;margin-bottom:12px"><span class="no" style="font-size:20px">🔖</span><span class="t"><b>Kaldığın yer: ${esc(SURE_TR[o.s-1])}, ${o.a}. âyet</b><span>Okumaya ve dinlemeye oradan devam et</span></span><span class="go">›</span></button>`:""}
-  ${kuranMod==="oku"?`<div class="note" style="margin:0 0 12px">Bir sûreye dokun: Arapça metin ve Diyanet meali açılır, âyet âyet dinlersin. Ezber için her âyeti 3 ya da 5 kez tekrarlatabilirsin.</div>`:""}`}
+  ${kuranMod==="oku"?`<div class="note" style="margin:0 0 12px">Bir sûreye dokun: Arapça metin, okunuşu ve Diyanet meali açılır, âyet âyet dinlersin. 📺 Takip ekranı videodaki gibi büyük gösterir, 📘 o âyetin tefsirini açar. Ezber için her âyeti 3 ya da 5 kez tekrarlatabilirsin.</div>`:""}`}
 function vSureOku(){const n=openSure,txt=SURE_TXT[n],o=store.get("mk_okuma",null);
   return `<button class="pill ghost" id="okBack">‹ Sûreler</button>
   <div class="bigcard" style="margin-top:12px"><div class="ttl">${n}. ${esc(SURE_TR[n-1])} Sûresi <span class="ar" style="font-size:22px">${SURE_AR[n-1]}</span></div><div class="muted small">${AYET[n-1]} âyet · Arapça metin, Diyanet meali, el-Afâsî tilaveti</div>
-  <div class="ctrl"><button class="pill acc" data-ayp="1">▶ Baştan dinle</button>${o&&o.s===n?`<button class="pill" data-ayp="${o.a}">🔖 ${o.a}. âyetten</button>`:""}<button class="pill ghost" id="okTek">Tekrar ${tekrar}×</button><button class="pill ghost" id="okMs">Meal sesli: ${mealSes?"açık":"kapalı"}</button><button class="pill ghost" id="okMg">Meal ${mealGoster?"görünür":"gizli"}</button></div></div>
+  <div class="ctrl"><button class="pill acc" id="okTakip" style="font-size:16px">📺 Takip ekranında dinle</button><button class="pill" data-ayp="1">▶ Baştan dinle</button>${o&&o.s===n?`<button class="pill" data-ayp="${o.a}">🔖 ${o.a}. âyetten</button>`:""}<button class="pill ghost" id="okTek">Tekrar ${tekrar}×</button><button class="pill ghost" id="okMs">Meal sesli: ${mealSes?"açık":"kapalı"}</button><button class="pill ghost" id="okMg">Meal ${mealGoster?"görünür":"gizli"}</button><button class="pill ghost" id="okOk">Okunuş ${okGoster?"görünür":"gizli"}</button></div></div>
   ${sureLoading?`<div class="empty" style="margin-top:12px">Sûre yükleniyor…</div>`:""}${sureErr?`<div class="empty" style="margin-top:12px">${esc(sureErr)} <button class="pill" id="okRetry">Tekrar dene</button></div>`:""}
-  ${txt?`<div style="display:grid;gap:8px;margin-top:12px">${txt.map((x,i)=>`<div class="dua ayet" data-hl="${n}_${i+1}"><div class="head"><span class="cnt">${i+1}. âyet</span><span class="ctrl"><button class="pill" data-ayp="${i+1}" style="padding:6px 12px">▶ Buradan</button><button class="pill ghost" data-aybm="${i+1}" style="padding:6px 12px" aria-label="Kaldığım yer">🔖</button></span></div><div class="ar">${esc(x.ar)}</div>${mealGoster?`<div class="mean">${esc(x.tr)}</div>`:""}</div>`).join("")}</div>
+  ${txt?`<div style="display:grid;gap:8px;margin-top:12px">${txt.map((x,i)=>`<div class="dua ayet" data-hl="${n}_${i+1}"><div class="head"><span class="cnt">${i+1}. âyet</span><span class="ctrl"><button class="pill" data-ayp="${i+1}" style="padding:6px 12px">▶ Buradan</button><button class="pill ghost" data-aybm="${i+1}" style="padding:6px 12px" aria-label="Kaldığım yer">🔖</button><button class="pill ghost" data-tk="${i+1}" style="padding:6px 12px" aria-label="Takip ekranı">📺</button><a class="pill ghost" target="_blank" rel="noopener" href="${tefsirLink(n,i+1)}" style="padding:6px 12px" aria-label="Tefsir">📘</a></span></div><div class="ar">${esc(x.ar)}</div>${okGoster&&x.ok?`<div class="read">${esc(x.ok)}</div>`:""}${mealGoster?`<div class="mean">${esc(x.tr)}</div>`:""}</div>`).join("")}</div>
   <div class="small muted" style="margin-top:10px">Metin ve meal: alquran.cloud (Diyanet İşleri meali).</div>`:""}`}
 function bKuranExtra(){
   document.querySelectorAll("[data-kmod]").forEach(b=>b.onclick=()=>{kuranMod=b.dataset.kmod;store.set("mk_kmod",kuranMod);renderView()});
@@ -1470,6 +1482,9 @@ function bKuranExtra(){
   $("#okTek").onclick=()=>{const t=[1,3,5,7];tekrar=t[(t.indexOf(tekrar)+1)%t.length];store.set("mk_tekrar",tekrar);renderView()};
   $("#okMs").onclick=()=>{mealSes=!mealSes;store.set("mk_mealses",mealSes);renderView()};
   $("#okMg").onclick=()=>{mealGoster=!mealGoster;store.set("mk_mealg",mealGoster);renderView()};
+  $("#okOk").onclick=()=>{okGoster=!okGoster;store.set("mk_okg",okGoster);renderView()};
+  $("#okTakip").onclick=()=>{if(!SURE_TXT[n]){toast("Sûre yükleniyor, birazdan tekrar dene");return}const o=store.get("mk_okuma",null);takipAc(n,o&&o.s===n?o.a:1)};
+  document.querySelectorAll("[data-tk]").forEach(b=>b.onclick=()=>takipAc(n,+b.dataset.tk));
   document.querySelectorAll("[data-ayp]").forEach(b=>b.onclick=()=>playQueue(ayetTracks(n,+b.dataset.ayp),0));
   document.querySelectorAll("[data-aybm]").forEach(b=>b.onclick=()=>{store.set("mk_okuma",{s:n,a:+b.dataset.aybm});toast("🔖 "+SURE_TR[n-1]+" "+b.dataset.aybm+". âyet işaretlendi")});
 }
@@ -1696,6 +1711,28 @@ function sesDene(){const v=$("#aSes").value,t="Ameller ancak niyetlere göredir.
 const NEY=[{k:"ney1",n:"Ney taksimi",d:"Uzun, sakin bir ney dinletisi · 70 dk",u:"https://archive.org/download/ney-taksim/Ney-Taksim.mp3",h:35,loop:false},
  {k:"ney2",n:"Irak makamında taksim",d:"Neyzen Bülent Özbek · kısa, tekrar eder",u:"https://archive.org/download/BulentOzbekIrakTaksim/"+encodeURIComponent("Tksm.BülentÖzbek- Irak Taksim.mp3"),h:190,loop:true}];
 function neyCal(k){const x=NEY.find(y=>y.k===k);if(!x)return;playQueue([{title:x.n,sub:x.d,src:[x.u],loop:x.loop,art:makeArt("نی",x.n,x.h),group:"Ney"}],0);if(!sleepAt)setSleep(30)}
+
+/* ---------- Kur'an takip ekranı: büyük Arapça + okunuş + meal + tefsir ---------- */
+let takipAcik=false,takipS=0,takipA=1;
+const tefsirLink=(s,a)=>"https://www.google.com/search?q="+encodeURIComponent(`Kur'an Yolu tefsiri ${SURE_TR[s-1]} sûresi ${a}. âyet site:kuran.diyanet.gov.tr`);
+function takipCiz(){const o=$("#takip");if(!o||!takipAcik)return;const t=SURE_TXT[takipS]||[],x=t[takipA-1]||{},cal=!au.paused&&Q[qi]&&Q[qi].hl===takipS+"_"+takipA;
+  o.innerHTML=`<div class="tk-ust"><span>${esc(SURE_TR[takipS-1])} Sûresi · <b>${takipA}. âyet</b> / ${AYET[takipS-1]}</span><button class="tk-x" id="tkKapat" aria-label="Kapat">✕</button></div>
+  <div class="tk-orta"><div class="tk-ar">${esc(x.ar||"")} <span class="tk-no">${takipA}</span></div>
+   ${x.ok?`<div class="tk-ok">${esc(x.ok)}</div>`:""}<div class="tk-tr">${esc(x.tr||"")}</div>
+   <a class="pill ghost tk-tef" target="_blank" rel="noopener" href="${tefsirLink(takipS,takipA)}">📘 Bu âyetin tefsiri (Diyanet · Kur'an Yolu)</a></div>
+  <div class="tk-alt"><button class="tk-b" id="tkGeri" aria-label="Önceki âyet">⏮</button><button class="tk-b tk-oy" id="tkOyna" aria-label="Oynat / duraklat">${cal?"⏸":"▶"}</button><button class="tk-b" id="tkIleri" aria-label="Sonraki âyet">⏭</button></div>`;
+  $("#tkKapat").onclick=takipKapat;
+  $("#tkOyna").onclick=()=>{if(Q[qi]&&Q[qi].hl&&Q[qi].hl.startsWith(takipS+"_")){toggle();setTimeout(takipCiz,150)}else playQueue(ayetTracks(takipS,takipA),0)};
+  $("#tkGeri").onclick=()=>takipGit(takipA-1);$("#tkIleri").onclick=()=>takipGit(takipA+1)}
+function takipGit(a){if(a<1||a>AYET[takipS-1])return;takipA=a;const calan=!au.paused&&Q[qi]&&Q[qi].hl&&Q[qi].hl.startsWith(takipS+"_");if(calan)playQueue(ayetTracks(takipS,a),0);takipCiz()}
+function takipAc(s,a){takipS=s;takipA=a||1;takipAcik=true;let o=$("#takip");if(!o){o=document.createElement("div");o.id="takip";document.body.appendChild(o)}o.hidden=false;document.body.style.overflow="hidden";takipCiz();
+  if(!(Q[qi]&&Q[qi].hl&&Q[qi].hl.startsWith(s+"_")&&!au.paused))playQueue(ayetTracks(s,takipA),0)}
+function takipKapat(){takipAcik=false;const o=$("#takip");if(o)o.hidden=true;document.body.style.overflow="";if(tab==="dinle")renderView()}
+function takipIzle(){if(!takipAcik)return;const h=Q[qi]&&Q[qi].hl;if(h){const [s,a]=h.split("_").map(Number);if(s===takipS&&a!==takipA){takipA=a}}takipCiz()}
+au.addEventListener("play",takipIzle);au.addEventListener("pause",takipIzle);au.addEventListener("loadstart",takipIzle);
+async function okunusYukle(n){if(!SURE_TXT[n]||SURE_TXT[n].okY)return;SURE_TXT[n].okY=1;
+  for(const ed of ["tr.transliteration","en.transliteration"]){try{const r=await fetch(`https://api.alquran.cloud/v1/surah/${n}/${ed}`);if(!r.ok)continue;const j=await r.json();const l=j&&j.data&&j.data.ayahs;if(!l||!l.length)continue;
+    SURE_TXT[n].forEach((x,i)=>{if(l[i])x.ok=String(l[i].text).replace(/<[^>]+>/g,"")});if(tab==="dinle"&&openSure===n)renderView();takipCiz();return}catch(e){}}}
 
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
