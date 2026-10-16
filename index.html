@@ -799,7 +799,7 @@ function vDinle(){
 function bDinle(){
   document.querySelectorAll("[data-seg]").forEach(b=>b.onclick=()=>{dinleSeg=b.dataset.seg;store.set("mk_dseg",dinleSeg);openSeries=null;openSure=null;renderView()});
   const ks=$("#kariSel");if(ks)ks.onchange=()=>{kari=ks.value;store.set("mk_kari2",kari);renderView();toast(kariObj().n+" seçildi")};
-  document.querySelectorAll("[data-sure]").forEach(b=>b.onclick=()=>{const n=+b.dataset.sure;if(kuranMod==="oku"){openSure=n;renderView();toTop();loadSure(n);return}playQueue(Array.from({length:115-n},(_,i)=>sureTrack(n+i)),0)});
+  document.querySelectorAll("[data-sure]").forEach(b=>b.onclick=()=>{const n=+b.dataset.sure;openSure=n;renderView();toTop();loadSure(n);if(kuranMod!=="oku")playQueue(Array.from({length:115-n},(_,i)=>sureTrack(n+i)),0)});
   document.querySelectorAll("[data-list]").forEach(b=>b.onclick=()=>{const l=LISTELER[+b.dataset.list];playQueue(l.s.map(sureTrack).map(t=>(t.group=l.n,t)),0)});
   const ss=$("#sSearch");if(ss)ss.oninput=()=>{const q=ss.value.trim().toLocaleLowerCase("tr");document.querySelectorAll("#sureList .row").forEach(r=>{const n=+r.dataset.sure;r.hidden=q&&!(SURE_TR[n-1].toLocaleLowerCase("tr").includes(q)||String(n)===q||SURE_AR[n-1].includes(q))})};
   document.querySelectorAll("[data-series]").forEach(b=>b.onclick=()=>{openSeries=b.dataset.series;renderView();toTop()});
@@ -895,7 +895,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 21</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 22</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1274,7 +1274,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=21;
+const SURUM=22;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1451,11 +1451,12 @@ function bKulExtra(){if(kulSeg==="risale")bRisale();if(kulSeg==="hadis")bHadis()
   document.querySelectorAll("#view [data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);toTop()})}
 
 /* ---------- Kur'an: oku ve âyet âyet dinle ---------- */
-let okGoster=store.get("mk_okg",true),kuranMod=store.get("mk_kmod","dinle"),openSure=null,sureLoading=false,sureErr="",tekrar=store.get("mk_tekrar",1),mealSes=store.get("mk_mealses",false),mealGoster=store.get("mk_mealg",true);
+let okGoster=store.get("mk_okg",true),kuranMod=store.get("mk_kmod2","oku"),openSure=null,sureLoading=false,sureErr="",tekrar=store.get("mk_tekrar",1),mealSes=store.get("mk_mealses2",true),mealGoster=store.get("mk_mealg",true);
 const SURE_TXT={};
 async function loadSure(n){if(SURE_TXT[n]||sureLoading)return;sureLoading=true;sureErr="";if(tab==="dinle")renderView();
   try{const r=await fetch(`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,tr.diyanet`);const j=await r.json();const a=j.data[0].ayahs,m=j.data[1].ayahs;SURE_TXT[n]=a.map((x,i)=>({ar:x.text,tr:m[i]?m[i].text:""}));okunusYukle(n)}
-  catch(e){sureErr="Sûre metni yüklenemedi. İnternet bağlantını kontrol et."}
+  catch(e){try{const r=await fetch(`https://cdn.jsdelivr.net/npm/quran-json@3.1.2/dist/chapters/tr/${n}.json`);const j=await r.json();SURE_TXT[n]=j.verses.map(v=>({ar:v.text,tr:v.translation||"",ok:v.transliteration||""}));SURE_TXT[n].okY=1}
+    catch(e2){sureErr="Sûre metni yüklenemedi. İnternet bağlantını kontrol et."}}
   sureLoading=false;if(tab==="dinle"&&dinleSeg==="kuran"&&openSure===n){renderView();const o=store.get("mk_okuma",null);if(o&&o.s===n&&o.a>1)setTimeout(()=>{const el=document.querySelector(`.ayet[data-hl="${n}_${o.a}"]`);if(el)el.scrollIntoView({block:"center"})},80)}}
 function ayetTracks(s,from){const out=[],txt=SURE_TXT[s]||[],art=makeArt(SURE_AR[s-1],"Âyet âyet",168),grp=SURE_TR[s-1]+" · Okuma";
   for(let a=from;a<=AYET[s-1];a++){const g=gAyah(s,a);
@@ -1463,25 +1464,26 @@ function ayetTracks(s,from){const out=[],txt=SURE_TXT[s]||[],art=makeArt(SURE_AR
     if(mealSes&&txt[a-1]&&txt[a-1].tr)chunkText(txt[a-1].tr,180).forEach(c=>out.push(Object.assign(ttsTrack(c,"tr-TR",SURE_TR[s-1]+" · "+a+". âyet meali","Diyanet meali",art,grp),{hl:s+"_"+a})))}
   return out}
 function kuranTop(){const o=store.get("mk_okuma",null);
-  return `<div class="seg"><button data-kmod="dinle" class="${kuranMod==="dinle"?"on":""}">🎧 Sûre dinle</button><button data-kmod="oku" class="${kuranMod==="oku"?"on":""}">📖 Oku · âyet âyet</button></div>
+  return `<div class="seg"><button data-kmod="oku" class="${kuranMod==="oku"?"on":""}">📖 Meal ile oku-dinle</button><button data-kmod="dinle" class="${kuranMod==="dinle"?"on":""}">🎧 Hâfızdan tam sûre</button></div>
   ${o&&o.s?`<button class="row" id="okDevam" style="border-radius:16px;margin-bottom:12px"><span class="no" style="font-size:20px">🔖</span><span class="t"><b>Kaldığın yer: ${esc(SURE_TR[o.s-1])}, ${o.a}. âyet</b><span>Okumaya ve dinlemeye oradan devam et</span></span><span class="go">›</span></button>`:""}
   ${kuranMod==="oku"?`<div class="note" style="margin:0 0 12px">Bir sûreye dokun: Arapça metin, okunuşu ve Diyanet meali açılır, âyet âyet dinlersin. 📺 Takip ekranı videodaki gibi büyük gösterir, 📘 o âyetin tefsirini açar. Ezber için her âyeti 3 ya da 5 kez tekrarlatabilirsin.</div>`:""}`}
 function vSureOku(){const n=openSure,txt=SURE_TXT[n],o=store.get("mk_okuma",null);
   return `<button class="pill ghost" id="okBack">‹ Sûreler</button>
   <div class="bigcard" style="margin-top:12px"><div class="ttl">${n}. ${esc(SURE_TR[n-1])} Sûresi <span class="ar" style="font-size:22px">${SURE_AR[n-1]}</span></div><div class="muted small">${AYET[n-1]} âyet · Arapça metin, Diyanet meali, el-Afâsî tilaveti</div>
-  <div class="ctrl"><button class="pill acc" id="okTakip" style="font-size:16px">📺 Takip ekranında dinle</button><button class="pill" data-ayp="1">▶ Baştan dinle</button>${o&&o.s===n?`<button class="pill" data-ayp="${o.a}">🔖 ${o.a}. âyetten</button>`:""}<button class="pill ghost" id="okTek">Tekrar ${tekrar}×</button><button class="pill ghost" id="okMs">Meal sesli: ${mealSes?"açık":"kapalı"}</button><button class="pill ghost" id="okMg">Meal ${mealGoster?"görünür":"gizli"}</button><button class="pill ghost" id="okOk">Okunuş ${okGoster?"görünür":"gizli"}</button></div></div>
+  <div class="ctrl"><button class="pill acc" id="okTakip" style="font-size:16px">📺 Takip ekranında dinle</button><button class="pill" data-ayp="1">▶ Âyet âyet (Arapça + meal)</button><button class="pill ghost" id="okHafiz">🎧 Hâfızdan tam sûre</button>${o&&o.s===n?`<button class="pill" data-ayp="${o.a}">🔖 ${o.a}. âyetten</button>`:""}<button class="pill ghost" id="okTek">Tekrar ${tekrar}×</button><button class="pill ghost" id="okMs">Meal sesli: ${mealSes?"açık":"kapalı"}</button><button class="pill ghost" id="okMg">Meal ${mealGoster?"görünür":"gizli"}</button><button class="pill ghost" id="okOk">Okunuş ${okGoster?"görünür":"gizli"}</button></div></div>
   ${sureLoading?`<div class="empty" style="margin-top:12px">Sûre yükleniyor…</div>`:""}${sureErr?`<div class="empty" style="margin-top:12px">${esc(sureErr)} <button class="pill" id="okRetry">Tekrar dene</button></div>`:""}
   ${txt?`<div style="display:grid;gap:8px;margin-top:12px">${txt.map((x,i)=>`<div class="dua ayet" data-hl="${n}_${i+1}"><div class="head"><span class="cnt">${i+1}. âyet</span><span class="ctrl"><button class="pill" data-ayp="${i+1}" style="padding:6px 12px">▶ Buradan</button><button class="pill ghost" data-aybm="${i+1}" style="padding:6px 12px" aria-label="Kaldığım yer">🔖</button><button class="pill ghost" data-tk="${i+1}" style="padding:6px 12px" aria-label="Takip ekranı">📺</button><a class="pill ghost" target="_blank" rel="noopener" href="${tefsirLink(n,i+1)}" style="padding:6px 12px" aria-label="Tefsir">📘</a></span></div><div class="ar">${esc(x.ar)}</div>${okGoster&&x.ok?`<div class="read">${esc(x.ok)}</div>`:""}${mealGoster?`<div class="mean">${esc(x.tr)}</div>`:""}</div>`).join("")}</div>
   <div class="small muted" style="margin-top:10px">Metin ve meal: alquran.cloud (Diyanet İşleri meali).</div>`:""}`}
 function bKuranExtra(){
-  document.querySelectorAll("[data-kmod]").forEach(b=>b.onclick=()=>{kuranMod=b.dataset.kmod;store.set("mk_kmod",kuranMod);renderView()});
-  const dv=$("#okDevam");if(dv)dv.onclick=()=>{const o=store.get("mk_okuma",null);if(!o)return;openSure=o.s;kuranMod="oku";store.set("mk_kmod","oku");renderView();toTop();loadSure(o.s)};
+  document.querySelectorAll("[data-kmod]").forEach(b=>b.onclick=()=>{kuranMod=b.dataset.kmod;store.set("mk_kmod2",kuranMod);renderView()});
+  const dv=$("#okDevam");if(dv)dv.onclick=()=>{const o=store.get("mk_okuma",null);if(!o)return;openSure=o.s;kuranMod="oku";store.set("mk_kmod2","oku");renderView();toTop();loadSure(o.s)};
   if(!openSure)return;const n=openSure;
   $("#okBack").onclick=()=>{openSure=null;renderView()};
   const rt=$("#okRetry");if(rt)rt.onclick=()=>{sureErr="";loadSure(n)};
   $("#okTek").onclick=()=>{const t=[1,3,5,7];tekrar=t[(t.indexOf(tekrar)+1)%t.length];store.set("mk_tekrar",tekrar);renderView()};
-  $("#okMs").onclick=()=>{mealSes=!mealSes;store.set("mk_mealses",mealSes);renderView()};
+  $("#okMs").onclick=()=>{mealSes=!mealSes;store.set("mk_mealses2",mealSes);renderView()};
   $("#okMg").onclick=()=>{mealGoster=!mealGoster;store.set("mk_mealg",mealGoster);renderView()};
+  $("#okHafiz").onclick=()=>playQueue(Array.from({length:115-n},(_,i)=>sureTrack(n+i)),0);
   $("#okOk").onclick=()=>{okGoster=!okGoster;store.set("mk_okg",okGoster);renderView()};
   $("#okTakip").onclick=()=>{if(!SURE_TXT[n]){toast("Sûre yükleniyor, birazdan tekrar dene");return}const o=store.get("mk_okuma",null);takipAc(n,o&&o.s===n?o.a:1)};
   document.querySelectorAll("[data-tk]").forEach(b=>b.onclick=()=>takipAc(n,+b.dataset.tk));
@@ -1521,7 +1523,7 @@ function bBugunExtra(){
   const go=(t,s)=>{tab=t;if(t==="kulliyat")kulSeg=s;if(t==="dinle"){dinleSeg=s;openSeries=null}renderView();toTop()};
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
   on("#aylikBtn",aylikAc);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));on("#vcPay",()=>{const v=vecGunun(0);if(v)paylas(vecMetin(v))});on("#vcSes",()=>{const v=vecGunun(0);if(v)playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)});
-  on("#okuBtn",()=>{kuranMod="oku";store.set("mk_kmod","oku");openSure=null;go("dinle","kuran")});
+  on("#okuBtn",()=>{kuranMod="oku";store.set("mk_kmod2","oku");openSure=null;go("dinle","kuran")});
   on("#dlistBtn",()=>{bugSeg="dualar";duaSeg2="liste";renderView();setTimeout(()=>{const s=document.querySelector("[data-dseg2]");if(s)s.scrollIntoView({block:"start"})},50)});
   on("#davetAc",async()=>{if(await pushEnable())renderView()});on("#davetGizle",()=>{store.set("mk_push_gizle",true);renderView()});
   on("#dlEkle",()=>{const a=$("#dlAd").value.trim();if(!a){toast("İsim yaz");return}DLIST.push({id:"d"+Date.now(),ad:a,not:$("#dlNot").value.trim(),say:0,son:""});store.set("mk_dlist",DLIST);renderView()});
