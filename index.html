@@ -500,8 +500,8 @@ function toggleFav(info){if(FAV[info.key])delete FAV[info.key];else FAV[info.key
 function addNote(info,t,text){NOTES.push({id:"n"+Date.now(),key:info.key,ctx:info.ctx,title:info.title,sub:info.sub,t:t,text:text,date:Date.now()});saveLib();toast("Not kaydedildi")}
 function addRecent(t){if(!t.ctx)return;RECENT=RECENT.filter(r=>r.key!==t.key);RECENT.unshift({key:t.key,ctx:t.ctx,title:t.title,sub:t.sub,date:Date.now()});RECENT=RECENT.slice(0,40);saveLib()}
 let GEN=0,EXP="";
-const DEEP=()=>SET.ton!=="normal";
-function setTone(t){const deep=!!(t&&t.tts&&DEEP());try{au.preservesPitch=!deep;au.webkitPreservesPitch=!deep;au.mozPreservesPitch=!deep}catch(e){}au.playbackRate=t&&t.live?1:(deep?0.8:rate)}
+const DEEP=()=>false;
+function setTone(t){const deep=!!(t&&t.tts&&DEEP());try{au.preservesPitch=!deep;au.webkitPreservesPitch=!deep;au.mozPreservesPitch=!deep}catch(e){}au.playbackRate=t&&(t.live||t.tts)?1:rate}
 function stopSpeech(){try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}}
 function unlockSpeech(){try{if("speechSynthesis" in window&&!unlockSpeech.done){const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.speak(u);unlockSpeech.done=1}}catch(e){}}
 function playQueue(list,i){if(!list||!list.length)return;GEN++;stopSpeech();try{au.pause()}catch(e){}failStreak=0;Q=list;qi=i||0;lockStop(true);if(guardOn){guardOn=false;zau.pause();zau.removeAttribute("src")}if(Q[qi].tts)unlockSpeech();loadCur(true)}
@@ -883,7 +883,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 19</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 20</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -911,12 +911,13 @@ function setSleep(min){clearTimeout(sleepTimer);sleepEnd=false;sleepAt=0;if(min)
 function vUyku(){const kalan=sleepAt?Math.max(0,Math.ceil((sleepAt-Date.now())/60000)):0;
   return `<div class="bigcard" style="background:linear-gradient(135deg,#1d2350,#3b2a63);color:#fff"><span class="small" style="font-weight:700;letter-spacing:.06em;opacity:.85">UYKU ZAMANLAYICISI</span><div class="ttl">${kalan?kalan+" dakika sonra kapanacak":"Kapalı"}</div>
    <div class="ctrl">${[15,30,45,60,90].map(m=>`<button class="pill" style="background:rgba(255,255,255,.18);color:#fff" data-sleep="${m}">${m} dk</button>`).join("")}<button class="pill" style="background:rgba(255,255,255,.08);color:#fff" data-sleep="0">Kapat</button></div></div>
-   <h2>Sakinleştiren sesler</h2><div class="cards">${SESLER.map(([k,n,d,h])=>`<button class="card" data-amb="${k}" style="background:color-mix(in srgb,hsl(${h} 60% 50%) 20%,var(--surface))"><span class="tag" style="color:hsl(${h} 70% ${isDark()?68:34}%)">Sonsuz döngü</span><b>${esc(n)}</b><span>${esc(d)}</span></button>`).join("")}</div>
+   <h2>🎶 Ney</h2><div class="cards">${NEY.map(x=>`<button class="card" data-ney="${x.k}" style="background:color-mix(in srgb,hsl(${x.h} 55% 45%) 22%,var(--surface))"><span class="tag" style="color:hsl(${x.h} 70% ${isDark()?68:34}%)">Ney</span><b>${esc(x.n)}</b><span>${esc(x.d)}</span></button>`).join("")}</div>
    <h2>Uyku öncesi Kur'ân</h2><div class="cards"><button class="card" data-sleepq="minshm"><span class="tag">Minşâvî · mücevved</span><b>Mülk, Secde, Vâkıa</b><span>Yavaş ve derin bir tilavet</span></button><button class="card" data-sleepq="basitm"><span class="tag">Abdulbâsıt · mücevved</span><b>Rahmân, Yâsîn, Mülk</b><span>Uykuya dalarken dinle</span></button><button class="card" data-sleepq="fakih"><span class="tag">Muhammed el-Fakîh</span><b>İhlâs, Felak, Nâs, Mülk</b><span>Kısa ve sakin</span></button></div>
    <h2>Yatmadan önce</h2><div class="ctrl"><button class="pill acc" id="yatsiDua">▶ Yatsı dualarını dinle</button><a class="pill ghost" target="_blank" rel="noopener" href="https://music.apple.com/tr/album/allahu-allah-i-lahi-ninniler/1737345705?i=1737345706">İlahi ninniler (Ammar Acarlıoğlu)</a></div>
-   <div class="note">Bir sese ya da tilavete basınca zamanlayıcı 30 dakikaya kendiliğinden kurulur. Ekranı kilitleyebilirsin.</div>`}
+   <div class="note">Ney'e ya da bir tilavete basınca zamanlayıcı 30 dakikaya kendiliğinden kurulur. Ekranı kilitleyebilirsin.</div>`}
 function bUyku(){
   document.querySelectorAll("[data-sleep]").forEach(b=>b.onclick=()=>setSleep(+b.dataset.sleep));
+  document.querySelectorAll("[data-ney]").forEach(b=>b.onclick=()=>neyCal(b.dataset.ney));
   document.querySelectorAll("[data-amb]").forEach(b=>b.onclick=()=>{const k=b.dataset.amb,x=SESLER.find(y=>y[0]===k);playQueue([{title:x[1],sub:x[2],src:[genAmbient(k)],loop:true,art:makeArt("☾",x[1],x[3]),group:"Uyku"}],0);if(!sleepAt)setSleep(30)});
   document.querySelectorAll("[data-sleepq]").forEach(b=>b.onclick=()=>{const kid=b.dataset.sleepq,l=kid==="minshm"?[67,32,56]:kid==="basitm"?[55,36,67]:[112,113,114,67];playQueue(l.map(n=>sureTrack(n,kid)).map(t=>(t.group="Uyku",t)),0);if(!sleepAt)setSleep(30)});
   const yd=$("#yatsiDua");if(yd)yd.onclick=()=>{playQueue(VAKIT_DUA.yatsi.flatMap(([s_,i])=>duaTracks(DUALAR[s_][i],"Yatmadan önce")),0)};
@@ -957,7 +958,7 @@ function duaCard(d,ref){
 const ttsUrl=(t,l)=>`https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${l}&q=${encodeURIComponent(t)}`;
 function chunkText(t,max){t=String(t).replace(/[۝۞*]/g," ").replace(/\s+/g," ").trim();const w=t.split(" "),out=[];let cur="";
   w.forEach(x=>{if((cur+" "+x).trim().length>max&&cur){out.push(cur.trim());cur=""}cur+=" "+x;if(cur.length>max*.55&&/[.,;:!?،؛…ۚۖۗ]$/.test(x)){out.push(cur.trim());cur=""}});if(cur.trim())out.push(cur.trim());return out}
-const ttsTrack=(text,lang,title,sub,art,group)=>({title,sub,src:[ttsUrl(text,lang==="ar-SA"?"ar":"tr")],tts:{text,lang},art,group:group||"Dua"});
+const ttsTrack=(text,lang,title,sub,art,group)=>({title,sub,src:[SET.ses==="cihaz"?SES_BOS:ttsUrl(text,lang==="ar-SA"?"ar":"tr")],tts:{text,lang},art,group:group||"Dua"});
 function duaTracks(d,group){const art=makeArt("دعاء",d.n.slice(0,24),150),out=[];
   if(d.ay)out.push(...ayahTracks(d.ay,d.n).map(t=>(t.group=group||"Dua",t)));
   else if(d.ar)chunkText(d.ar,170).forEach(c=>out.push(ttsTrack(c,"ar-SA",d.n,"Arapça",art,group)));
@@ -966,7 +967,7 @@ function duaTracks(d,group){const art=makeArt("دعاء",d.n.slice(0,24),150),ou
 function zikirTracks(z){const art=makeArt(String(z.r).slice(0,10),"Zikir",168),out=[];if(z.ar)chunkText(z.ar,170).forEach(c=>out.push(ttsTrack(c,"ar-SA",z.r,"Arapça",art,"Zikir")));if(SET.meal!==false&&z.m)out.push(ttsTrack(z.m,"tr-TR",z.r+" · Anlamı","Türkçe",art,"Zikir"));return out}
 function esmaTracks(){const out=[];ESMA.forEach(([a,t,m],i)=>{const art=makeArt(a,t,280);out.push(ttsTrack(a,"ar-SA",(i+1)+". "+t,"Esmâ-ül Hüsnâ",art,"Esmâ-ül Hüsnâ"));if(SET.meal!==false)out.push(ttsTrack(t.replace(/^(el|er|es|eş|ez|et|ed|en)-/,"")+". "+m,"tr-TR",(i+1)+". "+t+" · Anlamı","Esmâ-ül Hüsnâ",art,"Esmâ-ül Hüsnâ"))});return out}
 function speakThen(text,lang,cb){if(!("speechSynthesis" in window)){cb&&cb();return}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang;const vs=speechSynthesis.getVoices().filter(x=>(x.lang||"").toLowerCase().replace("_","-").startsWith(lang.slice(0,2))),male=/maged|majed|tarik|tariq|hamed|naayf|cem|ahmet|mehmet|male|erkek/i,fem=/yelda|laila|mariam|zeina|hoda|filiz|seda|female|kadın/i;
-  const v=vs.find(x=>male.test(x.name))||vs.find(x=>!fem.test(x.name))||vs[0];if(v)u.voice=v;u.pitch=DEEP()&&!(v&&male.test(v.name))?0.6:1;u.rate=lang.startsWith("ar")?.8:.95;let done=false,started=false;const fin=()=>{if(!done){done=true;cb&&cb()}};u.onstart=()=>{started=true};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(()=>{if(!started)fin()},2500);setTimeout(fin,Math.max(8000,text.length*180))}catch(e){cb&&cb()}}
+  const v=lang.startsWith("tr")?sesSec(vs):(vs.find(x=>male.test(x.name))||vs.find(x=>!fem.test(x.name))||vs[0]);if(v)u.voice=v;u.pitch=1;u.rate=lang.startsWith("ar")?.85:1;let done=false,started=false;const fin=()=>{if(!done){done=true;cb&&cb()}};u.onstart=()=>{started=true};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(()=>{if(!started)fin()},2500);setTimeout(fin,Math.max(8000,text.length*180))}catch(e){cb&&cb()}}
 function speak(text,times){
   if(!("speechSynthesis" in window)){toast("Bu cihaz sesli okumayı desteklemiyor");return}
   speechSynthesis.cancel();const vs=speechSynthesis.getVoices();const v=vs.find(x=>/^ar/i.test(x.lang));
@@ -1261,7 +1262,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=19;
+const SURUM=20;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1554,7 +1555,9 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <label class="small muted" style="display:grid;gap:4px">Tema<select id="aTema"><option value="">Telefona göre</option><option value="light" ${SET.tema==="light"?"selected":""}>Açık</option><option value="dark" ${SET.tema==="dark"?"selected":""}>Koyu</option></select></label>
    <label class="small muted" style="display:grid;gap:4px">Arapça yazı boyutu<select id="aArz">${[[0.9,"Küçük"],[1,"Normal"],[1.2,"Büyük"],[1.45,"Çok büyük"]].map(([v,l])=>`<option value="${v}" ${(SET.arz||1)==v?"selected":""}>${l}</option>`).join("")}</select></label>
    <label class="small muted" style="display:grid;gap:4px">Günlük zikir hedefi (0 = kapalı)<input type="number" inputmode="numeric" id="aZh" value="${SET.zhedef||0}"></label>
-   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="aTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
+   <label class="small muted" style="display:grid;gap:4px">🔊 Okuyucu sesi (dua, hadis, meal)<select id="aSes"></select></label>
+   <button class="pill ghost" id="aSesDene" style="justify-self:start">▶ Sesi dene</button>
+   <div class="small muted" style="margin-top:-4px">iPhone'da daha güzel bir ses için: Ayarlar → Erişilebilirlik → Seslendirilen İçerik → Sesler → Türkçe → “Gelişmiş/Premium” bir sesi indir, sonra burada seç (★).</div>
    <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="aMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
    <button class="pill acc" id="aKaydet" style="justify-self:start">💾 Kaydet</button></div>
   <h2>Sohbet araması (isteğe bağlı)</h2>
@@ -1583,7 +1586,7 @@ function bAyarlar(){
   on("#kaydetBtn",async()=>{try{if(Notification.permission!=="granted"){await pushEnable();return}await pushSubscribe();toast("📲 Bu cihaz kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
   on("#denemeBtn",async()=>{try{if(!store.get("mk_push_on",false))await pushSubscribe()}catch(e){toast("Önce bildirimleri aç: "+e.message);return}
     denemeAc()});
-  hatRender();
+  hatRender();sesListeDoldur();on("#aSesDene",sesDene);
   const sif=()=>{const s=$("#hatSifre").value.trim();if(!s){toast("Kasa şifresini yaz");return""}store.set("mk_kasa_sifre",$("#hatHatirla").checked?s:"");return s};
   on("#hatGetir",async()=>{const s=sif();if(!s)return;try{HAT=await hatListe(s);hatRender();toast("📥 "+HAT.length+" hatırlatma getirildi")}catch(e){toast("Getirilemedi: "+e.message)}});
   on("#hatYeni",()=>{HAT.push({id:"h"+Date.now(),saat:"08:00",gunler:[],baslik:"🕌 Maneviyat · ",govde:"",url:"#bugun",hedef:{},aktif:true});hatRender();const b=[...document.querySelectorAll("#hatList [data-hf=baslik]")].pop();if(b){b.scrollIntoView({block:"center"});b.focus();b.setSelectionRange(b.value.length,b.value.length)}toast("Saat, gün, başlık ve metni yaz; sonra 💾 Kasaya kaydet")});
@@ -1593,7 +1596,7 @@ function bAyarlar(){
   on("#hatKaydet",async()=>{const s=sif();if(!s)return;const liste=otoItems(HAT.map(hatTemiz));
     try{await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste});HAT=liste;store.set("mk_hat_vakit_t",todayKey());hatRender();toast("✅ "+liste.length+" hatırlatma kasaya kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
   on("#aKaydet",()=>{const c=$("#aCity").value.trim();if(c!==(SET.city||"")){TIMES=null;store.set("mk_hat_vakit_t","")}
-    Object.assign(SET,{city:c,ad:$("#aAd").value.trim(),tema:$("#aTema").value,arz:parseFloat($("#aArz").value)||1,zhedef:Math.max(0,parseInt($("#aZh").value,10)||0),ton:$("#aTon").checked?"kalin":"normal",meal:$("#aMeal").checked});
+    Object.assign(SET,{city:c,ad:$("#aAd").value.trim(),tema:$("#aTema").value,arz:parseFloat($("#aArz").value)||1,zhedef:Math.max(0,parseInt($("#aZh").value,10)||0),ton:"normal",ses:$("#aSes").value==="google"?"google":"cihaz",sesAd:["google","__oto"].includes($("#aSes").value)?"":$("#aSes").value,meal:$("#aMeal").checked});
     store.set("mk_set",SET);applyTheme();setAccent();toast("Ayarlar kaydedildi");if(store.get("mk_push_on",false))pushSubscribe().catch(()=>{})});
   on("#sKaydet",()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim()});store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);toast("Kaydedildi")});
   on("#yedekAl",yedekAl);const yd=$("#yedekDosya");if(yd)yd.onchange=()=>{if(yd.files[0])yedekYukle(yd.files[0])};
@@ -1677,6 +1680,22 @@ function ekleRehberi(){const icUyg=/FBAN|FBAV|Instagram|WhatsApp|Line\/|GSA\//i.
   ${icUyg?`<div class="note" style="margin:0"><b>WhatsApp ya da Instagram içinden açtın.</b> Önce sağ alttaki/üstteki menüden <b>“Safari'de aç”</b>a dokun.</div>`:""}
   <ol class="small" style="margin:0;padding-left:20px;display:grid;gap:6px"><li>Safari'de adres çubuğundaki <b>Paylaş ⬆️</b> düğmesine dokun (yeni iPhone'larda önce <b>•••</b>, sonra <b>Paylaş</b>).</li><li>Listeyi kaydırıp <b>“Ana Ekrana Ekle”</b>yi seç, sağ üstte <b>Ekle</b>.</li><li>Safari'yi kapat, ana ekrandaki <b>hilal simgeli Maneviyat</b>'ı aç.</li><li>Orada <b>🔔 Bildirimleri aç</b>'a bas, “İzin ver” de.</li></ol>
   <button class="pill acc" id="mNo">Anladım</button>`,()=>{$("#mNo").onclick=closeModal})}
+
+/* ---------- Okuyucu sesi: bozulmasız, doğal ses ---------- */
+const SES_BOS="data:audio/mpeg;base64,";
+function trSesler(){try{return speechSynthesis.getVoices().filter(v=>/^tr/i.test(v.lang||""))}catch(e){return[]}}
+function sesSec(vs){if(!vs||!vs.length)return null;const ad=SET.sesAd||"";const k=ad&&vs.find(v=>v.name===ad);if(k)return k;
+  const iyi=/premium|enhanced|gelişmiş|neural|natural|online/i;return vs.find(v=>iyi.test(v.name))||vs.find(v=>v.localService===false)||vs[0]}
+function sesListeDoldur(){const el=$("#aSes");if(!el)return;const vs=trSesler(),cur=SET.ses==="cihaz"?(SET.sesAd||"__oto"):"google";
+  el.innerHTML=`<option value="google">Google Türkçe sesi (önerilen · ekran kapalıyken de okur)</option>`+(vs.length?`<option value="__oto">Telefonun en iyi Türkçe sesi (otomatik)</option>`+vs.map(v=>`<option value="${esc(v.name)}">Telefon: ${esc(v.name)}${/premium|enhanced|gelişmiş/i.test(v.name)?" ★":""}</option>`).join(""):"");el.value=[...el.options].some(o=>o.value===cur)?cur:"google"}
+try{speechSynthesis.onvoiceschanged=()=>sesListeDoldur()}catch(e){}
+function sesDene(){const v=$("#aSes").value,t="Ameller ancak niyetlere göredir. Herkese ancak niyet ettiği şey vardır.";
+  if(v==="google"){playQueue([{title:"Ses denemesi",sub:"Google Türkçe sesi",src:[ttsUrl(t,"tr")],tts:{text:t,lang:"tr-TR"},art:makeArt("🔊","Ses denemesi",150),group:"Deneme"}],0);return}
+  const o={ses:SET.ses,sesAd:SET.sesAd};SET.ses="cihaz";SET.sesAd=v==="__oto"?"":v;speakThen(t,"tr-TR",()=>{});SET.ses=o.ses;SET.sesAd=o.sesAd}
+/* ---------- Ney ---------- */
+const NEY=[{k:"ney1",n:"Ney taksimi",d:"Uzun, sakin bir ney dinletisi · 70 dk",u:"https://archive.org/download/ney-taksim/Ney-Taksim.mp3",h:35,loop:false},
+ {k:"ney2",n:"Irak makamında taksim",d:"Neyzen Bülent Özbek · kısa, tekrar eder",u:"https://archive.org/download/BulentOzbekIrakTaksim/"+encodeURIComponent("Tksm.BülentÖzbek- Irak Taksim.mp3"),h:190,loop:true}];
+function neyCal(k){const x=NEY.find(y=>y.k===k);if(!x)return;playQueue([{title:x.n,sub:x.d,src:[x.u],loop:x.loop,art:makeArt("نی",x.n,x.h),group:"Ney"}],0);if(!sleepAt)setSleep(30)}
 
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
