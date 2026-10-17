@@ -895,7 +895,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 23</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 24</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1242,7 +1242,8 @@ function bBugun(){
 
 /* --- Külliyat --- */
 function vKulliyat(){
-  const seg=`<div class="seg">${[["soz","Sözler"],["risale","Risale-i Nur"],["hadis","Kırk Hadis"],["esma","Esmâ"],["ilahi","İlahiler"],["film","Film"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  const seg=`<div class="seg">${[["soz","Sözler"],["alim","Âlimler"],["risale","Risale-i Nur"],["hadis","Kırk Hadis"],["esma","Esmâ"],["ilahi","İlahiler"],["film","Film"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  if(kulSeg==="alim")return seg+vAlimler();
   if(kulSeg==="risale")return seg+vRisale();
   if(kulSeg==="hadis")return seg+vHadis();
   if(kulSeg==="soz")return seg+`<h2 style="margin-top:4px">Âyetler, hadisler, Yunus Emre</h2>${SOZLER.map(x=>`<div class="soz" style="margin-bottom:10px"><div class="soz-t">${esc(x.t)}</div><div class="small muted">${esc(x.s)}</div></div>`).join("")}
@@ -1274,7 +1275,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=23;
+const SURUM=24;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1448,7 +1449,7 @@ function vHadis(){const ez=store.get("mk_hadis_ez",{}),n=KIRK.filter(([no])=>ez[
 function bHadis(){const ha=$("#hdAll");if(ha)ha.onclick=()=>playQueue(KIRK.map(hadisTrack),0);
   document.querySelectorAll("[data-hdp]").forEach(b=>b.onclick=()=>{const i=KIRK.findIndex(x=>String(x[0])===b.dataset.hdp);playQueue(KIRK.map(hadisTrack),i)});
   document.querySelectorAll("[data-hdez]").forEach(b=>b.onclick=()=>{const ez=store.get("mk_hadis_ez",{}),k=b.dataset.hdez;if(ez[k])delete ez[k];else ez[k]=1;store.set("mk_hadis_ez",ez);renderView()})}
-function bKulExtra(){if(kulSeg==="risale")bRisale();if(kulSeg==="hadis")bHadis();
+function bKulExtra(){if(kulSeg==="alim")bAlimler();if(kulSeg==="risale")bRisale();if(kulSeg==="hadis")bHadis();
   document.querySelectorAll("[data-kgo]").forEach(b=>b.onclick=()=>{kulSeg=b.dataset.kgo;renderView();toTop()});
   document.querySelectorAll("#view [data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);toTop()})}
 
@@ -1849,6 +1850,38 @@ function vEzgi(){return `<h2>🎵 Ezgilerle · Eşref Ziya Terzi</h2><div class=
   <div class="ctrl"><button class="pill acc" id="ezAll">▶ ${esc(EZ_ALBUM.n)} albümünü dinle</button><a class="pill" target="_blank" rel="noopener" href="https://open.spotify.com/search/${encodeURIComponent("Eşref Ziya Terzi")}">Spotify</a><a class="pill" target="_blank" rel="noopener" href="${yt("Eşref Ziya Terzi")}">YouTube</a><a class="pill ghost" target="_blank" rel="noopener" href="${yt("Risale-i Nur vecizeleri ezgi")}">Risale vecizeleri ezgileri</a></div>
   <div class="list">${ezTracks().map((t,i)=>`<button class="row" data-ez="${i}"><span class="no">${i+1}</span><span class="t"><b>${esc(t.title)}</b><span>${esc(t.sub)}</span></span></button>`).join("")}</div></div>`}
 function bEzgi(){const a=$("#ezAll");if(a)a.onclick=()=>playQueue(ezTracks(),0);document.querySelectorAll("[data-ez]").forEach(b=>b.onclick=()=>playQueue(ezTracks(),+b.dataset.ez))}
+
+/* ---------- Âlimler: videolar (Türkçe altyazılı), sözleri, eserleri ---------- */
+const ALT="&sp=EgIoAQ%253D%253D";
+const ALIMLER=[
+ {n:"Muhammed Mütevelli eş-Şa'râvî",k:"Şaravi",y:"1911–1998 · Mısır",d:"Ezher âlimi, müfessir. Televizyonda yıllarca anlattığı “Havâtır” tefsir dersleriyle tanınır.",q:["Şaravi türkçe altyazılı","Şeyh Şaravi türkçe altyazı","Muhammed Mütevelli Şaravi türkçe","Şaravi tefsir türkçe altyazılı"],h:35,one:1},
+ {n:"Hasan el-Bennâ",k:"Hasan el-Benna",y:"1906–1949 · Mısır",d:"Öğretmen ve dava adamı; İhvân-ı Müslimîn'in kurucusu. Risaleleri ve Memuarları Türkçede yayımlandı.",q:["Hasan el Benna türkçe altyazılı","Hasan el Benna"],h:140},
+ {n:"Seyyid Kutub",k:"Seyyid Kutub",y:"1906–1966 · Mısır",d:"Edebiyatçı ve müfessir; “Fî Zılâli'l-Kur'ân” tefsirinin sahibi.",q:["Seyyid Kutub türkçe altyazılı","Seyyid Kutub"],h:10},
+ {n:"Bediüzzaman Said Nursî",k:"Bediüzzaman",y:"1878–1960 · Türkiye",d:"Risale-i Nur Külliyatı'nın müellifi.",q:["Bediüzzaman Said Nursi belgesel","Risale-i Nur sohbet"],h:150},
+ {n:"Elmalılı Hamdi Yazır",k:"Elmalılı",y:"1878–1942 · Türkiye",d:"“Hak Dini Kur'an Dili” tefsirinin müellifi.",q:["Elmalılı Hamdi Yazır hayatı","Hak Dini Kur'an Dili sesli"],h:200},
+ {n:"Mehmed Âkif Ersoy",k:"Mehmed Âkif",y:"1873–1936 · Türkiye",d:"İstiklal Marşı ve Safahat'ın şairi.",q:["Mehmet Akif Ersoy Safahat şiirleri","Mehmet Akif belgesel"],h:0},
+ {n:"Muhammed Hamidullah",k:"Hamidullah",y:"1908–2002 · Hindistan/Fransa",d:"Siyer ve hadis araştırmacısı; “İslam Peygamberi” kitabının yazarı.",q:["Muhammed Hamidullah belgesel","Muhammed Hamidullah"],h:180},
+ {n:"Ömer Nasuhi Bilmen",k:"Ömer Nasuhi Bilmen",y:"1883–1971 · Türkiye",d:"“Büyük İslâm İlmihali”nin müellifi; Diyanet İşleri Başkanlığı yaptı.",q:["Ömer Nasuhi Bilmen hayatı"],h:90},
+ {n:"Ebü'l-Hasan Ali en-Nedvî",k:"Nedvi",y:"1914–1999 · Hindistan",d:"Hint alt kıtasının önde gelen âlimi; “Müslümanların Gerilemesiyle Dünya Neler Kaybetti?” kitabı Türkçede bilinir.",q:["Ebul Hasan Nedvi türkçe altyazılı","Ebul Hasan Ali Nedvi"],h:120},
+ {n:"Muhammed el-Gazâlî",k:"Muhammed Gazali",y:"1917–1996 · Mısır",d:"Ezher âlimi, dâvetçi ve yazar.",q:["Muhammed Gazali türkçe altyazılı"],h:60},
+ {n:"Muhammed Said Ramazan el-Bûtî",k:"Buti",y:"1929–2013 · Suriye",d:"Şam'da hocalık yaptı; “Fıkhu's-Sîre” siyer kitabı Türkçede okunur.",q:["Said Ramazan el Buti türkçe altyazılı"],h:260},
+ {n:"Yusuf el-Karadâvî",k:"Karadavi",y:"1926–2022 · Mısır/Katar",d:"Fıkıh âlimi ve yazar; “İslam'da Helal ve Haram” kitabı Türkçede yaygındır.",q:["Yusuf el Karadavi türkçe altyazılı"],h:300},
+ {n:"İmam Gazâlî",k:"İmam Gazali",y:"1058–1111 · Horasan",d:"“İhyâu Ulûmi'd-Dîn”in müellifi; Hüccetü'l-İslâm.",q:["İmam Gazali hayatı belgesel","İhyau Ulumiddin sesli"],h:45},
+ {n:"Abdülkâdir Geylânî",k:"Abdülkadir Geylani",y:"1077–1166 · Bağdat",d:"Bağdat'ta vaaz ve irşadıyla tanınan büyük mutasavvıf.",q:["Abdülkadir Geylani hayatı"],h:20},
+ {n:"Mevlânâ Celâleddîn-i Rûmî",k:"Mevlana",y:"1207–1273 · Konya",d:"Mesnevî'nin müellifi.",q:["Mesnevi sesli kitap","Mevlana hayatı belgesel"],h:330},
+ {n:"Yunus Emre",k:"Yunus Emre",y:"1240?–1321? · Anadolu",d:"Anadolu'nun gönül şairi; ilahileri bugün de okunur.",q:["Yunus Emre ilahileri","Yunus Emre şiirleri"],h:100},
+ {n:"İmam Nevevî",k:"Nevevi",y:"1233–1277 · Şam",d:"“Riyâzü's-Sâlihîn” ve “Kırk Hadis”in derleyicisi.",q:["Riyazüs Salihin sesli","İmam Nevevi hayatı"],h:220},
+ {n:"İbn Kayyim el-Cevziyye",k:"İbn Kayyim",y:"1292–1350 · Şam",d:"“Zâdü'l-Meâd” ve “Medâricü's-Sâlikîn”in yazarı.",q:["İbn Kayyim el Cevziyye türkçe"],h:240}];
+const alimLink=(q,altyazi)=>yt(q)+(altyazi?ALT:"");
+const gLink=q=>"https://www.google.com/search?q="+encodeURIComponent(q);
+function vAlimler(){const f=ALIMLER.find(a=>a.one);
+  return `<div class="bigcard" style="background:linear-gradient(135deg,color-mix(in srgb,hsl(35 70% 45%) 30%,var(--surface)),var(--surface))"><span class="small" style="font-weight:700;letter-spacing:.06em;color:var(--accent)">ÖNE ÇIKAN · ${esc(f.y)}</span><div class="ttl">${esc(f.n)}</div><div class="muted small">${esc(f.d)}</div>
+   <div class="ctrl">${f.q.map((q,i)=>`<a class="pill ${i?"":"acc"}" target="_blank" rel="noopener" href="${alimLink(q,true)}">${i?"▶ "+esc(q.replace(/türkçe altyazı(lı)?/i,"").trim()):"▶ Türkçe altyazılı tüm videoları"}</a>`).join("")}<a class="pill ghost" target="_blank" rel="noopener" href="${gLink(f.k+" sözleri")}">💬 Sözleri</a><a class="pill ghost" target="_blank" rel="noopener" href="${gLink(f.k+" kitapları türkçe")}">📚 Kitapları</a><button class="pill ghost" data-alimsoh="${esc(f.k)}">🎧 Uygulamada sesli ara</button></div>
+   <div class="small muted">Düğmeler YouTube'u yalnız <b>altyazılı</b> videolar süzgeciyle açar; videoda ⚙ → Altyazı → Türkçe'yi seç.</div></div>
+  <h2>🕌 İslam âlimleri</h2><div class="list">${ALIMLER.filter(a=>!a.one).map(a=>`<div class="nrow" style="align-items:flex-start;display:grid;gap:8px"><span class="tx"><b style="display:block;color:hsl(${a.h} 60% ${isDark()?68:36}%)">${esc(a.n)}</b><span>${esc(a.y)} · ${esc(a.d)}</span></span>
+   <span class="ctrl"><a class="pill" style="padding:6px 12px;font-size:13px" target="_blank" rel="noopener" href="${alimLink(a.q[0],/altyaz/i.test(a.q[0]))}">▶ Videolar</a><a class="pill ghost" style="padding:6px 12px;font-size:13px" target="_blank" rel="noopener" href="${gLink(a.k+" sözleri")}">💬 Sözleri</a><a class="pill ghost" style="padding:6px 12px;font-size:13px" target="_blank" rel="noopener" href="${gLink(a.k+" kitapları")}">📚 Eserleri</a><button class="pill ghost" style="padding:6px 12px;font-size:13px" data-alimsoh="${esc(a.k)}">🎧 Sesli</button></span></div>`).join("")}</div>
+  <div class="note">Yıllar ve tanıtım cümleleri kısa bilgi içindir. Sözler için uygulama arama açar; bir söze ancak kaynağını doğruladıktan sonra güvenmek gerekir, çünkü internette âlimlere ait olmayan pek çok söz dolaşıyor.</div>`}
+function bAlimler(){document.querySelectorAll("[data-alimsoh]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.alimsoh);toTop()})}
 
 /* ===================== Kendi adresini koru ===================== */
 (function(){if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
