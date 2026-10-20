@@ -203,6 +203,10 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
 .gn{padding:6px 9px;border-radius:9px;background:var(--surface);font-size:13px;font-weight:600}
 .gn.on{background:var(--accent);color:var(--accent-ink)}
 .modal .box{max-height:88vh;overflow:auto}
+.modal.ust{place-items:start center;padding-top:calc(env(safe-area-inset-top,0px) + 14px)}
+.modal.ust .box{max-height:62vh}
+.modal textarea{min-height:120px;font-size:16px}
+.nrow .ed{flex:none;color:var(--muted);font-size:16px;padding:2px 6px}
 .vt{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}
 .vt th,.vt td{padding:6px 3px;text-align:center;border-bottom:1px solid var(--line)}
 .vt th{position:sticky;top:0;background:var(--surface)}
@@ -511,6 +515,23 @@ const saveLib=()=>{store.set("mk_fav",FAV);store.set("mk_notes",NOTES);store.set
 const notesFor=k=>NOTES.filter(n=>n.key===k).sort((a,b)=>(a.t||0)-(b.t||0));
 function toggleFav(info){if(FAV[info.key])delete FAV[info.key];else FAV[info.key]={ctx:info.ctx,title:info.title,sub:info.sub,date:Date.now()};saveLib();toast(FAV[info.key]?"Favorilere eklendi":"Favorilerden çıkarıldı")}
 function addNote(info,t,text){NOTES.push({id:"n"+Date.now(),key:info.key,ctx:info.ctx,title:info.title,sub:info.sub,t:t,text:text,date:Date.now()});saveLib();toast("Not kaydedildi")}
+function notePad(o){
+  /* o: {title, sub, info (kayıt bilgisi, isteğe bağlı), at (saniye), edit (var olan not)} */
+  const e=o.edit,t=Q[qi],canLink=!e&&!o.info&&t&&t.ctx;
+  openModal(`<h3>${e?"Notu düzenle":"Not al"}${o.at!=null?" · "+fmt(o.at):""}</h3>${o.sub?`<div class="small muted">${esc(o.sub)}</div>`:""}
+   <textarea id="npTxt" placeholder="Yaz ya da klavyedeki 🎤 ile söyle…">${esc(e?e.text:"")}</textarea>
+   ${canLink?`<label style="display:flex;gap:10px;align-items:center;font-size:14px"><input type="checkbox" id="npLink" style="width:20px;height:20px">Şu an çalana bağla: ${esc(t.title)}${t.live?"":" · "+fmt(au.currentTime)}</label>`:""}
+   <div class="ctrl"><button class="pill acc" id="npOk">Kaydet</button>${e?`<button class="pill ghost" id="npDel" style="color:#e05a4f">Sil</button>`:""}<button class="pill ghost" id="npNo">Vazgeç</button></div>`,()=>{
+    const ta=$("#npTxt");setTimeout(()=>{try{ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}catch(x){}},80);
+    $("#npNo").onclick=closeModal;
+    if(e)$("#npDel").onclick=()=>{NOTES=NOTES.filter(x=>x.id!==e.id);saveLib();closeModal();toast("Not silindi");refreshNotes()};
+    $("#npOk").onclick=()=>{const v=ta.value.trim();if(!v){toast("Notunu yaz");return}
+      if(e){e.text=v;e.edited=Date.now();saveLib();toast("Not güncellendi")}
+      else if(o.info)addNote(o.info,o.at,v);
+      else if(canLink&&$("#npLink").checked)addNote(t,t.live?null:Math.floor(au.currentTime),v);
+      else addNote({key:"serbest",ctx:null,title:o.title||"Serbest not",sub:""},null,v);
+      closeModal();refreshNotes()}})}
+function refreshNotes(){if(!$("#sheet").hidden)renderSheet();else if(tab==="kutuphane"||tab==="bugun")renderView()}
 function addRecent(t){if(!t.ctx)return;RECENT=RECENT.filter(r=>r.key!==t.key);RECENT.unshift({key:t.key,ctx:t.ctx,title:t.title,sub:t.sub,date:Date.now()});RECENT=RECENT.slice(0,40);saveLib()}
 let GEN=0,EXP="";
 const DEEP=()=>false;
@@ -557,7 +578,7 @@ function msPlayer(){
   set("seekbackward",()=>{if(!(Q[qi]&&Q[qi].live))au.currentTime=Math.max(0,au.currentTime-15)});set("seekforward",()=>{if(!(Q[qi]&&Q[qi].live))au.currentTime=au.currentTime+30});
 }
 $("#miniNote").onclick=quickNote;
-function quickNote(){const t=Q[qi];if(!t||!t.ctx){toast("Bu kayda not alınamıyor");return}const at=t.live?null:Math.floor(au.currentTime);
+function quickNote(){const t=Q[qi];if(!t||!t.ctx){notePad({title:"Serbest not"});return}const at=t.live?null:Math.floor(au.currentTime);notePad({info:t,at,sub:t.title});return;
   openModal(`<h3>Not al${at!=null?" · "+fmt(at):""}</h3><div class="small muted">${esc(t.title)}</div><textarea id="qnTxt" placeholder="Yaz ya da klavyedeki 🎤 ile söyle…"></textarea><div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mBm">Sadece yer imi</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{
   setTimeout(()=>{try{$("#qnTxt").focus()}catch(e){}},60);
   $("#mOk").onclick=()=>{const v=$("#qnTxt").value.trim();if(!v){toast("Notunu yaz");return}addNote(t,at,v);closeModal()};$("#mBm").onclick=()=>{addNote(t,at,"Yer imi");closeModal()};$("#mNo").onclick=closeModal})}
@@ -630,6 +651,7 @@ function queueFromCtx(c){
   if(c.type==="sure")return{list:Array.from({length:115-c.n},(_,i)=>sureTrack(c.n+i,c.kari)),i:0};
   if(c.type==="pod"){const eps=POD_EPS[c.cid];if(eps){const i=eps.findIndex(e=>String(e.id)===String(c.tid));if(i>-1)return{list:eps.map(e=>podTrack(e,c)),i}}return{list:[podTrack({id:c.tid,title:c.t,url:c.url},c)],i:0}}
   if(c.type==="radio")return{list:RADIO_Q(),i:c.i};
+  if(c.type==="dua"){try{const l=duaTracks(DREF(c.ref));return l.length?{list:l,i:0}:null}catch(e){return null}}
   return null;
 }
 const asrUrl=n=>yt("Karanlıktan Aydınlığa Asr-ı Saadet "+n+". Bölüm");
@@ -640,10 +662,11 @@ function openCtx(c,seek){
 }
 function notesHTML(list,inSheet){
   if(!list.length)return`<div class="empty">${inSheet?"Henüz not yok. “Not al” ile dinlediğin anı işaretle; dokununca o saniyeye dönersin.":"Henüz not yok."}</div>`;
-  return`<div class="list">${list.map(n=>`<div class="nrow"><span class="ts">${n.t==null?"✎":fmt(n.t)}</span><button class="tx" data-note="${n.id}">${esc(n.text)}${inSheet?"":`<span>${esc(n.title)}</span>`}</button><button class="x" data-delnote="${n.id}" aria-label="Notu sil">×</button></div>`).join("")}</div>`;
+  return`<div class="list">${list.map(n=>`<div class="nrow"><span class="ts">${n.t==null?"✎":fmt(n.t)}</span><button class="tx" data-note="${n.id}" style="white-space:pre-wrap">${esc(n.text)}${inSheet?"":`<span>${esc(n.title)}${n.date?" · "+new Date(n.date).toLocaleDateString("tr-TR",{day:"numeric",month:"short"}):""}</span>`}</button><button class="ed" data-ednote="${n.id}" aria-label="Notu düzenle">✏️</button><button class="x" data-delnote="${n.id}" aria-label="Notu sil">×</button></div>`).join("")}</div>`;
 }
 function bindNotes(root){
-  root.querySelectorAll("[data-note]").forEach(b=>b.onclick=()=>{const n=NOTES.find(x=>x.id===b.dataset.note);if(n&&n.ctx)openCtx(n.ctx,n.t)});
+  root.querySelectorAll("[data-note]").forEach(b=>b.onclick=()=>{const n=NOTES.find(x=>x.id===b.dataset.note);if(!n)return;if(n.ctx)openCtx(n.ctx,n.t);else notePad({edit:n,sub:n.title})});
+  root.querySelectorAll("[data-ednote]").forEach(b=>b.onclick=()=>{const n=NOTES.find(x=>x.id===b.dataset.ednote);if(n)notePad({edit:n,at:n.t,sub:n.title})});
   root.querySelectorAll("[data-delnote]").forEach(b=>b.onclick=()=>{const id=b.dataset.delnote;confirmBox("Not silinsin mi?","Bu not kalıcı olarak silinecek.","Sil",()=>{NOTES=NOTES.filter(x=>x.id!==id);saveLib();if(!$("#sheet").hidden)renderSheet();else renderView()})});
 }
 
@@ -756,7 +779,7 @@ function bZikir(){
   document.querySelectorAll("[data-z]").forEach(b=>b.onclick=()=>{zs.cur=b.dataset.z;saveZ();lockMeta();renderView()});
   $("#zAdd").onclick=addBox;
 }
-function openModal(html,bind){$("#modalBox").innerHTML=html;$("#modal").hidden=false;bind&&bind()}
+function openModal(html,bind){$("#modalBox").innerHTML=html;$("#modal").classList.toggle("ust",/<textarea|type="text"|type="number"/.test(html));$("#modal").hidden=false;bind&&bind()}
 function closeModal(){$("#modal").hidden=true}
 $("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 function confirmBox(t,d,ok,fn){openModal(`<h3>${esc(t)}</h3><div class="muted small">${esc(d)}</div><div class="ctrl"><button class="pill acc" id="mOk">${esc(ok)}</button><button class="pill ghost" id="mNo">Vazgeç</button></div>`,()=>{$("#mOk").onclick=()=>{closeModal();fn()};$("#mNo").onclick=closeModal})}
@@ -896,7 +919,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 25</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 26</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -938,7 +961,7 @@ function bUyku(){
 
 /* --- Kütüphanem --- */
 let libSeg="devam",noteQ="";
-function ctxLabel(c){return c.type==="pod"?"Sohbet":c.type==="siyer"?(c.id==="asr"?"Asr-ı Saadet":"Siyer Vakfı"):c.type==="sure"?"Kur'ân":c.type==="meal"?"Meal":c.type==="asr"?"Asr-ı Saadet":"Radyo"}
+function ctxLabel(c){return c.type==="dua"?"Dua":c.type==="pod"?"Sohbet":c.type==="siyer"?(c.id==="asr"?"Asr-ı Saadet":"Siyer Vakfı"):c.type==="sure"?"Kur'ân":c.type==="meal"?"Meal":c.type==="asr"?"Asr-ı Saadet":"Radyo"}
 function vKutup(){
   const seg=`<div class="seg">${[["devam","Devam Et"],["fav","Favoriler"],["not","Notlarım"]].map(([k,l])=>`<button data-lseg="${k}" class="${libSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
   if(libSeg==="devam"){
@@ -949,7 +972,7 @@ function vKutup(){
   if(libSeg==="fav"){const f=Object.entries(FAV).sort((a,b)=>b[1].date-a[1].date);
     return seg+(f.length?`<div class="list">${f.map(([k,v])=>`<div class="nrow"><span class="ts">♥</span><button class="tx" data-ctx='${esc(JSON.stringify(v.ctx))}'>${esc(v.title)}<span>${ctxLabel(v.ctx)} · ${esc(v.sub)}</span></button><button class="x" data-unfav="${esc(k)}" aria-label="Favoriden çıkar">×</button></div>`).join("")}</div>`:`<div class="empty">Çalarda “♡ Favorilere ekle”ye dokunduğun dersler, sûreler ve radyolar burada toplanır.</div>`);}
   const q=noteQ.toLocaleLowerCase("tr");const list=NOTES.filter(n=>!q||(n.text+" "+n.title).toLocaleLowerCase("tr").includes(q)).sort((a,b)=>b.date-a.date);
-  return seg+`<button class="pill ghost" id="noteCopy" style="margin-bottom:10px">Tüm notları kopyala</button><input type="search" id="noteSearch" placeholder="Notlarında ara" value="${esc(noteQ)}" style="margin-bottom:10px">${notesHTML(list,false)}<div class="note">Bir nota dokununca o kayıt, notu aldığın saniyeden çalmaya başlar.</div>`;
+  return seg+`<div class="ctrl" style="margin-bottom:10px"><button class="pill acc" id="noteNew">✎ Yeni not yaz</button><button class="pill ghost" id="noteCopy">Tüm notları kopyala</button></div><input type="search" id="noteSearch" placeholder="Notlarında ara" value="${esc(noteQ)}" style="margin-bottom:10px">${notesHTML(list,false)}<div class="note">Dinlerken alttaki çalardaki ✎ ile o saniyeye not al. Bir nota dokununca kayıt o saniyeden çalar; ✏️ ile düzenlersin.</div>`;
 }
 function bKutup(){
   document.querySelectorAll("[data-lseg]").forEach(b=>b.onclick=()=>{libSeg=b.dataset.lseg;renderView()});
@@ -957,6 +980,7 @@ function bKutup(){
   if(tab==="kutuphane")bSohbet();
   document.querySelectorAll("[data-unfav]").forEach(b=>b.onclick=()=>{delete FAV[b.dataset.unfav];saveLib();renderView()});
   const ns=$("#noteSearch");if(ns)ns.oninput=()=>{noteQ=ns.value;const pos=ns.selectionStart;renderView();const n2=$("#noteSearch");n2.focus();try{n2.setSelectionRange(pos,pos)}catch(e){}};
+  const nn=$("#noteNew");if(nn)nn.onclick=()=>notePad({title:"Serbest not"});
   const nc=$("#noteCopy");if(nc)nc.onclick=()=>{const txt=NOTES.slice().sort((a,b)=>a.date-b.date).map(n=>"• "+n.title+(n.t!=null?" ["+fmt(n.t)+"]":"")+"\n  "+n.text).join("\n\n");try{navigator.clipboard.writeText(txt).then(()=>toast("Notlar kopyalandı"),()=>openModal(`<h3>Notların</h3><textarea style="min-height:240px">${esc(txt)}</textarea><button class="pill ghost" onclick="closeModal()">Kapat</button>`))}catch(e){openModal(`<h3>Notların</h3><textarea style="min-height:240px">${esc(txt)}</textarea><button class="pill ghost" onclick="closeModal()">Kapat</button>`)}};
   bindNotes($("#view"));renderQueueHL();
 }
@@ -966,7 +990,7 @@ const DREF=r=>{const [s,i]=r.split("|");return DUALAR[s][+i]};
 function duaCard(d,ref){d=duaMetin(d);
   return `<div class="dua"><div class="head"><h3>${esc(d.n)}</h3><span class="cnt">${esc(d.c)}</span></div>
    ${d.ar?`<div class="ar">${esc(d.ar)}</div>`:""}${d.r?`<div class="read">${esc(d.r)}</div>`:""}<div class="mean">${esc(d.m)}</div><div class="src">${esc(d.src)}</div>
-   <div class="ctrl"><button class="pill" data-play="${ref}">▶ Dinle</button>${(d.z||d.zid)?`<button class="pill ghost" data-zz="${ref}">Zikirmatiğe al</button>`:""}</div></div>`;
+   <div class="ctrl"><button class="pill" data-play="${ref}">▶ Dinle</button>${(d.z||d.zid)?`<button class="pill ghost" data-zz="${ref}">Zikirmatiğe al</button>`:""}<button class="pill ghost" data-dnote="${ref}" aria-label="Not al">✎${NOTES.some(n=>n.key==="d_"+ref)?" "+NOTES.filter(n=>n.key==="d_"+ref).length:""}</button></div></div>`;
 }
 const ttsUrl=(t,l)=>`https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${l}&q=${encodeURIComponent(t)}`;
 function chunkText(t,max){t=String(t).replace(/[۝۞*]/g," ").replace(/\s+/g," ").trim();const w=t.split(" "),out=[];let cur="";
@@ -992,6 +1016,9 @@ function goZikir(d){
   zs.cur=ex.id;zs.counts[ex.id]=0;zs.targets[ex.id]=d.z.t;zs.chain=false;saveZ();tab="zikir";store.set("mk_tab",tab);renderView();toTop();
 }
 function bindDua(root){
+  root.querySelectorAll("[data-dnote]").forEach(b=>b.onclick=()=>{const ref=b.dataset.dnote,d=DREF(ref),ex=NOTES.filter(n=>n.key==="d_"+ref);
+    if(ex.length){openModal(`<h3>${esc(d.n)} · notların</h3>${notesHTML(ex,true)}<div class="ctrl"><button class="pill acc" id="dnNew">✎ Yeni not</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{bindNotes($("#modalBox"));$("#modalBox").querySelectorAll("[data-ednote],[data-note]").forEach(x=>{const o=x.onclick;x.onclick=()=>{closeModal();o&&o()}});$("#dnNew").onclick=()=>notePad({info:{key:"d_"+ref,ctx:{type:"dua",ref},title:d.n,sub:"Dua"},sub:d.n});$("#mNo").onclick=closeModal})}
+    else notePad({info:{key:"d_"+ref,ctx:{type:"dua",ref},title:d.n,sub:"Dua"},sub:d.n})});
   root.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>{const d=DREF(b.dataset.play);playQueue(duaTracks(d),0)});
   root.querySelectorAll("[data-zz]").forEach(b=>b.onclick=()=>goZikir(DREF(b.dataset.zz)));
 }
@@ -1276,7 +1303,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=25;
+const SURUM=26;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1914,13 +1941,18 @@ function duaMetin(d){if(!d||!d.tam||!d.ay)return d;const L=d.ay.map(([s,a])=>AYM
     document.querySelector('link[rel="manifest"]').href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:"application/manifest+json"}))}catch(e){}
 })();
 
+/* ===================== Kaldığın yeri hazırla ===================== */
+function hazirlaDevam(){try{if(Q[qi])return;const r=RECENT.find(x=>x.ctx&&x.ctx.type!=="radio"&&x.ctx.type!=="dua");if(!r)return;const q=queueFromCtx(r.ctx);if(!q||!q.list.length)return;
+  Q=q.list;qi=q.i;const t=Q[qi];curKey=t.key||null;srcIdx=0;au.preload="metadata";au.src=t.src[0];EXP=au.src;au.loop=!!t.loop;updateMini();msPlayer();
+  const p=POS[t.key];if(p)$("#miniS").textContent="Kaldığın yer "+fmt(p)+" · ▶ ile devam et";}catch(e){}}
+
 /* ===================== Başlat ===================== */
 document.addEventListener("touchend",()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}},{once:true});
 try{$("#logo").src=document.querySelector('link[rel="apple-touch-icon"]').href}catch(e){}
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;store.set("mk_tab",tab);renderView();toTop()});
 applyTheme();
 $("#cikisBtn").onclick=exitApp;
-renderView();
+renderView();hazirlaDevam();
 routeHash();
 clearBadge();
 setTimeout(vakitOto,4000);
