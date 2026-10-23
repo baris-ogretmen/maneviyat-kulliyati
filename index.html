@@ -319,6 +319,15 @@ h2{letter-spacing:-.01em}
 .stvvid{width:100%;aspect-ratio:16/9;background:#000}
 .stvvid iframe,.stvvid>div{width:100%;height:100%}
 #stvOv .pill{background:rgba(255,255,255,.14);color:#fff;border:0}#stvOv .pill.acc{background:var(--accent);color:var(--accent-ink)}
+#kbOv{position:fixed;inset:0;z-index:96;background:var(--bg);display:grid;grid-template-rows:auto auto 1fr;gap:10px;padding:max(10px,env(safe-area-inset-top)) 0 max(10px,env(safe-area-inset-bottom))}
+.kbust{display:flex;align-items:center;justify-content:space-between;padding:0 10px}.kbust b{font:600 19px/1.2 var(--f-disp)}
+.kbgovde{overflow:auto;padding:0 16px 24px;display:grid;gap:12px;align-content:start}
+.kbyer{display:grid;gap:4px;justify-items:center;text-align:center;font-size:13px;color:var(--muted)}.kbyer b{font-size:18px;color:var(--fg)}
+.kbbuyuk{width:310px;height:310px;margin:18px auto 6px}
+.kbdurum{text-align:center;font-weight:800;font-size:21px}
+.kbmap{height:56vh;min-height:300px;border-radius:16px;overflow:hidden;background:var(--surface)}
+.kbkabe{font-size:24px;background:none;border:0}
+@media (max-width:360px){.kbbuyuk{width:280px;height:280px}}
 </style>
 </head>
 <body>
@@ -562,7 +571,7 @@ const DIZILER=[
 ];
 
 /* ===================== Durum ===================== */
-let tab=store.get("mk_tab","bugun");if(tab==="dua")tab="bugun";
+let tab="bugun";
 let dinleSeg=store.get("mk_dseg","kuran");if(!["kuran","siyer","sohbet","radyo","uyku"].includes(dinleSeg))dinleSeg="kuran";
 let duaSeg="sabah", kulSeg="soz";
 let kari=store.get("mk_kari2","fakih");
@@ -1065,7 +1074,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 31</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 33</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1126,14 +1135,13 @@ function vKutup(){
   const ilk=NOTES.length?new Date(Math.min(...NOTES.map(n=>n.date))):null,son=SET.notYedek||0,gun=son?Math.floor((Date.now()-son)/864e5):null;
   const uyar=NOTES.length&&(!son||gun>=14)?`<div class="soz" style="margin-bottom:12px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">NOTLARINI KORU</div><div class="small">${son?gun+" gündür yedek almadın.":"Henüz notlarının yedeğini almadın."} Yedek dosyası iCloud Drive'a ya da WhatsApp'ta kendine gönderilirse yıllar sonra bile geri yüklenir.</div><button class="pill acc" id="nYedek2" style="justify-self:start">📦 Şimdi yedekle</button></div>`:"";
   return seg+`<div class="soz" style="margin-bottom:12px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">NOT DEFTERİM</div><div class="soz-t">${NOTES.length} not · ${new Set(NOTES.map(n=>n.key)).size} kayıt</div><div class="small muted">${ilk?"İlk notun: "+ilk.toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"}):"Dinlerken ya da listelerdeki ✎+ düğmesiyle not almaya başla."}${son?" · Son yedek: "+new Date(son).toLocaleDateString("tr-TR"):""}</div></div>
-   ${uyar}
    <div class="ctrl" style="margin-bottom:10px"><button class="pill acc" id="noteNew">✎ Yeni not</button><button class="pill" id="nYedek">📦 Yedekle</button>${UNDO.length?`<button class="pill ghost" id="nUndo">↶ Geri al</button>`:""}</div>
-   <details style="margin-bottom:10px"><summary class="small muted" style="cursor:pointer">Diğer: yedekten yükle, metin olarak kopyala</summary><div class="ctrl" style="margin-top:8px"><label class="pill ghost" style="cursor:pointer">📥 Yedekten yükle<input type="file" id="nYukle" accept=".json,application/json" hidden></label><button class="pill ghost" id="noteCopy">📋 Metin olarak kopyala</button></div><label style="display:flex;gap:10px;align-items:center;font-size:14px;margin-top:8px"><input type="checkbox" id="nGoster" ${SET.notGoster!==false?"checked":""} style="width:20px;height:20px">Bölüm listelerinde notlarımın yazısını göster</label></details>
+   <details style="margin-bottom:10px"><summary class="small muted" style="cursor:pointer">Diğer: yedekten yükle, metin olarak kopyala</summary><div class="ctrl" style="margin-top:8px"><label class="pill ghost" style="cursor:pointer">📥 Yedekten yükle<input type="file" id="nYukle" accept=".json,application/json" hidden></label><button class="pill ghost" id="noteCopy">📋 Metin olarak kopyala</button></div>${vNotKopya()}<label style="display:flex;gap:10px;align-items:center;font-size:14px;margin-top:8px"><input type="checkbox" id="nGoster" ${SET.notGoster!==false?"checked":""} style="width:20px;height:20px">Bölüm listelerinde notlarımın yazısını göster</label></details>
    ${vNotEk()}<input type="search" id="noteSearch" placeholder="Notlarında ara" value="${esc(noteQ)}" style="margin-bottom:10px">
    <div class="chips" style="margin-top:0">${SRC.map(([k,l])=>`<button class="chip ${noteSrc===k?"on":""}" data-nsrc="${k}"><b>${l}</b></button>`).join("")}</div>
    <div class="pens" style="margin:8px 0 14px"><button type="button" class="${noteCol<0?"on":""}" data-ncol="-1" style="background:conic-gradient(${PENS.map(p=>p[1]).join(",")})" aria-label="Tüm renkler"></button>${PENS.map(([n,c],i)=>`<button type="button" class="${noteCol===i?"on":""}" data-ncol="${i}" style="background:${c}" aria-label="${n}"></button>`).join("")}</div>
    ${noteView==="akis"?vNotAkis(list):gl.length?gl.map(([k,l])=>{const f=l[0],src=srcOf(f);return `<div class="ngroup"><div class="gh"><div style="min-width:0"><b>${esc(f.title)}</b><div class="small muted">${src==="serbest"?"Serbest notlar":esc(ctxLabel(f.ctx||{}))+(f.sub&&f.sub!==f.title?" · "+esc(f.sub):"")} · ${l.length} not</div></div>${f.ctx?`<button class="pill ghost" style="padding:6px 10px;font-size:13px" data-gopen="${esc(k)}">▶</button>`:""}<button class="pill ghost" style="padding:6px 10px;font-size:13px" data-nb="${esc(k)}">✎+</button></div>${noteCards(l.sort((a,b)=>(a.t??1e9)-(b.t??1e9)||a.date-b.date),false)}</div>`}).join(""):`<div class="empty">${NOTES.length?"Bu filtreye uyan not yok.":"Henüz not yok."}</div>`}
-   <div class="note">Notların bu telefonda saklanır. Kaybolmaması için ayda bir “📦 Yedekle” ile dosyayı iCloud Drive'a kaydet; yeni telefonda “📥 Yedekten yükle” ile geri gelir.</div>`;
+   `;
 }
 function bKutup(){
   document.querySelectorAll("[data-lseg]").forEach(b=>b.onclick=()=>{libSeg=b.dataset.lseg;renderView()});
@@ -1410,7 +1418,7 @@ function vBugun(){
     <div class="note">Amellerin Allah'a en sevimli olanı, az da olsa devamlı olanıdır (Buhârî). Bugün bir adım yeter; yarın bir adım daha.</div>`+vKaza()}
   else{body=`<div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher"],["kuran","Kur'an'dan"],["liste","Dua listem"]].map(([k,l])=>`<button data-dseg2="${k}" class="${duaSeg2===k?"on":""}">${l}</button>`).join("")}</div>${duaSeg2==="liste"?"":`<button class="pill acc" id="duaAll" style="margin-bottom:12px">▶ Tümünü sırayla dinle</button>`}`+(duaSeg2==="liste"?vDuaListe():DUALAR[duaSeg2].map((d,i)=>duaCard(d,duaSeg2+"|"+i)).join(""))}
   const gun=new Date().getDay(),cuma=(gun===5||(gun===4&&new Date().getHours()>=18))?`<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(150 60% 45%) 18%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:hsl(150 60% ${isDark()?60:32}%)">CUMA</div><div class="soz-t">Hayırlı Cumalar</div><div class="small muted">Kehf sûresini okumak ve bolca salavat getirmek sünnettir.</div><div class="ctrl"><button class="pill" id="kehfBtn">▶ Kehf sûresi</button><button class="pill ghost" id="salBtn">Salavat 100</button><button class="pill" data-gun="cuma">📖 Cuma rehberi</button></div></div>`:"";
-  return card+vKilitFix()+vAraclar()+vBildirimDavet()+vSimge()+vDevam()+vDevamHepsi(false)+cuma+(bugSeg==="vakit"?vMubarek()+vGunIlim()+vNotHatira():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
+  return card+vKilitFix()+vAraclar()+vBildirimDavet()+vSimge()+vDevam()+vDevamHepsi(false)+cuma+(bugSeg==="vakit"?vNotKoru()+vMubarek()+vGunIlim()+vNotHatira():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
 }
 function bBugun(){
   document.querySelectorAll("[data-bseg]").forEach(b=>b.onclick=()=>{bugSeg=b.dataset.bseg;renderView()});
@@ -1433,7 +1441,7 @@ function bBugun(){
   const sb=$("#salBtn");if(sb)sb.onclick=()=>{zs.cur="salavat";zs.counts.salavat=0;zs.targets.salavat=100;zs.chain=false;saveZ();tab="zikir";renderView();toTop()};
   if(bugSeg==="amel")bKaza();
   const dv=$("#devamBtn");if(dv)dv.onclick=()=>{const r=RECENT.find(x=>x.ctx&&x.ctx.type!=="radio");if(r)openCtx(r.ctx)};
-  bBugunExtra();try{bYeniBugun();bKilitFix()}catch(e){}
+  bBugunExtra();try{bYeniBugun();bKilitFix();bNotKoru()}catch(e){}
   bindDua($("#view"));
 }
 
@@ -1474,7 +1482,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=31;
+const SURUM=33;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -2288,11 +2296,11 @@ function calanaGit(sheet){const t=Q[qi];if(!t)return;if(typeof takipAcik!=="unde
   setTimeout(()=>{const r=document.querySelector("#view .row.playing");if(r){const y=r.getBoundingClientRect().top+window.scrollY-160;window.scrollTo({top:Math.max(0,y)})}},80);
   if(sheet)openSheet()}
 let gizliT=0;
-["playing","pause","ended"].forEach(ev=>au.addEventListener(ev,()=>{sonCalT=Date.now();const t=Q[qi];if(t)store.set("mk_calan",{t:sonCalT,key:t.key||""})}));
-au.addEventListener("timeupdate",()=>{if(Date.now()-sonCalT>20000){sonCalT=Date.now();store.set("mk_calan",{t:sonCalT,key:(Q[qi]&&Q[qi].key)||""})}});
+["playing","pause","ended"].forEach(ev=>au.addEventListener(ev,()=>{sonCalT=Date.now();const t=Q[qi];if(t)store.set("mk_calan",{t:sonCalT,key:t.key||"",p:!au.paused})}));
+au.addEventListener("timeupdate",()=>{if(Date.now()-sonCalT>20000){sonCalT=Date.now();store.set("mk_calan",{t:sonCalT,key:(Q[qi]&&Q[qi].key)||"",p:!au.paused})}});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){gizliT=Date.now();return}
   if(gizliT&&Date.now()-gizliT>1200&&Q[qi]&&(!au.paused||Date.now()-sonCalT<10*60000))setTimeout(()=>calanaGit(true),60);gizliT=0});
-function acilisDevam(){const c=store.get("mk_calan",null);if(c&&Date.now()-c.t<30*60000&&Q[qi])calanaGit(true)}
+function acilisDevam(){const c=store.get("mk_calan",null);if(c&&c.p&&Date.now()-c.t<2*60000&&Q[qi])calanaGit(true)}
 
 /* ---------- Renkli bölüm listeleri ---------- */
 function renkVer(){const dark=isDark();document.querySelectorAll("#view .list").forEach((L,li)=>{L.classList.add("renkli");const base=HUES[(li*3)%HUES.length];
@@ -2306,7 +2314,7 @@ function notEkFiltre(n){return (noteView!=="onemli"||n.pin)&&(!noteTag||notEtike
 function vNotEk(){const tags={};NOTES.forEach(n=>notEtiket(n.text).forEach(t=>tags[t]=(tags[t]||0)+1));const T=Object.entries(tags).sort((a,b)=>b[1]-a[1]).slice(0,24);
   const hafta=NOTES.filter(n=>Date.now()-n.date<7*864e5).length,pin=NOTES.filter(n=>n.pin).length;
   return `<div class="seg" style="margin-bottom:10px">${[["kayit","📚 Kayda göre"],["akis","🕰️ Zaman akışı"],["onemli","⭐ Önemli"+(pin?" ("+pin+")":"")]].map(([k,l])=>`<button data-nview="${k}" class="${noteView===k?"on":""}">${l}</button>`).join("")}</div>
-  <div class="small muted" style="margin:-4px 0 8px">Bu hafta ${hafta} not · Notuna <b>#etiket</b> yazarsan (ör. #sabır #sınıf) burada süzgeç olur.</div>
+  <div class="small muted" style="margin:-4px 0 8px">Bu hafta ${hafta} not</div>
   ${T.length?`<div class="chips" style="margin:0 0 8px"><button class="chip ${noteTag?"":"on"}" data-ntag=""><b>Tüm etiketler</b></button>${T.map(([t,c])=>`<button class="chip ${noteTag===t?"on":""}" data-ntag="${esc(t)}"><b>${esc(t)}</b> ${c}</button>`).join("")}</div>`:""}
   <div class="ctrl" style="margin-bottom:10px"><button class="pill ghost" id="nPaylas">📤 Paylaş</button><button class="pill ghost" id="nYazdir">🖨️ Yazdır / PDF</button></div>`}
 function vNotAkis(list){if(!list.length)return `<div class="empty">${NOTES.length?"Bu filtreye uyan not yok.":"Henüz not yok."}</div>`;
@@ -2624,13 +2632,82 @@ document.addEventListener("click",e=>{const t=e.target;if(!t||!t.closest)return;
   if((b=t.closest("[data-stvsil]"))){const id=b.dataset.stvsil;STV.list=STV.list.filter(x=>x.id!==id);stvKaydet();stvListe();renderView();return}
 });
 
-/* ---------- Kilit ekranından dokununca doğru uygulamanın açılması (iOS WebKit hatası 267810 çözümü) ---------- */
-function vKilitFix(){if(!IS_IOS||!IS_APP||store.get("mk_kilitfix_ok",false))return"";
-  return `<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(205 70% 50%) 16%,var(--surface))"><div class="small" style="font-weight:800;letter-spacing:.05em;color:var(--accent)">🔒 KİLİT EKRANI DÜZELTMESİ · BİR KEZ YAPILIR</div>
-  <div class="small">Kilit ekranında çalana dokununca başka uygulamanın açılması iPhone'un bilinen bir hatası. Uygulamaya artık kendine ait bir kimlik verildi; iPhone bu kimliği yalnız simge ana ekrana <b>yeniden eklenince</b> okur:</div>
-  <ol class="small" style="margin:0;padding-left:20px;display:grid;gap:3px"><li><b>📦 Yedeğimi al</b>'a dokun, dosyayı “Dosyalar'a Kaydet” ile sakla.</li><li>Ana ekrandaki Maneviyat simgesine basılı tut → <b>Uygulamayı Sil</b>.</li><li>Safari'de adresi aç → Paylaş → <b>Ana Ekrana Ekle</b>.</li><li>Yeni simgeden aç → Ayarlar → <b>Yedekten yükle</b> ile dosyayı seç. Notların, kaldığın yerler, zikirlerin geri gelir.</li></ol>
-  <div class="ctrl"><button class="pill acc" id="kfYedek">📦 Yedeğimi al</button><button class="pill ghost" id="kfTamam">Yaptım, gizle</button></div></div>`}
-function bKilitFix(){const y=$("#kfYedek");if(y)y.onclick=()=>yedekAl();const t=$("#kfTamam");if(t)t.onclick=()=>{store.set("mk_kilitfix_ok",true);renderView()}}
+/* ---------- Kilit ekranı düzeltmesi tamamlandı: silme adımları artık gösterilmez ---------- */
+function vKilitFix(){return""}
+function bKilitFix(){}
+
+/* ---------- Notları kaybetme: yedek hatırlatması + Chrome/Safari'den kurtarma rehberi ---------- */
+function vNotKoru(){if(!NOTES.length||bugSeg!=="vakit")return"";const son=SET.notYedek||0,gun=son?Math.floor((Date.now()-son)/864e5):999;if(gun<7)return"";
+  return `<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(35 80% 50%) 18%,var(--surface))"><div class="small" style="font-weight:800;letter-spacing:.05em;color:var(--accent)">📦 NOTLARINI GÜVENE AL</div><div class="small">${NOTES.length} notun yalnız bu telefonda duruyor. Uygulamayı silersen ya da telefon değişirse kaybolur. Haftada bir yedek dosyası al, Dosyalar → iCloud Drive'a kaydet.</div><div class="ctrl"><button class="pill acc" id="nkYedek">📦 Şimdi yedekle</button></div></div>`}
+function bNotKoru(){const b=$("#nkYedek");if(b)b.onclick=()=>yedekAl()}
+
+/* ---------- Sürüm 33: açılışta bilgi kartı yok, Yedekle tek dokunuşla ---------- */
+function vNotKoru(){return""}
+function vSimge(){return""}
+function vBildirimDavet(){return""}
+function notKopyaAl(){try{if(!NOTES.length)return;const L=store.get("mk_not_kopya",[]),son=L[0];const txt=JSON.stringify(NOTES);if(son&&son.s===txt.length&&son.n===NOTES.length&&Date.now()-son.t<36e5)return;
+  L.unshift({t:Date.now(),n:NOTES.length,s:txt.length,d:txt});store.set("mk_not_kopya",L.slice(0,5))}catch(e){}}
+async function dosyaKaydet(txt,ad){if(!IS_APP){try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));a.download=ad;document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),1500);return true}catch(e){}}return dosyaPaylas(txt,ad)}
+async function notYedekle(){if(!NOTES.length){toast("Yedeklenecek not yok");return}notKopyaAl();
+  const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("mk_")&&!["mk_kasa_sifre","mk_rb","mk_mq","mk_not_kopya"].includes(k))o[k]=localStorage.getItem(k)}
+  const txt=JSON.stringify({app:"maneviyat",v:SURUM,t:new Date().toISOString(),notes:NOTES,d:o});
+  const ok=await dosyaKaydet(txt,"maneviyat-notlarim-"+todayKey()+".json");if(ok){SET.notYedek=Date.now();store.set("mk_set",SET);toast(IS_APP?"✓ Yedek hazır · “Dosyalar'a Kaydet”i seç":"✓ Yedeklendi · Dosyalar › İndirilenler");renderView()}}
+function kopyaGeriAl(i){const L=store.get("mk_not_kopya",[]),k=L[i];if(!k)return;confirmBox("Bu kopya geri yüklensin mi?",new Date(k.t).toLocaleString("tr-TR")+" · "+k.n+" not. Şimdiki notların silinmez; eksik olanlar eklenir.","Geri yükle",()=>{try{const arr=JSON.parse(k.d);snapNotes();const by=new Set(NOTES.map(n=>n.id));let y=0;arr.forEach(n=>{if(n&&n.id&&!by.has(n.id)){NOTES.push(n);y++}});saveLib();undoBar(y+" not geri geldi");renderView()}catch(e){toast("Kopya açılamadı")}})}
+function vNotKopya(){const L=store.get("mk_not_kopya",[]);if(!L.length)return"";return `<div class="small muted" style="margin-top:8px">Otomatik kopyalar (bu telefonda):</div><div class="ctrl" style="margin-top:4px">${L.map((k,i)=>`<button class="pill ghost" style="padding:6px 10px;font-size:13px" data-nkopya="${i}">↺ ${new Date(k.t).toLocaleDateString("tr-TR",{day:"numeric",month:"short"})} ${iki(new Date(k.t).getHours())}:${iki(new Date(k.t).getMinutes())} · ${k.n} not</button>`).join("")}</div>`}
+document.addEventListener("click",e=>{const b=e.target&&e.target.closest&&e.target.closest("[data-nkopya]");if(b)kopyaGeriAl(+b.dataset.nkopya)});
+setInterval(notKopyaAl,10*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")notKopyaAl()});
+function yedekAl(){try{const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("mk_")&&!["mk_kasa_sifre","mk_rb","mk_mq","mk_not_kopya"].includes(k))o[k]=localStorage.getItem(k)}
+  const txt=JSON.stringify({app:"maneviyat",v:SURUM,t:new Date().toISOString(),notes:NOTES,d:o});dosyaKaydet(txt,"maneviyat-yedek-"+todayKey()+".json").then(ok=>{if(ok){SET.notYedek=Date.now();store.set("mk_set",SET);toast(IS_APP?"✓ Yedek hazır · “Dosyalar'a Kaydet”i seç":"✓ Yedeklendi · Dosyalar › İndirilenler")}})}catch(e){toast("Yedek alınamadı")}}
+
+/* ---------- Kıble · tam ekran: pusula, Güneş, harita (kılıftan etkilenmez), bilgi ---------- */
+let kbTab="pusula",kbMap=null,kbBip=null;
+function kbYukle(src,css){return new Promise((res,rej)=>{if(css){if(document.querySelector(`link[href="${src}"]`))return res();const l=document.createElement("link");l.rel="stylesheet";l.href=src;l.onload=res;l.onerror=rej;document.head.appendChild(l);return}
+  if(document.querySelector(`script[src="${src}"]`)){const w=()=>window.L?res():setTimeout(w,100);return w()}const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+function kbHedef(p,brg,km){const R=6371,r=Math.PI/180,d=km/R,la=p.lat*r,lo=p.lon*r,b=brg*r;const la2=Math.asin(Math.sin(la)*Math.cos(d)+Math.cos(la)*Math.sin(d)*Math.cos(b));
+  const lo2=lo+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(la),Math.cos(d)-Math.sin(la)*Math.sin(la2));return[la2/r,lo2/r]}
+function kbBipCal(){try{if(!kbBip)return;const o=kbBip.createOscillator(),g=kbBip.createGain(),t=kbBip.currentTime;o.frequency.value=880;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.connect(g).connect(kbBip.destination);o.start(t);o.stop(t+.4)}catch(e){}}
+function kbKonumAl(sessiz){if(!navigator.geolocation){if(!sessiz)toast("Konum desteklenmiyor");return}if(!sessiz)toast("📍 Konum alınıyor…");
+  navigator.geolocation.getCurrentPosition(ps=>{store.set("mk_konum",{lat:ps.coords.latitude,lon:ps.coords.longitude,acc:ps.coords.accuracy,t:Date.now()});if($("#kbOv"))kbGovde();if(!sessiz)toast("📍 Konumuna göre hesaplandı")},
+    ()=>{if(!sessiz)toast("Konum izni verilmedi · şehir merkezine göre hesaplanıyor")},{enableHighAccuracy:true,timeout:15000,maximumAge:600000})}
+function kibleAc(){const o0=$("#kbOv");if(o0)o0.remove();KB.h=null;KB.jumps=[];KB.uyar=0;KB.t0=0;
+  const o=document.createElement("div");o.id="kbOv";document.body.appendChild(o);document.body.style.overflow="hidden";
+  o.innerHTML=`<div class="kbust"><button class="ib" id="kbX" aria-label="Kapat">${IC.down}</button><b>🧭 Kıble Bul</b><span style="width:42px"></span></div>
+   <div class="seg" style="margin:0 12px">${[["pusula","🧭 Pusula"],["gunes","☀️ Güneş"],["harita","🗺️ Harita"],["bilgi","ℹ️ Bilgi"]].map(([k,l])=>`<button data-kbtab="${k}" class="${kbTab===k?"on":""}">${l}</button>`).join("")}</div>
+   <div id="kbGovde" class="kbgovde"></div>`;
+  $("#kbX").onclick=kbKapat;o.querySelectorAll("[data-kbtab]").forEach(b=>b.onclick=()=>{kbTab=b.dataset.kbtab;o.querySelectorAll("[data-kbtab]").forEach(x=>x.classList.toggle("on",x===b));kbGovde()});
+  kbGovde();const k=store.get("mk_konum",null);if(!k||Date.now()-k.t>864e5){try{navigator.permissions&&navigator.permissions.query({name:"geolocation"}).then(s=>{if(s.state==="granted")kbKonumAl(true)}).catch(()=>{})}catch(e){}}}
+function kbKapat(){kbDur();try{kbMap&&kbMap.remove()}catch(e){}kbMap=null;const o=$("#kbOv");if(o)o.remove();document.body.style.overflow=""}
+function kbGovde(){const g=$("#kbGovde");if(!g)return;const p=kbKonum(),q=kbAci(p),hm2=d=>iki(d.getHours())+":"+iki(d.getMinutes());try{kbMap&&kbMap.remove()}catch(e){}kbMap=null;
+  const ust=`<div class="kbyer"><span>${esc(p.ad)}</span><b>Kıble ${Math.round(q)}° · ${yonAd(q)}</b>${p.gps?`<button class="pill ghost" id="kbGps2" style="padding:5px 10px;font-size:12.5px">🔄 Konumu yenile</button>`:`<button class="pill acc" id="kbGps2" style="padding:6px 12px;font-size:13px">📍 Konumumu kullan (daha doğru)</button>`}</div>`;
+  if(kbTab==="pusula")g.innerHTML=ust+`
+   <div id="kbKutu" class="kbkutu kbbuyuk"><div id="kbDial" class="kbdial">${["K","D","G","B"].map((n,i)=>`<span style="transform:rotate(${i*90}deg) translate(0,-132px) rotate(${-i*90}deg);color:${i?"var(--muted)":"#e05a4f"}">${n}</span>`).join("")}<div class="kbneedle" style="height:124px;transform:translate(-50%,-100%) rotate(${q}deg)"></div><em style="transform:rotate(${q}deg) translate(0,-142px) rotate(${-q}deg)">🕋</em></div><div id="kbOk" class="kbok" style="transform-origin:50% 169px">▲</div></div>
+   <div id="kbDurum" class="kbdurum">${KB.on?"Telefonu yavaşça çevir…":"Aşağıdaki düğmeye dokun"}</div>
+   <div id="kbAcc" class="kbuyari" hidden></div>
+   <div class="ctrl" style="justify-content:center"><button class="pill acc" id="kStart" style="font-size:16px;padding:12px 20px">${KB.on?"🔄 Pusulayı yeniden başlat":"🧭 Pusulayı başlat"}</button></div>
+   <div class="small muted" style="text-align:center;padding:0 8px">Telefonu masaya koyar gibi <b>düz</b> tut. Üstteki ▲ işareti 🕋'ye gelince ekran yeşil yanar ve ses çıkar. Mıknatıslı kılıf varsa pusula sapabilir: o zaman <b>☀️ Güneş</b> ya da <b>🗺️ Harita</b> sekmesini kullan; onlar kılıftan etkilenmez.</div>`;
+  else if(kbTab==="gunes"){const ks=kbSaatleri(p,q);g.innerHTML=ust+kbGunesHTML(p,q)+`<h3 style="margin:10px 0 6px">🕰️ Bugünün kıble saatleri</h3>${ks.length?`<div class="list">${ks.map(x=>`<div class="nrow"><span class="ts">${hm2(x.t)}</span><span class="tx">${x.tip==="on"?"Güneş tam kıble yönünde: o dakikada yüzünü Güneş'e dönmen yeter.":"Güneş tam arkanda: gölgenin uzandığı yön kıbledir."}</span></div>`).join("")}</div>`:`<div class="small muted">Bugün Güneş kıble doğrultusundan geçmiyor; Güneş yöntemini ya da haritayı kullan.</div>`}<div class="note">Güneş yöntemi telefon pusulasını hiç kullanmaz; kılıf, mıknatıs ya da metal onu etkilemez.</div>`}
+  else if(kbTab==="harita"){g.innerHTML=ust+`<div id="kbMap" class="kbmap"><div class="empty">Harita yükleniyor…</div></div><div class="ctrl" style="justify-content:center"><button class="pill" data-kbkat="uydu">🛰️ Uydu</button><button class="pill ghost" data-kbkat="sokak">🗺️ Sokak</button></div>
+    <div class="note"><b>Kırmızı çizgi kıble yönüdür.</b> Çizgiyi haritadaki binana, sokağına ya da bir yola göre karşılaştır; sonra o yöne dön. Bu yöntem pusula kullanmaz, kılıftan etkilenmez.${p.gps?"":" En doğru sonuç için yukarıdan 📍 Konumumu kullan'a dokun."}</div>`;kbHarita(p,q)}
+  else g.innerHTML=ust+`<div style="display:grid;gap:10px" class="small">
+   <div class="dua"><b>Fıkhî bilgi</b><div>Kâbe'yi göremeyen kimse için Kâbe'nin bulunduğu yöne (cihete) dönmek yeterlidir. Kıble yönünden sağa ya da sola <b>45 dereceye kadar sapma</b> namazın sıhhatine engel değildir. Kıbleyi tespit imkânı olmayan, soracak kimse de bulamayan kişi araştırıp kanaat getirdiği yöne kılar (taharrî); Hanefî mezhebine göre sonradan yanlış olduğu anlaşılsa da namazını iade etmez. Camilerin mihrabı en güvenilir kıble işaretidir. Şüphede kalırsan müftülüğe danış.</div></div>
+   <div class="dua"><b>Kılıf ve pusula</b><div>Mıknatıslı kılıflar, cüzdan kılıflar, araç tutucular, hoparlör ve metal eşyalar telefon pusulasını saptırır. Pusula sıçrıyorsa ya da uyarı çıkıyorsa kılıfı çıkar veya Güneş/Harita yöntemini kullan.</div></div>
+   <div class="dua"><b>iPhone kalibrasyonu</b><div>Ayarlar → Gizlilik ve Güvenlik → Konum Servisleri → Sistem Servisleri → <b>Pusula Kalibrasyonu</b> açık olsun. Telefonu havada birkaç kez 8 çizerek kalibre et. Chrome'dan açıyorsan Chrome'un Konum ve Hareket izinlerine de izin ver.</div></div>
+   <a class="pill ghost" target="_blank" rel="noopener" href="https://qiblafinder.withgoogle.com/intl/tr/" style="justify-self:start">🌐 Google Kıble Bulucu (kameralı)</a></div>`;
+  const gp=$("#kbGps2");if(gp)gp.onclick=()=>kbKonumAl(false);
+  const ks=$("#kStart");if(ks)ks.onclick=async()=>{try{if(typeof DeviceOrientationEvent!=="undefined"&&DeviceOrientationEvent.requestPermission){const r=await DeviceOrientationEvent.requestPermission();if(r!=="granted"){toast("Pusula izni verilmedi · Güneş ya da Harita yöntemini kullan");return}}
+    try{kbBip=kbBip||new (window.AudioContext||window.webkitAudioContext)();kbBip.resume()}catch(e){}
+    kbDur();KB.on=true;KB.t0=0;KB.uyar=0;if("ondeviceorientationabsolute" in window)window.addEventListener("deviceorientationabsolute",kbHandler);window.addEventListener("deviceorientation",kbHandler);$("#kbDurum").textContent="Telefonu yavaşça çevir…";ks.textContent="🔄 Pusulayı yeniden başlat";
+    setTimeout(()=>{if(KB.on&&KB.h==null){const s=$("#kbDurum");if(s)s.textContent="Pusula bilgisi gelmiyor. Güneş ya da Harita sekmesini kullan."}},4000)}catch(e){toast("Bu cihazda pusula açılamadı · Güneş ya da Harita yöntemini kullan")}};
+  if(kbTab==="pusula"&&KB.h!=null)kbCiz()}
+async function kbHarita(p,q){const el=$("#kbMap");try{await kbYukle("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css",true);await kbYukle("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js");}catch(e){if(el)el.innerHTML=`<div class="empty">Harita yüklenemedi. İnternet bağlantını kontrol et.</div>`;return}
+  if(!$("#kbMap")||kbTab!=="harita")return;el.innerHTML="";const m=L.map(el,{zoomControl:true,attributionControl:true}).setView([p.lat,p.lon],18);kbMap=m;
+  const uydu=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Esri, Maxar"}),sokak=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"});
+  uydu.addTo(m);const pts=[[p.lat,p.lon]];for(const km of [0.3,1,3,10,40])pts.push(kbHedef(p,q,km));
+  L.polyline(pts,{color:"#ff2d2d",weight:5,opacity:.95}).addTo(m);L.circleMarker([p.lat,p.lon],{radius:8,color:"#fff",weight:3,fillColor:"#1e88e5",fillOpacity:1}).addTo(m).bindTooltip(p.gps?"Sen buradasın":"Şehir merkezi");
+  L.marker(kbHedef(p,q,0.05),{icon:L.divIcon({html:"🕋",className:"kbkabe",iconSize:[28,28]})}).addTo(m);
+  document.querySelectorAll("[data-kbkat]").forEach(b=>b.onclick=()=>{const u=b.dataset.kbkat==="uydu";m.removeLayer(u?sokak:uydu);(u?uydu:sokak).addTo(m);document.querySelectorAll("[data-kbkat]").forEach(x=>x.className="pill"+(x===b?"":" ghost"))})}
+/* pusula yeşile dönünce sesli işaret */
+(function(){const eski=kbCiz;kbCiz=function(){const once=KB.ok;eski();if(KB.ok&&!once)kbBipCal()}})();
 
 /* ===================== Başlat ===================== */
 document.addEventListener("touchend",()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}},{once:true});
