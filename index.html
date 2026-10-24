@@ -228,6 +228,9 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
 .ncard{border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
 .ncard .tx{flex:1;min-width:0;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
 .ncard .tx small{display:block;color:var(--muted);font-size:12px;margin-top:4px;white-space:normal}
+.ncard .tx .nt{display:block;font-weight:600}
+.ncard .tx .nh{display:block;font:700 15.5px/1.3 var(--f-disp);margin-bottom:2px}
+#npTxt{font-weight:600}
 .ncard .ts{flex:none;font-weight:700;font-variant-numeric:tabular-nums;font-size:13px;padding-top:2px;min-width:40px}
 .undo{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 140px);background:var(--fg);color:var(--bg);padding:8px 8px 8px 16px;border-radius:14px;z-index:85;display:flex;gap:12px;align-items:center;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:92vw}
 .undo span{white-space:nowrap}
@@ -645,34 +648,41 @@ const parseZaman=v=>{v=String(v||"").trim();if(!v)return null;const p=v.split(":
 function notePad(o){
   /* o: {title, sub, info, at, edit, after} */
   const e=o.edit,t=Q[qi],canLink=!e&&!o.info&&t&&t.ctx;let pen=e&&e.c!=null?e.c:(SET.pen||0);
-  const showTime=!!(e?e.ctx:o.info)&&!(e?e.ctx&&e.ctx.type==="dua":o.info&&o.info.ctx&&o.info.ctx.type==="dua");
+  const showTime=!!(e?e.ctx:(o.info&&o.info.ctx))&&!(e?e.ctx&&e.ctx.type==="dua":o.info&&o.info.ctx&&o.info.ctx.type==="dua");
   const at0=e?e.t:o.at;
+  const serbest=e?!e.ctx:(!o.info||!o.info.ctx)&&!(canLink&&false);
+  const bas0=e?(!e.ctx&&e.title&&e.title!=="Serbest not"?e.title:""):(o.info&&!o.info.ctx&&o.info.title&&o.info.title!=="Serbest not"?o.info.title:(o.title&&o.title!=="Serbest not"?o.title:""));
   openModal(`<h3>${e?"Notu düzenle":"Not al"}</h3>${o.sub?`<div class="small muted">${esc(o.sub)}</div>`:""}
-   <textarea id="npTxt" placeholder="Yaz ya da klavyedeki 🎤 ile söyle…">${esc(e?e.text:"")}</textarea>
+   ${serbest?`<input type="text" id="npBas" list="npBasL" placeholder="Başlık (ör. Sabır, Ders fikirleri, Aile)" value="${esc(bas0)}" style="font-weight:700"><datalist id="npBasL">${BASLIKLAR().map(b=>`<option value="${esc(b)}">`).join("")}</datalist>`:""}
+   <textarea id="npTxt" placeholder="Yaz ya da klavyedeki 🎤 ile söyle…" style="color:${penYazi(PENS[pen][1])}">${esc(e?e.text:"")}</textarea>
    <div class="sablon">${NOT_SABLON.map(([i,t])=>`<button type="button" data-sab="${esc(t)}">${i} ${esc(t.replace(/: $/,"")||"etiket")}</button>`).join("")}</div>
    <label style="display:flex;gap:10px;align-items:center;font-size:14px"><input type="checkbox" id="npPin" ${e&&e.pin?"checked":""} style="width:20px;height:20px">⭐ Önemli (Önemliler listesinde dursun)</label>
    <div class="pens" role="radiogroup" aria-label="Kalem rengi">${PENS.map(([n,c],i)=>`<button type="button" class="${i===pen?"on":""}" data-pen="${i}" style="background:${c}" aria-label="${n} kalem"></button>`).join("")}</div>
    ${showTime?`<label class="small muted" style="display:flex;gap:8px;align-items:center">Dakika (isteğe bağlı) <input type="text" id="npAt" inputmode="numeric" placeholder="ör. 12:30" value="${at0!=null?fmt(at0):""}" style="width:110px;padding:7px 10px"></label>`:""}
    ${canLink?`<label style="display:flex;gap:10px;align-items:center;font-size:14px"><input type="checkbox" id="npLink" style="width:20px;height:20px">Şu an çalana bağla: ${esc(t.title)}${t.live?"":" · "+fmt(au.currentTime)}</label>`:""}
-   <div class="ctrl"><button class="pill acc" id="npOk">Kaydet</button>${e?`<button class="pill ghost" id="npDel" style="color:#e05a4f">Sil</button>`:""}<button class="pill ghost" id="npNo">Vazgeç</button></div>`,()=>{
+   <div class="ctrl"><button class="pill acc" id="npOk">Kaydet</button>${e?`<button class="pill ghost" id="npDel" style="color:#e05a4f">Sil</button>`:""}<button class="pill ghost" id="npNo">Vazgeç</button></div>
+   <div class="small muted" style="text-align:center">${SET.notYedek?"Son yedek: "+new Date(SET.notYedek).toLocaleDateString("tr-TR",{day:"numeric",month:"long"})+" · ":""}<button type="button" id="npYedek" style="color:var(--accent);font-weight:700">📦 Notlarımı yedekle</button></div>`,()=>{
+    const yb=$("#npYedek");if(yb)yb.onclick=()=>notYedekle();
     const ta=$("#npTxt");setTimeout(()=>{try{ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}catch(x){}},80);
     document.querySelectorAll("[data-sab]").forEach(b=>b.onclick=()=>{const v=b.dataset.sab;ta.value=(ta.value&&!/\n$/.test(ta.value)?ta.value+"\n":ta.value)+v;ta.focus();try{ta.setSelectionRange(ta.value.length,ta.value.length)}catch(x){}});
-    document.querySelectorAll("[data-pen]").forEach(b=>b.onclick=()=>{pen=+b.dataset.pen;document.querySelectorAll("[data-pen]").forEach(x=>x.classList.toggle("on",x===b))});
+    document.querySelectorAll("[data-pen]").forEach(b=>b.onclick=()=>{pen=+b.dataset.pen;ta.style.color=penYazi(PENS[pen][1]);document.querySelectorAll("[data-pen]").forEach(x=>x.classList.toggle("on",x===b))});
     const back=()=>{closeModal();if(o.after)o.after()};
     $("#npNo").onclick=back;
     if(e)$("#npDel").onclick=()=>{delNote(e.id);back()};
     $("#npOk").onclick=()=>{const v=ta.value.trim();if(!v){toast("Notunu yaz");return}SET.pen=pen;store.set("mk_set",SET);
       const ai=$("#npAt"),at=ai?parseZaman(ai.value):null;
-      if(e){snapNotes();e.text=v;e.c=pen;if(ai)e.t=at;e.edited=Date.now();saveLib();undoBar("Not güncellendi")}
-      else if(o.info)addNote(o.info,ai?at:o.at,v,pen);
-      else if(canLink&&$("#npLink").checked)addNote(t,t.live?null:Math.floor(au.currentTime),v,pen);
-      else addNote({key:"serbest",ctx:null,title:o.title||"Serbest not",sub:""},null,v,pen);
+      const bi=$("#npBas"),bas=(bi&&bi.value.trim())||"Serbest not",sk=bas==="Serbest not"?"serbest":"serbest:"+bas.toLocaleLowerCase("tr");
+      if(e){snapNotes();e.text=v;e.c=pen;if(ai)e.t=at;if(bi&&!e.ctx){e.title=bas;e.key=sk}e.edited=Date.now();saveLib();undoBar("Not güncellendi")}
+      else if(canLink&&$("#npLink")&&$("#npLink").checked)addNote(t,t.live?null:Math.floor(au.currentTime),v,pen);
+      else if(o.info&&o.info.ctx)addNote(o.info,ai?at:o.at,v,pen);
+      else addNote({key:sk,ctx:null,title:bas,sub:""},null,v,pen);
       try{const pp=$("#npPin"),tg=e||NOTES[NOTES.length-1];if(pp&&tg&&!!tg.pin!==pp.checked){tg.pin=pp.checked?1:0;saveLib()}}catch(x){}
       back();refreshNotes()}})}
 function refreshNotes(){if(!$("#sheet").hidden){const nf=$("#noteForm");if(!(nf&&!nf.hidden))renderSheet()}renderView()}
 
 /* ---------- Bir kaydın notları (kaydı açmadan) ---------- */
 let ITEM_OPEN=null;
+const BASLIKLAR=()=>[...new Set(NOTES.filter(n=>!n.ctx&&n.title&&n.title!=="Serbest not").map(n=>n.title))].slice(0,40);
 function infoFromKey(key){
   let m;
   if((m=key.match(/^s_(.+)_(\d+)$/))){const S=SIYER.find(x=>x.id===m[1]);if(S){const t=siyerTrack(S,+m[2]);return{key,ctx:t.ctx,title:t.title,sub:S.n}}}
@@ -684,7 +694,8 @@ function infoFromKey(key){
   const r=RECENT.find(x=>x.key===key)||NOTES.find(x=>x.key===key);if(r)return{key,ctx:r.ctx,title:r.title,sub:r.sub||""};
   return{key,ctx:null,title:"Kayıt",sub:""};
 }
-function noteCards(list,showSrc){return list.map(n=>{const c=penOf(n);return `<div class="ncard${n.pin?" pin":""}" style="background:color-mix(in srgb,${c} ${isDark()?18:13}%,var(--surface2))"><span class="ts" style="color:${c}">${n.t==null?"✎":fmt(n.t)}</span><button class="tx" data-note="${n.id}">${esc(n.text)}<small>${showSrc?esc(n.title)+" · ":""}${new Date(n.date).toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"})}${n.edited?" · düzenlendi":""}</small></button><button class="ed" data-ednote="${n.id}" aria-label="Düzenle">✏️</button><button class="x" data-delnote="${n.id}" aria-label="Sil">×</button></div>`}).join("")}
+const penYazi=c=>`color-mix(in srgb,${c} ${isDark()?78:88}%,${isDark()?"#fff":"#000"})`;
+function noteCards(list,showSrc){return list.map(n=>{const c=penOf(n);return `<div class="ncard${n.pin?" pin":""}" style="background:color-mix(in srgb,${c} ${isDark()?18:13}%,var(--surface2))"><span class="ts" style="color:${c}">${n.t==null?"✎":fmt(n.t)}</span><button class="tx" data-note="${n.id}"><span class="nt" style="color:${penYazi(c)}">${esc(n.text)}</span><small>${showSrc?esc(n.title)+" · ":""}${new Date(n.date).toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"})}${n.edited?" · düzenlendi":""}</small></button><button class="ed" data-ednote="${n.id}" aria-label="Düzenle">✏️</button><button class="x" data-delnote="${n.id}" aria-label="Sil">×</button></div>`}).join("")}
 function itemNotes(info){ITEM_OPEN=info;const list=notesFor(info.key);
   openModal(`<h3>${esc(info.title)}</h3><div class="small muted">${esc(info.sub||"")}${list.length?" · "+list.length+" not":""}</div>
    <div style="display:grid;gap:8px">${list.length?noteCards(list,false):`<div class="empty">Bu kayda henüz not almadın. Kaydı açmadan buradan yazabilirsin.</div>`}</div>
@@ -703,7 +714,7 @@ function addNoteBadges(root){(root||document).querySelectorAll(".row[data-key]")
   const l=NOTES.filter(n=>n.key===k).sort((x,y)=>(x.t??1e9)-(y.t??1e9)||x.date-y.date);b.classList.toggle("has",l.length>0);b.innerHTML=l.length?[...new Set(l.map(penOf))].slice(0,3).map(c=>`<i style="background:${c}"></i>`).join("")+" "+l.length:"✎+";
   const host=r.querySelector(".t")||r;let pv=host.querySelector(".nprev");if(SET.notGoster===false||!l.length){if(pv)pv.remove();return}
   if(!pv){pv=document.createElement("span");pv.className="nprev";host.appendChild(pv)}pv.dataset.nb=k;
-  pv.innerHTML=l.slice(0,3).map(n=>{const c=penOf(n);return `<div style="background:color-mix(in srgb,${c} ${isDark()?20:14}%,var(--surface2))"><em style="color:${c}">${n.t==null?"✎":fmt(n.t)}</em>${esc(n.text)}</div>`}).join("")+(l.length>3?`<small>+${l.length-3} not daha · dokun, hepsini gör</small>`:"")})}
+  pv.innerHTML=l.slice(0,3).map(n=>{const c=penOf(n);return `<div style="background:color-mix(in srgb,${c} ${isDark()?20:14}%,var(--surface2))"><em style="color:${c}">${n.t==null?"✎":fmt(n.t)}</em><span style="color:${penYazi(c)};font-weight:600">${esc(n.text)}</span></div>`}).join("")+(l.length>3?`<small>+${l.length-3} not daha · dokun, hepsini gör</small>`:"")})}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-nb]");if(!b)return;e.stopPropagation();e.preventDefault();itemNotes(infoFromKey(b.dataset.nb))},true);
 function addRecent(t){if(!t.ctx)return;RECENT=RECENT.filter(r=>r.key!==t.key);RECENT.unshift({key:t.key,ctx:t.ctx,title:t.title,sub:t.sub,date:Date.now()});RECENT=RECENT.slice(0,40);saveLib()}
 let GEN=0,EXP="";
@@ -821,6 +832,7 @@ const siyerTrack=(S,n)=>({title:(S.id==="asr"?"Bölüm ":"Ders ")+n+(S.titles[n-
 const radioTrack=(r,i)=>({title:r.n,sub:r.d,src:[r.u],art:makeArt("راديو",r.n,30),live:true,key:"r_"+i,ctx:{type:"radio",i},group:"Canlı Radyo"});
 const RADIO_Q=()=>RADYO.map(radioTrack);
 function queueFromCtx(c){
+  if(c&&c.type==="kissa"&&KISSA[c.i])return{list:kissaTracks(c.i),i:0};
   const xq=queueExtra(c);if(xq)return xq;
   if(c.type==="siyer"){const S=SIYER.find(x=>x.id===c.id);return{list:Array.from({length:S.count},(_,i)=>siyerTrack(S,i+1)),i:c.n-1}}
   if(c.type==="sure")return{list:Array.from({length:115-c.n},(_,i)=>sureTrack(c.n+i,c.kari)),i:0};
@@ -1096,7 +1108,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 34</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 35</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1138,7 +1150,7 @@ function bUyku(){
 
 /* --- Kütüphanem --- */
 let libSeg="devam",noteQ="",noteCol=-1,noteSrc="hepsi";
-function ctxLabel(c){if(c&&c.type==="bds")return"5 Dakikada Siyer";if(c&&c.type==="arc")return"Sohbet arşivi";if(c&&c.type==="radio2")return"Radyo";return c.type==="dua"?"Dua":c.type==="pod"?"Sohbet":c.type==="siyer"?(c.id==="asr"?"Asr-ı Saadet":"Siyer Vakfı"):c.type==="sure"?"Kur'ân":c.type==="meal"?"Meal":c.type==="asr"?"Asr-ı Saadet":"Radyo"}
+function ctxLabel(c){if(c&&c.type==="kissa")return"Kur'an Kıssası";if(c&&c.type==="bds")return"5 Dakikada Siyer";if(c&&c.type==="arc")return"Sohbet arşivi";if(c&&c.type==="radio2")return"Radyo";return c.type==="dua"?"Dua":c.type==="pod"?"Sohbet":c.type==="siyer"?(c.id==="asr"?"Asr-ı Saadet":"Siyer Vakfı"):c.type==="sure"?"Kur'ân":c.type==="meal"?"Meal":c.type==="asr"?"Asr-ı Saadet":"Radyo"}
 function vKutup(){
   const seg=`<div class="seg">${[["devam","Devam Et"],["fav","Favoriler"],["not","Notlarım"]].map(([k,l])=>`<button data-lseg="${k}" class="${libSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
   if(libSeg==="devam"){
@@ -1148,8 +1160,8 @@ function vKutup(){
   }
   if(libSeg==="fav"){const f=Object.entries(FAV).sort((a,b)=>b[1].date-a[1].date);
     return seg+(f.length?`<div class="list">${f.map(([k,v])=>`<div class="nrow"><span class="ts">♥</span><button class="tx" data-ctx='${esc(JSON.stringify(v.ctx))}'>${esc(v.title)}<span>${ctxLabel(v.ctx)} · ${esc(v.sub)}</span></button><button class="x" data-unfav="${esc(k)}" aria-label="Favoriden çıkar">×</button></div>`).join("")}</div>`:`<div class="empty">Çalarda “♡ Favorilere ekle”ye dokunduğun dersler, sûreler ve radyolar burada toplanır.</div>`);}
-  const SRC=[["hepsi","Tümü"],["asr","Asr-ı Saadet"],["siyer","Siyer"],["sure","Kur'ân"],["pod","Sohbet"],["dua","Dua"],["serbest","Serbest"]];
-  const srcOf=n=>!n.ctx?"serbest":n.ctx.type==="siyer"?(n.ctx.id==="asr"?"asr":"siyer"):n.ctx.type;
+  const SRC=[["hepsi","Tümü"],["asr","Asr-ı Saadet"],["siyer","Siyer"],["sure","Kur'ân"],["pod","Sohbet"],["dua","Dua"],["kissa","Kıssa"],["serbest","📒 Başlıklı"]];
+  const srcOf=n=>!n.ctx?"serbest":n.ctx.type==="kissa"?"kissa":n.ctx.type==="siyer"?(n.ctx.id==="asr"?"asr":"siyer"):n.ctx.type;
   const q=noteQ.toLocaleLowerCase("tr");
   const list=NOTES.filter(n=>(!q||(n.text+" "+n.title).toLocaleLowerCase("tr").includes(q))&&(noteCol<0||(n.c||0)===noteCol)&&(noteSrc==="hepsi"||srcOf(n)===noteSrc)&&notEkFiltre(n));
   const groups={};list.forEach(n=>{(groups[n.key]=groups[n.key]||[]).push(n)});
@@ -1157,12 +1169,12 @@ function vKutup(){
   const ilk=NOTES.length?new Date(Math.min(...NOTES.map(n=>n.date))):null,son=SET.notYedek||0,gun=son?Math.floor((Date.now()-son)/864e5):null;
   const uyar=NOTES.length&&(!son||gun>=14)?`<div class="soz" style="margin-bottom:12px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">NOTLARINI KORU</div><div class="small">${son?gun+" gündür yedek almadın.":"Henüz notlarının yedeğini almadın."} Yedek dosyası iCloud Drive'a ya da WhatsApp'ta kendine gönderilirse yıllar sonra bile geri yüklenir.</div><button class="pill acc" id="nYedek2" style="justify-self:start">📦 Şimdi yedekle</button></div>`:"";
   return seg+`<div class="soz" style="margin-bottom:12px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">NOT DEFTERİM</div><div class="soz-t">${NOTES.length} not · ${new Set(NOTES.map(n=>n.key)).size} kayıt</div><div class="small muted">${ilk?"İlk notun: "+ilk.toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"}):"Dinlerken ya da listelerdeki ✎+ düğmesiyle not almaya başla."}${son?" · Son yedek: "+new Date(son).toLocaleDateString("tr-TR"):""}</div></div>
-   <div class="ctrl" style="margin-bottom:10px"><button class="pill acc" id="noteNew">✎ Yeni not</button><button class="pill" id="nYedek">📦 Yedekle</button>${UNDO.length?`<button class="pill ghost" id="nUndo">↶ Geri al</button>`:""}</div>
+   <div class="ctrl" style="margin-bottom:10px"><button class="pill acc" id="noteNew">✎ Yeni not</button>${BASLIKLAR().slice(0,6).map(b=>`<button class="pill ghost" data-nbas="${esc(b)}" style="padding:7px 12px;font-size:13px">📒 ${esc(b)}</button>`).join("")}<button class="pill" id="nYedek">📦 Yedekle</button>${UNDO.length?`<button class="pill ghost" id="nUndo">↶ Geri al</button>`:""}</div>
    <details style="margin-bottom:10px"><summary class="small muted" style="cursor:pointer">Diğer: yedekten yükle, metin olarak kopyala</summary><div class="ctrl" style="margin-top:8px"><label class="pill ghost" style="cursor:pointer">📥 Yedekten yükle<input type="file" id="nYukle" accept=".json,application/json" hidden></label><button class="pill ghost" id="noteCopy">📋 Metin olarak kopyala</button></div>${vNotKopya()}<label style="display:flex;gap:10px;align-items:center;font-size:14px;margin-top:8px"><input type="checkbox" id="nGoster" ${SET.notGoster!==false?"checked":""} style="width:20px;height:20px">Bölüm listelerinde notlarımın yazısını göster</label></details>
    ${vNotEk()}<input type="search" id="noteSearch" placeholder="Notlarında ara" value="${esc(noteQ)}" style="margin-bottom:10px">
    <div class="chips" style="margin-top:0">${SRC.map(([k,l])=>`<button class="chip ${noteSrc===k?"on":""}" data-nsrc="${k}"><b>${l}</b></button>`).join("")}</div>
    <div class="pens" style="margin:8px 0 14px"><button type="button" class="${noteCol<0?"on":""}" data-ncol="-1" style="background:conic-gradient(${PENS.map(p=>p[1]).join(",")})" aria-label="Tüm renkler"></button>${PENS.map(([n,c],i)=>`<button type="button" class="${noteCol===i?"on":""}" data-ncol="${i}" style="background:${c}" aria-label="${n}"></button>`).join("")}</div>
-   ${noteView==="akis"?vNotAkis(list):gl.length?gl.map(([k,l])=>{const f=l[0],src=srcOf(f);return `<div class="ngroup"><div class="gh"><div style="min-width:0"><b>${esc(f.title)}</b><div class="small muted">${src==="serbest"?"Serbest notlar":esc(ctxLabel(f.ctx||{}))+(f.sub&&f.sub!==f.title?" · "+esc(f.sub):"")} · ${l.length} not</div></div>${f.ctx?`<button class="pill ghost" style="padding:6px 10px;font-size:13px" data-gopen="${esc(k)}">▶</button>`:""}<button class="pill ghost" style="padding:6px 10px;font-size:13px" data-nb="${esc(k)}">✎+</button></div>${noteCards(l.sort((a,b)=>(a.t??1e9)-(b.t??1e9)||a.date-b.date),false)}</div>`}).join(""):`<div class="empty">${NOTES.length?"Bu filtreye uyan not yok.":"Henüz not yok."}</div>`}
+   ${noteView==="akis"?vNotAkis(list):gl.length?gl.map(([k,l])=>{const f=l[0],src=srcOf(f);const gc=src==="serbest"?PENS[(f.title||"").split("").reduce((a,ch)=>a+ch.charCodeAt(0),0)%PENS.length][1]:null;return `<div class="ngroup"${gc?` style="background:color-mix(in srgb,${gc} ${isDark()?12:8}%,var(--surface))"`:""}><div class="gh"><div style="min-width:0"><b${gc?` style="color:${penYazi(gc)}"`:""}>${src==="serbest"?"📒 ":""}${esc(f.title)}</b><div class="small muted">${src==="serbest"?"📒 Başlıklı defter":esc(ctxLabel(f.ctx||{}))+(f.sub&&f.sub!==f.title?" · "+esc(f.sub):"")} · ${l.length} not</div></div>${f.ctx?`<button class="pill ghost" style="padding:6px 10px;font-size:13px" data-gopen="${esc(k)}">▶</button>`:""}<button class="pill ghost" style="padding:6px 10px;font-size:13px" data-nb="${esc(k)}">✎+</button></div>${noteCards(l.sort((a,b)=>(a.t??1e9)-(b.t??1e9)||a.date-b.date),false)}</div>`}).join(""):`<div class="empty">${NOTES.length?"Bu filtreye uyan not yok.":"Henüz not yok."}</div>`}
    `;
 }
 function bKutup(){
@@ -1172,6 +1184,7 @@ function bKutup(){
   document.querySelectorAll("[data-unfav]").forEach(b=>b.onclick=()=>{delete FAV[b.dataset.unfav];saveLib();renderView()});
   const ns=$("#noteSearch");if(ns)ns.oninput=()=>{noteQ=ns.value;const pos=ns.selectionStart;renderView();const n2=$("#noteSearch");n2.focus();try{n2.setSelectionRange(pos,pos)}catch(e){}};
   const nn=$("#noteNew");if(nn)nn.onclick=()=>notePad({title:"Serbest not"});
+  document.querySelectorAll("[data-nbas]").forEach(b=>b.onclick=()=>notePad({title:b.dataset.nbas}));
   document.querySelectorAll("[data-nsrc]").forEach(b=>b.onclick=()=>{noteSrc=b.dataset.nsrc;renderView()});
   document.querySelectorAll("[data-ncol]").forEach(b=>b.onclick=()=>{noteCol=+b.dataset.ncol;renderView()});
   document.querySelectorAll("[data-gopen]").forEach(b=>b.onclick=()=>{const i=infoFromKey(b.dataset.gopen);if(i.ctx)openCtx(i.ctx)});
@@ -1469,7 +1482,8 @@ function bBugun(){
 
 /* --- Külliyat --- */
 function vKulliyat(){
-  const seg=`<div class="seg">${[["soz","Sözler"],["ilim","🎓 İlim"],["cocuk","👨‍👩‍👧 Çocuk Eğitimi"],["gunler","🌙 Günler"],["alim","Âlimler"],["risale","Risale-i Nur"],["hadis","Kırk Hadis"],["esma","Esmâ"],["ilahi","İlahiler"],["film","Film"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  const seg=`<div class="seg">${[["soz","Sözler"],["kissa","📖 Kıssalar"],["ilim","🎓 İlim"],["cocuk","👨‍👩‍👧 Çocuk Eğitimi"],["gunler","🌙 Günler"],["alim","Âlimler"],["risale","Risale-i Nur"],["hadis","Kırk Hadis"],["esma","Esmâ"],["ilahi","İlahiler"],["film","Film"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  if(kulSeg==="kissa")return seg+vKissa();
   if(kulSeg==="ilim")return seg+vIlim();
   if(kulSeg==="gunler")return seg+vGunler();
   if(kulSeg==="cocuk")return seg+vCocuk();
@@ -1505,7 +1519,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=34;
+const SURUM=35;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1680,7 +1694,7 @@ function vHadis(){const ez=store.get("mk_hadis_ez",{}),n=KIRK.filter(([no])=>ez[
 function bHadis(){const ha=$("#hdAll");if(ha)ha.onclick=()=>playQueue(KIRK.map(hadisTrack),0);
   document.querySelectorAll("[data-hdp]").forEach(b=>b.onclick=()=>{const i=KIRK.findIndex(x=>String(x[0])===b.dataset.hdp);playQueue(KIRK.map(hadisTrack),i)});
   document.querySelectorAll("[data-hdez]").forEach(b=>b.onclick=()=>{const ez=store.get("mk_hadis_ez",{}),k=b.dataset.hdez;if(ez[k])delete ez[k];else ez[k]=1;store.set("mk_hadis_ez",ez);renderView()})}
-function bKulExtra(){if(kulSeg==="ilim"||kulSeg==="gunler"||kulSeg==="cocuk")try{bIlimGun()}catch(e){}if(kulSeg==="alim")bAlimler();if(kulSeg==="risale")bRisale();if(kulSeg==="hadis")bHadis();
+function bKulExtra(){if(kulSeg==="kissa")bKissa();if(kulSeg==="ilim"||kulSeg==="gunler"||kulSeg==="cocuk")try{bIlimGun()}catch(e){}if(kulSeg==="alim")bAlimler();if(kulSeg==="risale")bRisale();if(kulSeg==="hadis")bHadis();
   document.querySelectorAll("[data-kgo]").forEach(b=>b.onclick=()=>{kulSeg=b.dataset.kgo;renderView();toTop()});
   document.querySelectorAll("#view [data-qs]").forEach(b=>b.onclick=()=>{tab="dinle";dinleSeg="sohbet";store.set("mk_tab",tab);doSearch(b.dataset.qs);toTop()})}
 
@@ -1765,6 +1779,132 @@ function bBugunExtra(){
   document.querySelectorAll("[data-dlok]").forEach(b=>b.onclick=()=>{const d=DLIST.find(x=>x.id===b.dataset.dlok);if(!d)return;if(d.son===todayKey()){d.son="";d.say=Math.max(0,(d.say||0)-1)}else{d.son=todayKey();d.say=(d.say||0)+1}store.set("mk_dlist",DLIST);renderView()});
   document.querySelectorAll("[data-dldel]").forEach(b=>b.onclick=()=>{DLIST=DLIST.filter(x=>x.id!==b.dataset.dldel);store.set("mk_dlist",DLIST);renderView()});
 }
+
+/* ---------- 📖 Kur'an Kıssaları · öğretmen için ---------- */
+const KISSA=[
+ {ad:"Hz. Âdem ve İlk Tevbe",yer:"Bakara 2/30-38 · A'râf 7/11-25",ay:[[7,23]],deg:["Tevbe","Kibirden sakınmak"],h:150,
+  oz:"Allah Hz. Âdem'i yarattı, ona eşyanın isimlerini öğretti ve meleklerin ona secde etmesini emretti. İblis kibirlenip secde etmedi. Hz. Âdem ve Hz. Havva cennette yalnızca bir ağaca yaklaşmamakla imtihan edildiler; şeytanın kandırmasıyla hata ettiler. Ama hemen pişman oldular ve “Rabbimiz, biz kendimize zulmettik; bağışlamaz ve merhamet etmezsen kaybedenlerden oluruz” diye dua ettiler. Allah tevbelerini kabul etti.",
+  ders:"Hata yapmak insanca; asıl önemli olan hatayı kabul edip özür dilemek. Kibir ise iyiliğin önünü kapatır.",
+  etk:"“Özür köşesi”: Çocuklar bir kâğıda yaptıkları küçük bir hatayı ve nasıl düzelttiklerini çizer. Öğretmen “Hz. Âdem ne yaptı?” diye sorar: pişman oldu, dua etti.",
+  soru:"Bir hata yaptığında ilk ne yaparsın? Hz. Âdem ne yaptı?",
+  oo:"Okul öncesi: “Bir yanlış yaptık, ne deriz?” — “Özür dilerim, bir daha yapmam.” Kısa ve sıcak anlat; şeytanı korkutucu çizme."},
+ {ad:"Hz. Nûh ve Gemi",yer:"Hûd 11/25-49 · Nûh sûresi",ay:[[11,41]],deg:["Sabır","Sebat","Tevekkül"],h:200,
+  oz:"Hz. Nûh kavmini yüzyıllarca Allah'a çağırdı; gece gündüz, açıktan ve gizliden anlattı. Pek azı inandı, çoğu alay etti. Allah ona bir gemi yapmasını emretti; insanlar karada gemi yapıldığını görüp güldüler. Tufan gelince Hz. Nûh “Bismillâhi mecrâhâ ve mürsâhâ — gemiyi yürüten de durduran da Allah'ın adıdır” diyerek inananları ve hayvan çiftlerini gemiye aldı. İnananlar kurtuldu.",
+  ders:"Doğru bildiğin işi, başkaları gülse de sabırla sürdür. İşe besmeleyle başla.",
+  etk:"Kâğıttan gemi yapımı: Her çocuk gemisine bir “güzel davranış” yazar ya da çizer. Sınıf “Nûh'un gemisi” panosunu birlikte doldurur.",
+  soru:"Arkadaşların bir iyiliğine gülse bile o iyiliği yapmaya devam eder misin? Neden?",
+  oo:"Okul öncesi: Hayvan çiftleriyle eşleştirme oyunu (iki kedi, iki kuş…) ve gemiye bindirme."},
+ {ad:"Hz. İbrâhim ve Putlar",yer:"Enbiyâ 21/51-70",ay:[[21,69]],deg:["Tevhid","Cesaret","Düşünmek"],h:20,
+  oz:"Hz. İbrâhim, kavminin elleriyle yaptıkları putlara taptığını görünce “Bunlar duymaz, fayda da zarar da veremez” dedi. Bir bayram günü, en büyükleri dışındaki putları kırdı. Sorulduğunda “Büyükleri yaptı, konuşabiliyorlarsa onlara sorun” diyerek düşünmeye çağırdı. Onu ateşe attılar; Allah “Ey ateş! İbrâhim'e karşı serin ve esenlik ol” buyurdu, ateş onu yakmadı.",
+  ders:"Aklını kullanmak, soru sormak ve doğruyu söylemek cesaret ister. Allah, kendisine güveneni korur.",
+  etk:"“Düşünen çocuk” oyunu: Öğretmen “Bir oyuncak bize yardım edebilir mi? Yağmuru kim yağdırır?” gibi sorular sorar; çocuklar gerekçesiyle cevaplar.",
+  soru:"Hz. İbrâhim putların büyüğüne neden “ona sorun” dedi?",
+  oo:"Okul öncesi: Ateşin serinlediği anı mavi-turuncu renk değiştirme etkinliğiyle canlandır."},
+ {ad:"Hz. İsmâil ve Teslimiyet",yer:"Sâffât 37/99-111",ay:[[37,102]],deg:["Teslimiyet","Anne-babaya saygı"],h:35,
+  oz:"Hz. İbrâhim, oğlu İsmâil'i kurban ettiğini rüyasında gördü ve bunu oğluna danıştı: “Ne düşünürsün?” Hz. İsmâil “Babacığım, emrolunduğun şeyi yap; inşallah beni sabredenlerden bulursun” dedi. İkisi de Allah'a teslim olunca Allah, Hz. İsmâil'in yerine büyük bir kurbanlık gönderdi. Kurban bu teslimiyetin hatırasıdır.",
+  ders:"Babası oğluna danıştı; oğlu ise saygı ve güvenle cevap verdi. Aile içinde konuşmak ve güvenmek çok değerli.",
+  etk:"“Aile danışması” canlandırması: Çocuklar evde bir kararı (ör. hafta sonu ne yapalım) ailece konuşmanın nasıl olacağını drama ile gösterir.",
+  soru:"Hz. İbrâhim oğluna neden fikrini sordu?",
+  oo:"Okul öncesi: Kurban Bayramı'nda paylaşma ve komşuya et götürme sevincine odaklan."},
+ {ad:"Hz. Yûsuf ve Affetmek",yer:"Yûsuf sûresi (12)",ay:[[12,92]],deg:["Affetmek","Sabr-ı cemîl","İffet"],h:265,
+  oz:"Kardeşleri kıskançlıkla Hz. Yûsuf'u kuyuya attı; köle olarak satıldı, iftiraya uğradı, yıllarca zindanda kaldı. Babası Hz. Ya'kûb “Bana düşen güzel bir sabırdır” dedi. Hz. Yûsuf rüya yorumuyla Mısır'ın hazinesinin başına geçti ve kıtlıkta kardeşleri ondan yardım istemeye geldi. Onları tanıyınca “Bugün size kınama yok; Allah sizi bağışlasın” diyerek affetti.",
+  ders:"Kıskançlık kötülük doğurur; sabır ve affetmek ise kalpleri birleştirir. Güçlüyken affetmek büyüklüktür.",
+  etk:"“Affetme kartları”: Çocuklar kırıldıkları bir anı ve “Seni affediyorum” cümlesini karta yazar ya da çizer; isteyen paylaşır.",
+  soru:"Hz. Yûsuf kardeşlerini cezalandırabilirdi. Neden affetti?",
+  oo:"Okul öncesi: Yıldız, ay ve güneş çizerek rüyayı anlat; kardeş sevgisine odaklan."},
+ {ad:"Hz. Mûsâ'nın Annesi",yer:"Kasas 28/7-13",ay:[[28,7]],deg:["Tevekkül","Anne şefkati"],h:330,
+  oz:"Firavun erkek çocukları öldürtüyordu. Allah, Hz. Mûsâ'nın annesine “Onu emzir; korktuğunda sandığa koyup nehre bırak, korkma ve üzülme; onu sana geri vereceğiz” diye ilham etti. Sandık Firavun'un sarayına ulaştı, Firavun'un hanımı onu sevdi. Bebek hiçbir sütanneyi kabul etmedi; ablasının yol göstermesiyle annesine geri döndü ve annesi onu kendi evinde büyüttü.",
+  ders:"Allah'a güvenen kalp, en zor anda bile umudunu kaybetmez. Allah verdiği sözü yerine getirir.",
+  etk:"Kâğıt sandık ve “nehir” yolu: Çocuklar sandığı mavi kartondan nehirde ilerletir; her durakta “Annesi ne hissetti?” konuşulur.",
+  soru:"Hz. Mûsâ'nın annesi bebeğini nehre bırakırken neden korkmadı?",
+  oo:"Okul öncesi: Annelerin bebeklerini nasıl sevdiğini konuş; kucaklama ve teşekkür kartı hazırla."},
+ {ad:"Hz. Mûsâ ve Hızır",yer:"Kehf 18/60-82",ay:[[18,66]],deg:["İlimde sabır","Tevazu","Hikmet"],h:190,
+  oz:"Hz. Mûsâ, kendisine ilim verilmiş bir kul olan Hızır ile yolculuk yaptı ve “Sana öğretilenden bana da öğretir misin?” dedi. Hızır gemiyi deldi, bir çocuğu öldürdü, yıkılmak üzere olan bir duvarı karşılıksız düzeltti. Hz. Mûsâ her seferinde sabredemedi. Sonunda Hızır her olayın arkasındaki hikmeti anlattı: gemi zalim bir kralın elinden kurtulmuş, duvarın altında yetimlerin hazinesi korunmuştu.",
+  ders:"Büyük bir peygamber bile öğrenmek için yola çıktı. Öğrenci sabırlı ve mütevazı olmalı; her olayın ilk bakışta görünmeyen bir hikmeti olabilir.",
+  etk:"“Perdenin arkası”: Öğretmen önce bir resmin küçük bir parçasını gösterir, çocuklar tahmin eder; resim açılınca “ilk düşündüğümüz doğru muydu?” konuşulur.",
+  soru:"Hz. Mûsâ neden “Bana öğretir misin?” diye sordu? Sen kimden ne öğrenmek isterdin?",
+  oo:"Okul öncesi: Yalnızca duvar kısmını anlat; karşılıksız yardım etmenin güzelliğine odaklan."},
+ {ad:"Hz. Yûnus ve Balık",yer:"Enbiyâ 21/87-88 · Sâffât 37/139-148",ay:[[21,87]],deg:["Dua","Ümit","Hatayı kabul"],h:210,
+  oz:"Hz. Yûnus kavmine kızıp onları erken terk etti. Bindiği gemiden denize bırakıldı ve onu büyük bir balık yuttu. Karanlıkların içinde “Senden başka ilah yoktur; seni tenzih ederim; ben kendime zulmedenlerden oldum” diye dua etti. Allah onu kurtardı. Kavmi de iman etmişti.",
+  ders:"Hiçbir karanlık Allah'ın rahmetinden büyük değildir. Dua ederken önce kendi hatamızı kabul ederiz.",
+  etk:"“Karanlıkta dua”: Sınıfın ışığı kısılır, çocuklar Yûnus duasını birlikte söyler; ışık açılınca kurtuluş sevinci paylaşılır.",
+  soru:"Hz. Yûnus balığın karnında ne yaptı? Biz zor anda ne yaparız?",
+  oo:"Okul öncesi: Balık kuklasıyla anlat; duayı kısa hâliyle (“Lâ ilâhe illâ ente sübhâneke”) tekrar edin."},
+ {ad:"Hz. Eyyûb'un Sabrı",yer:"Enbiyâ 21/83-84 · Sâd 38/41-44",ay:[[21,83]],deg:["Sabır","Şükür"],h:120,
+  oz:"Hz. Eyyûb malını, çocuklarını ve sağlığını kaybetti; yıllarca hasta kaldı. Hiç şikâyet etmedi; yalnızca “Rabbim, bu dert bana dokundu; sen merhametlilerin en merhametlisisin” diye Allah'a yöneldi. Allah ona ayağını yere vurmasını emretti; çıkan sudan yıkanıp içti ve şifa buldu. Allah ona ailesini ve kat kat fazlasını geri verdi ve onu “ne güzel kul” diye övdü.",
+  ders:"Sabır, şikâyet etmeden Allah'a yönelmektir. Zorluk geçer; geriye güzel bir kulluk kalır.",
+  etk:"“Şükür kavanozu”: Her gün çocuklar şükrettikleri bir şeyi kâğıda yazıp kavanoza atar; hafta sonunda birlikte okunur.",
+  soru:"Hz. Eyyûb hasta olduğunda ne dedi? Sen hastalandığında ne söyleyebilirsin?",
+  oo:"Okul öncesi: Hasta bir arkadaşa “geçmiş olsun” kartı hazırla."},
+ {ad:"Hz. Süleyman ve Karınca",yer:"Neml 27/17-19",ay:[[27,19]],deg:["Merhamet","Şükür","Sorumluluk"],h:95,
+  oz:"Hz. Süleyman ordusuyla karıncalar vadisine geldiğinde bir karınca “Ey karıncalar! Yuvalarınıza girin; Süleyman ve ordusu farkında olmadan sizi ezmesin” dedi. Hz. Süleyman bu söze gülümsedi ve “Rabbim, bana ve anne-babama verdiğin nimete şükretmemi ve razı olacağın iyi işler yapmamı nasip et” diye dua etti.",
+  ders:"Karınca bile arkadaşlarının sorumluluğunu üstlendi. Güçlü olan, en küçük canlıyı bile incitmemeye dikkat eder ve şükreder.",
+  etk:"Karınca gözlemi ve “karınca yolu” oyunu: Çocuklar sıra olup “Dikkat, arkadaşını koru!” uyarısıyla güvenli geçişi canlandırır.",
+  soru:"Karınca arkadaşlarına ne dedi? Hz. Süleyman neden dua etti?",
+  oo:"Okul öncesi: Parmak boyasıyla karınca çizimi; “küçük canlıları korurum” sözü."},
+ {ad:"Ashâb-ı Kehf",yer:"Kehf 18/9-26",ay:[[18,10]],deg:["İman","Arkadaşlık","Cesaret"],h:250,
+  oz:"İnançları yüzünden baskı gören birkaç genç bir mağaraya sığındı ve “Rabbimiz, bize katından bir rahmet ver ve işimizde bize doğruyu kolaylaştır” diye dua etti. Allah onları yıllarca uyuttu; köpekleri de mağaranın girişinde bekledi. Uyandıklarında dünya değişmişti; kıssaları, Allah'ın vaadinin hak olduğuna bir delil oldu.",
+  ders:"İyi arkadaş, doğru yolda birbirine destek olur. Zor anda dua edip Allah'a sığınırız.",
+  etk:"“Mağara dostları”: Çocuklar ikili olur, birbirine “Sana nasıl destek olurum?” diye sorar ve iyi arkadaşlık sözü yazar.",
+  soru:"Gençler mağaraya girince ilk ne yaptılar?",
+  oo:"Okul öncesi: Masa altından mağara kurup sessizce dua etme oyunu."},
+ {ad:"Lokmân'ın Oğluna Öğütleri",yer:"Lokmân 31/12-19",ay:[[31,17],[31,18],[31,19]],deg:["Nasihat","Edep","Tevazu"],h:45,
+  oz:"Allah'ın hikmet verdiği Lokmân oğluna şefkatle öğüt verdi: Allah'a ortak koşma; anne-babana iyi davran; bil ki zerre kadar iyilik ya da kötülük Allah'tan gizli kalmaz; namazı kıl, iyiliği emret, kötülükten sakındır, başına gelene sabret; insanlara kibirle yüz çevirme, yeryüzünde böbürlenerek yürüme; yürüyüşünde ölçülü ol, sesini alçalt.",
+  ders:"Nasihat “Yavrucuğum” diye başlayan şefkatli bir dille verilir. Bu âyetler bir karakter eğitimi programı gibidir.",
+  etk:"“Lokmân'ın on öğüdü” afişi: Her öğüt bir çocuğa verilir; resmini çizer, sınıfa anlatır. Haftanın öğüdü tahtada kalır.",
+  soru:"Lokmân oğluna hangi sözle başladı? Sence neden “Yavrucuğum” dedi?",
+  oo:"Okul öncesi: “Alçak sesle konuşurum” ve “anne-babama teşekkür ederim” öğütlerini oyunla çalış."},
+ {ad:"Hâbil ile Kâbil",yer:"Mâide 5/27-31",ay:[[5,27]],deg:["Kıskançlık","Öfke kontrolü","Kardeşlik"],h:0,
+  oz:"Hz. Âdem'in iki oğlu Allah'a birer kurban sundu; birininki kabul edildi, diğerininki edilmedi. Kâbil kıskandı ve kardeşini öldürmekle tehdit etti. Hâbil “Allah ancak takvâ sahiplerinden kabul eder; sen bana elini uzatsan da ben sana elimi uzatmam” dedi. Kâbil öfkesine yenildi ve kardeşini öldürdü; sonra bir kargadan ölüyü gömmeyi öğrenip pişman oldu.",
+  ders:"Kıskançlık ve kontrol edilmeyen öfke büyük pişmanlıklara götürür. Kabul edilmek, gösterişte değil samimiyettedir.",
+  etk:"“Öfke trafik ışığı”: Kırmızı = dur, nefes al; sarı = düşün; yeşil = konuş. Çocuklar kendi öfke anlarını ışıklarla canlandırır.",
+  soru:"Hâbil öfkeli kardeşine nasıl cevap verdi?",
+  oo:"Okul öncesi: Yalnızca kıskançlık ve paylaşma bölümüne odaklan; ölüm kısmını anlatma."},
+ {ad:"Hz. Zekeriyyâ'nın Duası",yer:"Meryem 19/1-11 · Âl-i İmrân 3/38-41",ay:[[19,4]],deg:["Dua","Ümit"],h:300,
+  oz:"Hz. Zekeriyyâ yaşlanmış, eşi de çocuk sahibi olamıyordu. Gizlice ve içten dua etti: “Rabbim, kemiklerim zayıfladı, saçım ağardı; ama sana dua ederek hiç mahrum kalmadım.” Allah onu Yahyâ adında bir oğulla müjdeledi; bu isimle daha önce kimse adlandırılmamıştı.",
+  ders:"Dua ederken umudu kesmemek gerekir; Allah'ın gücü her şeye yeter.",
+  etk:"“Dua ağacı”: Her çocuk yaprak şeklindeki kâğıda bir dua yazar ya da çizer ve sınıftaki ağaca asar.",
+  soru:"Hz. Zekeriyyâ yaşlı olduğu hâlde neden dua etmeyi bırakmadı?",
+  oo:"Okul öncesi: “Allah'ım…” diye başlayan kısa dualar söyletme oyunu."},
+ {ad:"Firavun'a Yumuşak Söz",yer:"Tâhâ 20/25-28 · 20/42-47",ay:[[20,44]],deg:["Güzel üslup","Nezaket"],h:170,
+  oz:"Allah, Hz. Mûsâ ile Hz. Hârûn'u, zalim Firavun'a gönderirken onlara şöyle buyurdu: “Ona yumuşak söz söyleyin; belki öğüt alır ya da korkar.” Hz. Mûsâ ayrıca “Rabbim, göğsümü aç, işimi kolaylaştır, dilimdeki düğümü çöz ki sözümü anlasınlar” diye dua etti.",
+  ders:"En zalim insana bile önce yumuşak sözle gidilir. Öğretmenin ve anne-babanın sesi de tatlı olmalı. Derse başlamadan “Rabbişrah” duası okunabilir.",
+  etk:"“Sihirli cümleler”: Aynı isteği sert ve yumuşak iki şekilde söyletip hangisinin daha güzel olduğunu oylatın.",
+  soru:"Allah, Mûsâ'ya Firavun'la nasıl konuşmasını söyledi?",
+  oo:"Okul öncesi: “Lütfen, teşekkür ederim, özür dilerim” sihirli kelimeleri."},
+ {ad:"Fil Ordusu (Ebrehe)",yer:"Fîl sûresi (105)",ay:[[105,1],[105,2],[105,3],[105,4],[105,5]],deg:["Allah'ın koruması","Kibir"],h:60,
+  oz:"Yemen valisi Ebrehe, Kâbe'yi yıkmak için fillerle büyük bir ordu getirdi. Mekke'ye yaklaştıklarında Allah sürü sürü kuşlar gönderdi; kuşlar ordunun üzerine pişmiş çamurdan taşlar attı ve ordu, yenmiş ekin yaprakları gibi oldu. Bu olay Efendimizin doğduğu yıl yaşandı; o yıla “Fil Yılı” denir.",
+  ders:"Allah, evini (Kâbe'yi) korudu. Kibirle güç gösterenin gücü Allah'ın gücü karşısında hiçtir.",
+  etk:"Fîl sûresini ezberleme ve kuş-taş-fil kartlarıyla olayı sıraya koyma etkinliği.",
+  soru:"Ebrehe neden başarılı olamadı? Bu olay hangi yıl oldu?",
+  oo:"Okul öncesi: Kuş kuklalarıyla anlat; Efendimizin doğumuna bağla."}
+];
+let kissaDeg="",kissaAcik=-1;
+function kissaTracks(i){const k=KISSA[i],art=makeArt("📖",k.ad.slice(0,22),k.h);
+  const parts=chunkText(k.ad+". "+k.oz+" Bu kıssadan alacağımız ders: "+k.ders,380);
+  const L=parts.map((c,p)=>Object.assign(ttsTrack(c,"tr-TR",k.ad,"Kur'an Kıssası · "+(p+1)+"/"+parts.length,art,"Kur'an Kıssaları"),{key:"k_"+i,ctx:{type:"kissa",i}}));
+  return L.concat(ayahTracks(k.ay,k.ad+" · âyet").map(t=>Object.assign(t,{group:"Kur'an Kıssaları",key:"k_"+i,ctx:{type:"kissa",i}})))}
+function kissaPlan(i){const k=KISSA[i];return `📖 ${k.ad}\nKaynak: ${k.yer}\nDeğerler: ${k.deg.join(", ")}\n\nKıssa:\n${k.oz}\n\nAlınacak ders:\n${k.ders}\n\nSınıf etkinliği:\n${k.etk}\n\nTartışma sorusu:\n${k.soru}\n\n${k.oo}`}
+function vKissa(){const D=[...new Set(KISSA.flatMap(k=>k.deg))];
+  const L=KISSA.map((k,i)=>[k,i]).filter(([k])=>!kissaDeg||k.deg.includes(kissaDeg));
+  return `<div class="soz" style="margin-bottom:12px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">ÖĞRETMEN İÇİN KUR'AN KISSALARI</div><div class="small">Her kıssada kısa anlatım, değerler, sınıf etkinliği, tartışma sorusu ve okul öncesi uyarlaması var. ▶ ile dinle; ✎ ile kendi ders notunu ekle.</div></div>
+   <div class="chips" style="margin:0 0 10px"><button class="chip ${kissaDeg?"":"on"}" data-kdeg=""><b>Tüm değerler</b></button>${D.map(d=>`<button class="chip ${kissaDeg===d?"on":""}" data-kdeg="${esc(d)}"><b>${esc(d)}</b></button>`).join("")}</div>
+   ${L.map(([k,i])=>{const ac=kissaAcik===i,c=`hsl(${k.h} 65% ${isDark()?64:34}%)`,nc=NOTES.filter(n=>n.key==="k_"+i).length;
+    return `<div class="ngroup" style="background:color-mix(in srgb,hsl(${k.h} 60% 50%) ${isDark()?14:9}%,var(--surface))">
+     <button class="gh" data-kac="${i}" style="text-align:left;width:100%"><div style="min-width:0"><b>${esc(k.ad)}</b><div class="small" style="color:${c};font-weight:700">${esc(k.yer)}</div><div class="small muted">${k.deg.map(esc).join(" · ")}${nc?" · ✎ "+nc+" not":""}</div></div><span class="small muted">${ac?"▲":"▼"}</span></button>
+     ${ac?`<div style="display:grid;gap:10px">
+       <div style="font-size:15px;line-height:1.6">${esc(k.oz)}</div>
+       <div class="ncard" style="background:color-mix(in srgb,${c} 14%,var(--surface2))"><span class="ts" style="color:${c}">💡</span><span class="tx"><b>Alınacak ders</b><br>${esc(k.ders)}</span></div>
+       <div class="ncard" style="background:color-mix(in srgb,${c} 10%,var(--surface2))"><span class="ts" style="color:${c}">🎨</span><span class="tx"><b>Sınıf etkinliği</b><br>${esc(k.etk)}</span></div>
+       <div class="ncard" style="background:color-mix(in srgb,${c} 10%,var(--surface2))"><span class="ts" style="color:${c}">❓</span><span class="tx"><b>Tartışma sorusu</b><br>${esc(k.soru)}</span></div>
+       <div class="ncard" style="background:color-mix(in srgb,${c} 10%,var(--surface2))"><span class="ts" style="color:${c}">🧸</span><span class="tx">${esc(k.oo)}</span></div>
+       <div class="ctrl"><button class="pill acc" data-kdin="${i}">▶ Kıssayı ve âyeti dinle</button><button class="pill" data-kay="${i}">📖 Âyeti dinle</button><button class="pill ghost" data-nb="k_${i}">✎ Ders notum${nc?" ("+nc+")":""}</button><button class="pill ghost" data-kplan="${i}">📋 Ders planı olarak kopyala</button></div></div>`:""}</div>`}).join("")}
+   <div class="note">Kıssalar Kur'an'daki anlatıma sadık kısa özetlerdir; derste ilgili âyetlerin mealini birlikte okumak en sağlam yoldur.</div>`}
+function bKissa(){document.querySelectorAll("[data-kdeg]").forEach(b=>b.onclick=()=>{kissaDeg=b.dataset.kdeg;renderView()});
+  document.querySelectorAll("[data-kac]").forEach(b=>b.onclick=()=>{const i=+b.dataset.kac;kissaAcik=kissaAcik===i?-1:i;renderView();setTimeout(()=>{const g=document.querySelector(`[data-kac="${i}"]`);if(g&&kissaAcik===i){const y=g.getBoundingClientRect().top+window.scrollY-90;window.scrollTo({top:Math.max(0,y),behavior:"smooth"})}},40)});
+  document.querySelectorAll("[data-kdin]").forEach(b=>b.onclick=()=>playQueue(kissaTracks(+b.dataset.kdin),0));
+  document.querySelectorAll("[data-kay]").forEach(b=>b.onclick=()=>{const k=KISSA[+b.dataset.kay];playQueue(ayahTracks(k.ay,k.ad+" · âyet"),0)});
+  document.querySelectorAll("[data-kplan]").forEach(b=>b.onclick=()=>{const t=kissaPlan(+b.dataset.kplan);try{navigator.clipboard.writeText(t).then(()=>toast("Ders planı kopyalandı"),()=>openModal(`<h3>Ders planı</h3><textarea style="min-height:260px">${esc(t)}</textarea><button class="pill ghost" onclick="closeModal()">Kapat</button>`))}catch(e){openModal(`<h3>Ders planı</h3><textarea style="min-height:260px">${esc(t)}</textarea><button class="pill ghost" onclick="closeModal()">Kapat</button>`)}})}
 
 /* ---------- Not yedeği ---------- */
 async function dosyaPaylas(txt,ad){try{const f=new File([txt],ad,{type:"application/json"});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:ad});return true}}catch(e){if(e&&e.name==="AbortError")return false}
@@ -2413,6 +2553,7 @@ function queueExtra(c){if(!c)return null;
     return{list:[{title:c.t,sub:c.p,src:[c.u],art:makeArt("صحبة",String(c.p||"").slice(0,24),40),key:"a_"+c.id+"_"+c.i,ctx:c,group:c.p}],i:0}}
   return null}
 function infoExtra(key){let m;
+  if((m=key.match(/^k_(\d+)$/))&&KISSA[+m[1]])return{key,ctx:{type:"kissa",i:+m[1]},title:KISSA[+m[1]].ad,sub:"Kur'an Kıssası"};
   if((m=key.match(/^b5_(\d+)$/))&&BDS[+m[1]-1])return{key,ctx:{type:"bds",n:+m[1]},title:m[1]+". "+BDS[+m[1]-1][0],sub:"5 Dakikada Siyer"};
   return null}
 
