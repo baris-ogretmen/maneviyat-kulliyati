@@ -140,7 +140,8 @@ select,input[type=search],input[type=text],input[type=number],input[type=time],i
 #mscrub.drag ~ b{transform:scale(1.4)}
 .mtip{position:absolute;bottom:22px;transform:translateX(-50%);background:var(--fg);color:var(--bg);font-size:12.5px;font-weight:700;padding:4px 8px;border-radius:8px;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}
 .nprev{display:grid;gap:4px;margin-top:6px}
-.nprev div{font-size:13px;line-height:1.35;padding:5px 9px;border-radius:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--fg);text-align:left}
+.nprev div{font-size:13px;line-height:1.4;padding:6px 10px;border-radius:9px;color:var(--fg);text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
+.nprev .more{font-size:12.5px;font-weight:700;color:var(--accent);text-align:left;padding:2px 2px}
 .nprev div em{font-style:normal;font-weight:700;margin-right:6px;font-variant-numeric:tabular-nums}
 .nprev small{font-size:12px;color:var(--muted);text-align:left}
 .row.here{outline:2px solid var(--accent);outline-offset:-2px}
@@ -216,6 +217,7 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
 .modal.ust .box{max-height:62vh}
 .modal textarea{min-height:120px;font-size:16px}
 .nrow .ed{flex:none;color:var(--muted);font-size:16px;padding:2px 6px}
+.rdel{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:20px;color:var(--muted);background:var(--surface2);margin-left:4px;cursor:pointer}
 .nb{flex:none;display:inline-flex;align-items:center;gap:3px;padding:6px 9px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--surface2);color:var(--muted);cursor:pointer;margin-left:2px}
 .nb i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .nb.has{color:var(--fg);background:color-mix(in srgb,var(--accent) 22%,var(--surface2))}
@@ -459,7 +461,7 @@ const archSeries=(id,n,d,ident,hue)=>({id,n,d,hue,count:ARCH[id].length,titles:A
 const ASR_T=["Fil Vakası - Peygamberimizin Doğumu", "Anneye Veda", "Şam Yolculuğu", "Hz. Hatice ile Evlilik", "Zeyd’le Tanışma", "İlk Vahiy", "Darü’l-Erkam", "İlk Davet", "İlk Müslümanlar", "İlk Şehitler", "Hz. Hamza’nın Müslüman Oluşu", "Suikast Planları", "Hz. Ömer’in Müslüman Oluşu", "Üç Soru", "Habeşistan Hicreti", "Necaşi’nin Soruları", "Boykot", "Boykotun Kaldırılması", "Hüzün Yılı", "Taif Yolculuğu", "Miraç", "Miraç’ın Etkileri", "Ensar ile İlk Tanışma", "İlk Öğretmenler", "Akabe Biati", "İlk Muhacirler", "Hicret Hazırlığı", "Üçüncüsü Allah Olan İki Kişi", "Kubâ", "Ay Doğdu Üzerimize", "İlk Mescit", "Kardeşlik", "Yahudiler", "Selman’ın Hikâyesi", "Ezan-ı Muhammedî", "Ashab-ı Suffa", "Hanım Sahabilerin Tepkileri", "Enes b. Malik", "Mescid-i Nebi’de Hatıralar", "Medine’ye Ültimatom", "Nahle Vakası", "Kıblenin Değişmesi", "Bedir’e Doğru", "Bedir Savaşı -1", "Bedir Savaşı -2", "Bedir Savaşı -3", "Zafer ve Ganimetler", "Şehitler ve Esirler", "Kureyş’in Hezimeti", "Kaynukaoğulları", "Bayram", "Hz. Ali ve Hz. Fâtıma", "Mescid-i Nebî’den Hatıralar 1", "Mescid-i Nebî’den Hatıralar 2", "Kureyş’in Savaş Hazırlığı", "Uhud’a Hazırlık 1", "Uhud’a Hazırlık 2", "Uhud’a Hazırlık 3", "Savaş Başlıyor (Uhud)", "Uhud Savaşı 1", "Uhud Savaşı 2", "Uhud Savaşı 3", "Uhud Savaşı 4", "Uhud Sonrası 1", "Uhud Sonrası 2", "Hamrâu’l-Esed", "Taziyeler", "Nesibe Hatun", "Reci’ Faciası", "Bi’r-i Maûne 1", "Bi’r-i Maûne 2", "Bi’r-i Maûne 3", "Bi’r-i Maûne 4", "Bi’r-i Maûne 5", "Yahudilerin Suikast Girişimi", "Sürgün", "Zekâtın Farz Oluşu", "Hz. Bilal ile Hz. Ebû Zer", "Teravih Namazı", "Selman’ın Özgürlüğüne Kavuşması 1", "Selman’ın Özgürlüğüne Kavuşması 2"];
 const ASR_ID=[60874011, 60874013, 60874014, 60874016, 60874017, 62498884, 60874019, 60874020, 60874021, 60874022, 60874024, 60874026, 60874027, 60874028, 60874029, 60874031, 60874033, 60874034, 60874036, 60874038, 60874039, 60874040, 60874041, 60874044, 60874045, 60874046, 60874047, 60874048, 60874050, 60874051, 60874052, 60874053, 60874055, 60874056, 60874057, 60874058, 60874059, 60874060, 60874061, 60874062, 60874063, 60874064, 60874067, 60874068, 60874069, 60874072, 60874073, 60874074, 60874077, 60874078, 60874079, 60874080, 60874081, 60874082, 60874083, 60874084, 60874085, 60874086, 60874087, 60874088, 60874089, 60874090, 60874092, 60874093, 60874095, 60874096, 60874099, 60874100, 60874102, 60874103, 60874108, 60874109, 60874110, 60874112, 60874113, 60874115, 60874116, 60874117, 60874118, 60874119, 60874120];
 const SIYER=[
- {hue:38,id:"asr",n:"Asr-ı Saadet Radyo Tiyatrosu",d:"Diyanet · Efendimizin (s.a.v.) ve ashabının hayatı",count:160,titles:ASR_T,u:n=>`https://archive.org/download/asr-i-saadet-radyo-tiyatrosu/${p3(n)}.mp3`,alt:n=>ASR_ID[n-1]?[`https://api.spreaker.com/download/episode/${ASR_ID[n-1]}/asr.mp3`]:[],sp:"https://open.spotify.com/show/7BG3RiPQXjdukSW1qmdjeC",who:"Diyanet Radyo"},
+ {hue:38,id:"asr",n:"Asr-ı Saadet Radyo Tiyatrosu",d:"Diyanet · Efendimizin (s.a.v.) ve ashabının hayatı",count:160,titles:ASR_T,u:n=>ASR_ID[n-1]?`https://api.spreaker.com/download/episode/${ASR_ID[n-1]}/bolum.mp3`:`https://archive.org/download/asr-i-saadet-radyo-tiyatrosu/${p3(n)}.mp3`,alt:n=>ASR_ID[n-1]?[`https://api.spreaker.com/download/episode/${ASR_ID[n-1]}/asr.mp3`,`https://archive.org/download/asr-i-saadet-radyo-tiyatrosu/${p3(n)}.mp3`]:[],sp:"https://open.spotify.com/show/7BG3RiPQXjdukSW1qmdjeC",who:"Diyanet Radyo"},
  archSeries("herkes","Herkes İçin Siyer","Efendimizin hayatı baştan sona, 30 bölümde","Herkes-Icin-Siyer-M-Emin_Yildirim-30-Ders",150),
  {hue:190,id:"enbiya",n:"Sîret-i Enbiyâ Dersleri",d:"Hz. Âdem'den başlayarak peygamberler tarihi",count:177,titles:ENBIYA_T,u:n=>`https://suffameclisleri.com/podcast/sireti-enbiya/${n}.mp3`,sp:"https://open.spotify.com/show/2mAv9iONNsDIwhwpH0rIsL"},
  archSeries("nebevi","Nebevî Miras","Sözlerin en güzeli, en güzelin sözleri",'nebevi-miras-muhammed-emin-yildirim',265),
@@ -639,8 +641,8 @@ const PENS=[["Altın","#e3a93a"],["Yeşil","#35b585"],["Mavi","#4f9fe0"],["Mor",
 const penOf=n=>PENS[(n&&n.c!=null?n.c:0)%PENS.length][1];
 let UNDO=[];
 function snapNotes(){UNDO.push(JSON.stringify(NOTES));if(UNDO.length>30)UNDO.shift()}
-let undoT;function undoBar(msg){let u=$(".undo");if(!u){u=document.createElement("div");u.className="undo";u.innerHTML='<span></span><button type="button">↶ Geri al</button>';document.body.appendChild(u);u.querySelector("button").onclick=()=>{geriAl();u.hidden=true}}
-  const t=$(".toast");if(t)t.hidden=true;u.querySelector("span").textContent=msg;u.hidden=false;clearTimeout(undoT);undoT=setTimeout(()=>u.hidden=true,7000)}
+let undoT;function undoBar(msg,fn){let u=$(".undo");if(!u){u=document.createElement("div");u.className="undo";u.innerHTML='<span></span><button type="button">↶ Geri al</button>';document.body.appendChild(u);u.querySelector("button").onclick=()=>{const f=u._fn;u._fn=null;(f||geriAl)();u.hidden=true}}
+  u._fn=fn||null;const t=$(".toast");if(t)t.hidden=true;u.querySelector("span").textContent=msg;u.hidden=false;clearTimeout(undoT);undoT=setTimeout(()=>u.hidden=true,7000)}
 function geriAl(){if(!UNDO.length){toast("Geri alınacak bir şey yok");return}NOTES=JSON.parse(UNDO.pop());saveLib();toast("Geri alındı");refreshNotes();if(!$("#modal").hidden&&ITEM_OPEN)itemNotes(ITEM_OPEN)}
 function addNote(info,t,text,c){snapNotes();NOTES.push({id:"n"+Date.now()+Math.floor(Math.random()*1e3),key:info.key,ctx:info.ctx,title:info.title,sub:info.sub,t:t,text:text,c:c!=null?c:(SET.pen||0),date:Date.now()});saveLib();undoBar("Not kaydedildi")}
 function delNote(id){snapNotes();NOTES=NOTES.filter(x=>x.id!==id);saveLib();undoBar("Not silindi");refreshNotes()}
@@ -714,7 +716,11 @@ function addNoteBadges(root){(root||document).querySelectorAll(".row[data-key]")
   const l=NOTES.filter(n=>n.key===k).sort((x,y)=>(x.t??1e9)-(y.t??1e9)||x.date-y.date);b.classList.toggle("has",l.length>0);b.innerHTML=l.length?[...new Set(l.map(penOf))].slice(0,3).map(c=>`<i style="background:${c}"></i>`).join("")+" "+l.length:"✎+";
   const host=r.querySelector(".t")||r;let pv=host.querySelector(".nprev");if(SET.notGoster===false||!l.length){if(pv)pv.remove();return}
   if(!pv){pv=document.createElement("span");pv.className="nprev";host.appendChild(pv)}pv.dataset.nb=k;
-  pv.innerHTML=l.slice(0,3).map(n=>{const c=penOf(n);return `<div style="background:color-mix(in srgb,${c} ${isDark()?20:14}%,var(--surface2))"><em style="color:${c}">${n.t==null?"✎":fmt(n.t)}</em><span style="color:${penYazi(c)};font-weight:600">${esc(n.text)}</span></div>`}).join("")+(l.length>3?`<small>+${l.length-3} not daha · dokun, hepsini gör</small>`:"")})}
+  const acik=NPV_ACIK.has(k),gor=acik||l.length<=5?l:l.slice(0,4);pv.innerHTML=gor.map(n=>{const c=penOf(n);return `<div style="background:color-mix(in srgb,${c} ${isDark()?20:14}%,var(--surface2))"><em style="color:${c}">${n.t==null?"✎":fmt(n.t)}</em><span style="color:${penYazi(c)};font-weight:600">${esc(n.text)}</span></div>`}).join("")+(l.length>5?`<span class="more" data-npv="${esc(k)}">${acik?"▲ Kısalt":"▼ Tüm notlar ("+l.length+")"}</span>`:"")})}
+const NPV_ACIK=new Set();
+document.addEventListener("click",e=>{const m=e.target.closest&&e.target.closest("[data-npv]");if(!m)return;e.stopPropagation();e.preventDefault();const k=m.dataset.npv;NPV_ACIK.has(k)?NPV_ACIK.delete(k):NPV_ACIK.add(k);addNoteBadges($("#view"))},true);
+document.addEventListener("click",e=>{const d=e.target.closest&&e.target.closest("[data-rdel]");if(d){e.stopPropagation();e.preventDefault();const k=d.dataset.rdel,prev=RECENT.slice();RECENT=RECENT.filter(r=>r.key!==k);saveLib();renderView();undoBar("Listeden kaldırıldı",()=>{RECENT=prev;saveLib();renderView();toast("Geri alındı")});return}
+  if(e.target.id==="recTemiz"){const prev=RECENT.slice();RECENT=[];saveLib();renderView();undoBar("Liste temizlendi",()=>{RECENT=prev;saveLib();renderView();toast("Geri alındı")});return}},true);
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-nb]");if(!b)return;e.stopPropagation();e.preventDefault();itemNotes(infoFromKey(b.dataset.nb))},true);
 function addRecent(t){if(!t.ctx)return;RECENT=RECENT.filter(r=>r.key!==t.key);RECENT.unshift({key:t.key,ctx:t.ctx,title:t.title,sub:t.sub,date:Date.now()});RECENT=RECENT.slice(0,40);saveLib()}
 let GEN=0,EXP="";
@@ -798,6 +804,7 @@ function renderSheet(){
   <div id="noteForm" hidden style="margin-top:12px;display:grid;gap:8px"><label class="small muted" for="noteTxt" id="noteLbl"></label><textarea id="noteTxt" placeholder="Bu kısımda aklında kalanı yaz…"></textarea><div class="ctrl"><button class="pill acc" id="noteSave">Kaydet</button><button class="pill ghost" id="noteCancel">Vazgeç</button></div></div>
   <h2>Bu kayıttaki notların</h2>${notesHTML(notesFor(t.key),true)}`:""}
   <div class="qlist"><h2 style="margin-top:8px">Sıradakiler</h2><div class="list" id="qList">${Q.slice(Math.max(0,qi),qi+40).map((x,k)=>`<button class="row ${k===0?"playing":""}" data-qi="${qi+k}"><span class="no">${k===0?"♪":qi+k+1}</span><span class="t"><b>${esc(x.title)}</b><span>${esc(x.sub)}</span></span></button>`).join("")}</div></div>`;
+  try{if(!(au.readyState>=1)&&t.key&&POS[t.key]){const a=$("#tCur");if(a)a.textContent=fmt(POS[t.key]);const b=$("#tDur");if(b&&DUR[t.key])b.textContent=fmt(DUR[t.key]);const sk=$("#seek");if(sk&&DUR[t.key]){sk.max=DUR[t.key];sk.value=POS[t.key]}}}catch(e){}
   $("#shClose").onclick=()=>s.hidden=true;$("#shPlay").onclick=toggle;$("#shPrev").onclick=prev;$("#shNext").onclick=next;
   $("#shB15").onclick=()=>au.currentTime=Math.max(0,au.currentTime-15);$("#shF15").onclick=()=>au.currentTime=au.currentTime+30;
   const sk=$("#seek");sk.oninput=()=>{sk._drag=true};sk.onchange=()=>{au.currentTime=+sk.value;sk._drag=false};
@@ -1108,7 +1115,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 35</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 36</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1156,7 +1163,7 @@ function vKutup(){
   if(libSeg==="devam"){
     const ser=SIYER.map(S=>{const l=store.get("mk_last_"+S.id,null);if(!l)return"";const k="s_"+S.id+"_"+l.n;return`<button class="card" data-ctx='${esc(JSON.stringify({type:"siyer",id:S.id,n:l.n}))}'><span class="tag">${esc(S.n.replace(" Dersleri",""))}</span><b>Ders ${l.n} / ${S.count}</b><span>${esc(S.titles[l.n-1]||"")}</span><span>${POS[k]?"Kaldığın yer "+fmt(POS[k]):"Baştan"}</span>${progHTML(k)}</button>`}).join("");
     const rec=RECENT.filter(r=>r.ctx.type!=="radio"||true).slice(0,25);
-    return seg+vDevamHepsi(true)+`${ser?`<div class="cards">${ser}</div>`:""}${vFollow()}<h2>Son dinlediklerin</h2>${rec.length?`<div class="list">${rec.map(r=>`<button class="row" data-ctx='${esc(JSON.stringify(r.ctx))}' data-key="${r.key}"><span class="t"><b>${esc(r.title)}</b><span>${ctxLabel(r.ctx)} · ${POS[r.key]?"Kaldığın yer "+fmt(POS[r.key]):(DONE[r.key]?"Bitti":esc(r.sub))}</span>${progHTML(r.key)}</span>${mark(r.key)}</button>`).join("")}</div>`:`<div class="empty">Dinlemeye başladığın her şey burada birikir; dokununca kaldığın saniyeden devam eder.</div>`}`;
+    return seg+vDevamHepsi(true)+`${ser?`<div class="cards">${ser}</div>`:""}${vFollow()}<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px"><h2>Son dinlediklerin</h2>${rec.length?`<button class="small" id="recTemiz" style="color:var(--muted)">Listeyi temizle</button>`:""}</div>${rec.length?`<div class="list">${rec.map(r=>`<button class="row" data-ctx='${esc(JSON.stringify(r.ctx))}' data-key="${r.key}"><span class="t"><b>${esc(r.title)}</b><span>${ctxLabel(r.ctx)} · ${POS[r.key]?"Kaldığın yer "+fmt(POS[r.key]):(DONE[r.key]?"Bitti":esc(r.sub))}</span>${progHTML(r.key)}</span>${mark(r.key)}<span class="rdel" data-rdel="${esc(r.key)}" role="button" aria-label="Listeden kaldır">×</span></button>`).join("")}</div><div class="small muted" style="margin-top:6px">× yalnızca bu listeden kaldırır; notların ve kaldığın yer silinmez.</div>`:`<div class="empty">Dinlemeye başladığın her şey burada birikir; dokununca kaldığın saniyeden devam eder.</div>`}`;
   }
   if(libSeg==="fav"){const f=Object.entries(FAV).sort((a,b)=>b[1].date-a[1].date);
     return seg+(f.length?`<div class="list">${f.map(([k,v])=>`<div class="nrow"><span class="ts">♥</span><button class="tx" data-ctx='${esc(JSON.stringify(v.ctx))}'>${esc(v.title)}<span>${ctxLabel(v.ctx)} · ${esc(v.sub)}</span></button><button class="x" data-unfav="${esc(k)}" aria-label="Favoriden çıkar">×</button></div>`).join("")}</div>`:`<div class="empty">Çalarda “♡ Favorilere ekle”ye dokunduğun dersler, sûreler ve radyolar burada toplanır.</div>`);}
@@ -1519,7 +1526,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=35;
+const SURUM=36;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1905,6 +1912,19 @@ function bKissa(){document.querySelectorAll("[data-kdeg]").forEach(b=>b.onclick=
   document.querySelectorAll("[data-kdin]").forEach(b=>b.onclick=()=>playQueue(kissaTracks(+b.dataset.kdin),0));
   document.querySelectorAll("[data-kay]").forEach(b=>b.onclick=()=>{const k=KISSA[+b.dataset.kay];playQueue(ayahTracks(k.ay,k.ad+" · âyet"),0)});
   document.querySelectorAll("[data-kplan]").forEach(b=>b.onclick=()=>{const t=kissaPlan(+b.dataset.kplan);try{navigator.clipboard.writeText(t).then(()=>toast("Ders planı kopyalandı"),()=>openModal(`<h3>Ders planı</h3><textarea style="min-height:260px">${esc(t)}</textarea><button class="pill ghost" onclick="closeModal()">Kapat</button>`))}catch(e){openModal(`<h3>Ders planı</h3><textarea style="min-height:260px">${esc(t)}</textarea><button class="pill ghost" onclick="closeModal()">Kapat</button>`)}})}
+
+/* ---------- Not koruması: ikinci kasa (IndexedDB) ---------- */
+let IDBP=null;function idbAc(){if(IDBP)return IDBP;IDBP=new Promise(r=>{try{const q=indexedDB.open("maneviyat-kasa",1);q.onupgradeneeded=()=>{try{q.result.createObjectStore("kv")}catch(e){}};q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});return IDBP}
+async function idbYaz(k,v){const db=await idbAc();if(!db)return;try{db.transaction("kv","readwrite").objectStore("kv").put(v,k)}catch(e){}}
+async function idbOku(k){const db=await idbAc();if(!db)return null;return new Promise(r=>{try{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)}catch(e){r(null)}})}
+let aynaSon="";async function notAyna(){try{const t=JSON.stringify(NOTES);if(t===aynaSon)return;aynaSon=t;if(NOTES.length){await idbYaz("notes",t);await idbYaz("notes_"+todayKey(),t);
+  const g=(await idbOku("gunler"))||[];if(!g.includes(todayKey())){g.unshift(todayKey());const fazla=g.splice(30);fazla.forEach(d=>idbYaz("notes_"+d,null));await idbYaz("gunler",g)}}}catch(e){}}
+setInterval(notAyna,5000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")notAyna()});window.addEventListener("pagehide",notAyna);
+(async()=>{try{const t=await idbOku("notes");if(!t)return;const a=JSON.parse(t);if(!Array.isArray(a)||!a.length)return;
+  const by=new Set(NOTES.map(n=>n.id));const eksik=a.filter(n=>n&&n.id&&!by.has(n.id));
+  if(!NOTES.length&&a.length){NOTES=a;saveLib();toast("✓ Notların korundu ve geri yüklendi ("+a.length+")");renderView()}
+  aynaSon=JSON.stringify(NOTES)}catch(e){}})();
+async function vKasaGunler(){const g=(await idbOku("gunler"))||[];return g}
 
 /* ---------- Not yedeği ---------- */
 async function dosyaPaylas(txt,ad){try{const f=new File([txt],ad,{type:"application/json"});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:ad});return true}}catch(e){if(e&&e.name==="AbortError")return false}
