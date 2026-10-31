@@ -217,6 +217,7 @@ textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--surface2);
 .modal.ust .box{max-height:62vh}
 .modal textarea{min-height:120px;font-size:16px}
 .nrow .ed{flex:none;color:var(--muted);font-size:16px;padding:2px 6px}
+.brz{position:absolute;top:6px;right:8px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#e05a4f;color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center}
 .rdel{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:20px;color:var(--muted);background:var(--surface2);margin-left:4px;cursor:pointer}
 .nb{flex:none;display:inline-flex;align-items:center;gap:3px;padding:6px 9px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--surface2);color:var(--muted);cursor:pointer;margin-left:2px}
 .nb i{width:8px;height:8px;border-radius:50%;display:inline-block}
@@ -746,9 +747,10 @@ au.addEventListener("timeupdate",()=>{
   const d=au.duration,c=au.currentTime;if(!SCRUB){const pc=(isFinite(d)&&d>0?c/d*100:0);$("#mprog").style.width=pc+"%";const th=$("#mthumb");th.hidden=!(isFinite(d)&&d>0&&Q[qi]&&!Q[qi].live);th.style.left=pc+"%"}
   if(curKey&&Date.now()-lastSave>5000&&c>5&&!(Q[qi]&&Q[qi].tts)){POS[curKey]=Math.floor(c);store.set("mk_pos",POS);lastSave=Date.now()}
   if(!$("#sheet").hidden){const s=$("#seek");if(s&&!s._drag){s.max=isFinite(d)?d:0;s.value=c}const a=$("#tCur"),b=$("#tDur");if(a){a.textContent=fmt(c);b.textContent=Q[qi]&&Q[qi].live?"CANLI":fmt(d)}}
-  if("mediaSession" in navigator&&navigator.mediaSession.setPositionState&&isFinite(d)&&d>0&&!lockOn){try{navigator.mediaSession.setPositionState({duration:d,playbackRate:au.playbackRate,position:Math.min(c,d)})}catch(e){}}
+  if(Date.now()-msSonKonum>4000){msSonKonum=Date.now();msKonum()}
 });
-["play","pause"].forEach(ev=>au.addEventListener(ev,()=>{updateMini();updateSheet()}));
+["play","pause"].forEach(ev=>au.addEventListener(ev,()=>{updateMini();updateSheet();msDurum();msKonum()}));
+["loadedmetadata","seeked","ratechange"].forEach(ev=>au.addEventListener(ev,()=>{msKonum();if(ev==="loadedmetadata")msPlayer()}));
 function toggle(){if(!Q[qi])return;if("speechSynthesis" in window&&speechSynthesis.speaking){stopSpeech();GEN++;return}if(pendingRetry){pendingRetry=false;failStreak=0;loadCur(true);return}au.paused?au.play().catch(()=>{}):au.pause()}
 function next(){if(qi<Q.length-1){qi++;loadCur(true)}else if(Q[qi]&&Q[qi].group==="Yol Modu"){const more=yolBatch();if(more.length){Q=Q.concat(more);qi++;loadCur(true)}}}
 function prev(){if(au.currentTime>5&&!(Q[qi]&&Q[qi].live)){au.currentTime=0;return}if(qi>0){qi--;loadCur(true)}}
@@ -758,14 +760,21 @@ function updateMini(){
   $("#miniArt").style.backgroundImage=`url(${t.art})`;
   $("#miniPlay").innerHTML=au.paused?IC.play:IC.pause;$("#miniNext").innerHTML=IC.next;
 }
+function msDurum(){try{if("mediaSession" in navigator&&!lockOn&&!guardOn)navigator.mediaSession.playbackState=au.paused?"paused":"playing"}catch(e){}}
+function msKonum(){const d=au.duration,c=au.currentTime;if(!("mediaSession" in navigator)||!navigator.mediaSession.setPositionState||lockOn||guardOn)return;
+  try{if(Q[qi]&&!Q[qi].live&&isFinite(d)&&d>0)navigator.mediaSession.setPositionState({duration:d,playbackRate:au.playbackRate||1,position:Math.max(0,Math.min(c,d))});else navigator.mediaSession.setPositionState()}catch(e){}}
+let msSonKonum=0;
 function msPlayer(){
   if(!("mediaSession" in navigator))return;const ms=navigator.mediaSession,t=Q[qi];if(!t)return;
-  try{ms.metadata=new MediaMetadata({title:t.title,artist:t.sub,album:"Maneviyat Külliyatı",artwork:[{src:t.art,sizes:"512x512",type:"image/png"}]})}catch(e){}
+  const sira=Q.length>1?" · "+(qi+1)+"/"+Q.length:"";
+  try{ms.metadata=new MediaMetadata({title:t.title,artist:(t.sub||"").replace(/ · Diyanet Radyo$/,""),album:"Maneviyat Külliyatı"+sira,artwork:[96,192,512].map(z=>({src:t.art,sizes:z+"x"+z,type:"image/png"}))})}catch(e){}
   const set=(a,f)=>{try{ms.setActionHandler(a,f)}catch(e){}};
-  set("play",()=>au.play());set("pause",()=>au.pause());
-  set("previoustrack",prev);set("nexttrack",next);
-  set("seekto",d=>{if(d&&d.seekTime!=null)au.currentTime=d.seekTime});
-  set("seekbackward",()=>{if(!(Q[qi]&&Q[qi].live))au.currentTime=Math.max(0,au.currentTime-15)});set("seekforward",()=>{if(!(Q[qi]&&Q[qi].live))au.currentTime=au.currentTime+30});
+  set("play",()=>{au.play().catch(()=>{});msDurum()});set("pause",()=>{au.pause();msDurum()});set("stop",()=>{au.pause();msDurum()});
+  set("seekto",d=>{if(d&&d.seekTime!=null&&!(Q[qi]&&Q[qi].live)){au.currentTime=d.seekTime;msKonum()}});
+  /* iPhone, sarma düğmeleri tanımlıysa önceki/sonraki yerine ±saniye gösterir. Varsayılan: önceki/sonraki bölüm. */
+  if(SET.kilitSar){set("seekbackward",d=>{if(!(Q[qi]&&Q[qi].live)){au.currentTime=Math.max(0,au.currentTime-((d&&d.seekOffset)||15));msKonum()}});set("seekforward",d=>{if(!(Q[qi]&&Q[qi].live)){au.currentTime=au.currentTime+((d&&d.seekOffset)||30);msKonum()}});set("previoustrack",null);set("nexttrack",null)}
+  else{set("seekbackward",null);set("seekforward",null);set("previoustrack",qi>0||au.currentTime>5?prev:null);set("nexttrack",(qi<Q.length-1||t.group==="Yol Modu")?next:null)}
+  try{ms.setPositionState&&ms.setPositionState()}catch(e){}msDurum();
 }
 $("#miniNote").onclick=quickNote;
 function quickNote(){const t=Q[qi];if(!t||!t.ctx){notePad({title:"Serbest not"});return}const at=t.live?null:Math.floor(au.currentTime);notePad({info:t,at,sub:t.title});return;
@@ -1112,12 +1121,13 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <input type="text" id="sPk" placeholder="API Key" value="${esc(SET.piKey)}" autocomplete="off" autocapitalize="off"><input type="text" id="sPs" placeholder="API Secret" value="${esc(SET.piSecret)}" autocomplete="off" autocapitalize="off">
   <div class="small muted"><b style="color:var(--fg)">YouTube Data API anahtarı (isteğe bağlı).</b> Aramada YouTube videolarını da listeler. Google Cloud Console'da “YouTube Data API v3” açılıp anahtar alınır.</div>
   <input type="text" id="sYt" placeholder="YouTube API anahtarı" value="${esc(SET.yt)}" autocomplete="off" autocapitalize="off">
+  <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sSar" ${SET.kilitSar?"checked":""} style="width:20px;height:20px">Kilit ekranında önceki/sonraki yerine 15 sn geri · 30 sn ileri göster</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 36</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 37</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
-  $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal"});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
+  $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal",kilitSar:$("#sSar").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
 
 /* --- Uyku --- */
@@ -1366,7 +1376,7 @@ function guardMeta(force){if(!guardOn||!("mediaSession" in navigator))return;if(
   try{navigator.mediaSession.metadata=new MediaMetadata({title:next[0]+" vaktine "+k,artist:z.t+" — "+z.s,album:VAKIT_AD[v]+" vakti · Maneviyat",artwork:[{src:makeArt(next[0],k,200),sizes:"512x512",type:"image/png"}]});navigator.mediaSession.playbackState="playing"}catch(e){}}
 function vakitTick(){
   try{const {next}=curVakit(),mins=(next[1]-new Date())/60000,day=todayKey();
-    [10,5].forEach(th=>{const key=day+next[0]+th;if(mins<=th&&mins>th-1.2&&!FIRED.has(key)){FIRED.add(key);if(SET.remind||guardOn||lockOn||!au.paused){chime();toast("🔔 "+next[0]+" vaktine "+th+" dakika");try{if("Notification" in window&&Notification.permission==="granted")new Notification(next[0]+" vaktine "+th+" dakika",{body:gunSoz().t,icon:document.querySelector('link[rel="apple-touch-icon"]').href})}catch(e){}}}});
+    [10,5].forEach(th=>{const key=day+next[0]+th;if(mins<=th&&mins>th-1.2&&!FIRED.has(key)){FIRED.add(key);if(SET.remind||guardOn||lockOn||!au.paused){chime();toast("🔔 "+next[0]+" vaktine "+th+" dakika");bildirimArsiv([{t:Date.now(),b:next[0]+" vaktine "+th+" dakika",g:gunSoz().t}]);try{if("Notification" in window&&Notification.permission==="granted")new Notification(next[0]+" vaktine "+th+" dakika",{body:gunSoz().t,icon:document.querySelector('link[rel="apple-touch-icon"]').href})}catch(e){}}}});
     guardMeta(false);
   }catch(e){}
 }
@@ -1526,7 +1536,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=36;
+const SURUM=37;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1573,7 +1583,34 @@ async function pushDisable(){try{const r=await getPushReg();const s=r&&await r.p
 function pushCheck(){try{if(!store.get("mk_push_on",false)||!("Notification" in window)||Notification.permission!=="granted")return;const t=store.get("mk_push_t",0);
   getPushReg().then(r=>r&&r.pushManager.getSubscription()).then(s=>{if(!s||Date.now()-t>7*864e5||store.get("mk_push_sube","")!==subeDeger())pushSubscribe().catch(()=>{})}).catch(()=>{})}catch(e){}}
 function clearBadge(){try{navigator.clearAppBadge&&navigator.clearAppBadge().catch(()=>{})}catch(e){}
-  try{navigator.serviceWorker&&navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.getNotifications&&r.getNotifications().then(l=>l.forEach(n=>n.close())).catch(()=>{}))).catch(()=>{})}catch(e){}}
+  try{navigator.serviceWorker&&navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.getNotifications&&r.getNotifications().then(l=>{bildirimArsiv(l.map(n=>({t:n.timestamp||Date.now(),b:n.title,g:n.body,u:n.data&&n.data.url})));l.forEach(n=>n.close())}).catch(()=>{}))).catch(()=>{})}catch(e){}
+  bildirimSwOku()}
+function widgetRehber(){openModal(`<h3>📱 Namaz vakti widget'ı</h3>
+  <div class="small muted">iPhone, internet sayfalarının ana ekrana widget koymasına izin vermiyor. Bunun için ücretsiz <b>Scriptable</b> uygulamasıyla çalışan hazır bir widget yaptım: sıradaki vakti ve geri sayımı gösterir, içinde bulunduğun vakti renkle vurgular; kilit ekranına da eklenir.</div>
+  <ol class="small" style="margin:0;padding-left:20px;display:grid;gap:6px">
+   <li>App Store'dan <b>Scriptable</b>'ı indir (ücretsiz).</li>
+   <li>Sana gönderdiğim <b>Maneviyat_Widget.js</b> dosyasını aç → Paylaş → <b>Scriptable</b>'a gönder. (Ya da Scriptable'da + ile yeni betik aç, dosyanın içeriğini yapıştır.)</li>
+   <li>Ana ekranda boş yere basılı tut → sol üstte <b>+</b> → <b>Scriptable</b> → küçük ya da orta boyutu seç → <b>Widget Ekle</b>.</li>
+   <li>Widget'a basılı tut → <b>Widget'ı Düzenle</b> → Script: <b>Maneviyat Vakit</b>. İstersen Parameter'e şehrini yaz (ör. Ankara).</li>
+   <li>Kilit ekranı için: kilit ekranına basılı tut → Özelleştir → Kilit Ekranı → widget alanı → Scriptable.</li>
+  </ol>
+  <div class="small muted">Widget'a dokununca bu uygulama açılır. Vakitler Diyanet hesabıyla gelir; internet yoksa son vakitleri kullanır.</div>
+  <div class="ctrl"><button class="pill acc" id="wgKapat">Tamam</button></div>`,()=>{$("#wgKapat").onclick=closeModal})}
+
+/* ---------- 🔔 Bildirim geçmişi: gelenler alt alta okunur ---------- */
+let BILD=store.get("mk_bildirim",[]);
+function bildirimArsiv(arr){if(!arr||!arr.length)return;const ks=new Set(BILD.map(x=>x.t+"|"+x.b));let y=0;arr.forEach(x=>{if(!x||!x.b)return;const k=x.t+"|"+x.b;if(ks.has(k))return;ks.add(k);BILD.push({t:x.t||Date.now(),b:String(x.b),g:String(x.g||""),u:x.u||"",o:0});y++});
+  if(y){BILD.sort((a,b)=>b.t-a.t);BILD=BILD.slice(0,200);store.set("mk_bildirim",BILD);bildirimRozet()}}
+async function bildirimSwOku(){try{const db=await idbAc();if(!db)return;const st=db.transaction("kv","readwrite").objectStore("kv");const q=st.get("sw_bildirim");q.onsuccess=()=>{const a=q.result||[];if(a.length){bildirimArsiv(a);try{db.transaction("kv","readwrite").objectStore("kv").put([],"sw_bildirim")}catch(e){}}}}catch(e){}}
+const bildirimOkunmamis=()=>BILD.filter(x=>!x.o).length;
+function bildirimRozet(){const b=$("#bildBtn");if(b){const n=bildirimOkunmamis();let r=b.querySelector(".brz");if(!r){r=document.createElement("span");r.className="brz";b.appendChild(r)}r.textContent=n;r.hidden=!n}}
+function bildirimAc(){const L=BILD.slice(0,200);const gun=t=>{const d=new Date(t),bg=new Date();bg.setHours(0,0,0,0);const df=Math.round((bg-new Date(d).setHours(0,0,0,0))/864e5);return df===0?"Bugün":df===1?"Dün":d.toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})};
+  const g={};L.forEach(x=>{(g[gun(x.t)]=g[gun(x.t)]||[]).push(x)});
+  openModal(`<h3>🔔 Bildirimlerim</h3><div class="small muted">Telefonuna gelen bütün bildirimler burada alt alta durur; kilit ekranından silinse de kaybolmaz.</div>
+   <div style="display:grid;gap:12px;max-height:56vh;overflow:auto">${L.length?Object.entries(g).map(([k,l])=>`<div><div class="small" style="font-weight:800;color:var(--accent);margin-bottom:6px">${esc(k)}</div><div style="display:grid;gap:6px">${l.map(x=>`<div class="ncard" style="background:${x.o?"var(--surface2)":"color-mix(in srgb,var(--accent) 16%,var(--surface2))"}"><span class="ts" style="color:var(--accent)">${iki(new Date(x.t).getHours())}:${iki(new Date(x.t).getMinutes())}</span><span class="tx"><b>${esc(x.b)}</b>${x.g?`<br>${esc(x.g)}`:""}</span></div>`).join("")}</div></div>`).join(""):`<div class="empty">Henüz bildirim yok. Vakit hatırlatmaları ve diğer bildirimler geldikçe burada birikir.</div>`}</div>
+   <div class="ctrl">${L.length?`<button class="pill ghost" id="bdTemiz">Hepsini temizle</button>`:""}<button class="pill acc" id="bdKapat">Kapat</button></div>`,()=>{
+    BILD.forEach(x=>x.o=1);store.set("mk_bildirim",BILD);bildirimRozet();
+    $("#bdKapat").onclick=closeModal;const t=$("#bdTemiz");if(t)t.onclick=()=>{const prev=BILD.slice();BILD=[];store.set("mk_bildirim",BILD);closeModal();undoBar("Bildirimler temizlendi",()=>{BILD=prev;store.set("mk_bildirim",BILD);bildirimRozet();toast("Geri alındı")})}})}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){clearBadge();routeHash()}});
 window.addEventListener("focus",clearBadge);window.addEventListener("pageshow",()=>{clearBadge();routeHash()});
 window.addEventListener("hashchange",routeHash);
@@ -1754,7 +1791,7 @@ const dkFmt=s=>{const m=Math.round((s||0)/60);return m>=60?Math.floor(m/60)+" sa
 function ramazanLine(list){const h=hijriOf(new Date());if(!h||h.m!==9)return"";const now=new Date(),I=list[0][1],A=list[4][1];
   let hedef,ad;if(now<I){hedef=I;ad="Sahura (imsak)"}else if(now<A){hedef=A;ad="İftara"}else{hedef=new Date(I.getTime()+864e5);ad="Sahura (imsak)"}
   const m=Math.max(0,Math.round((hedef-now)/60000));return `<div class="vk-sub">🌙 Ramazan-ı Şerif · ${ad} ${m>=60?Math.floor(m/60)+" sa "+(m%60)+" dk":m+" dk"}</div>`}
-function vAraclar(){return `<div class="cards" style="margin-top:12px;grid-template-columns:repeat(auto-fill,minmax(96px,1fr))">${[["kibleBtn","🧭","Kıble"],["aylikBtn","📅","Aylık vakit"],["zekatBtn","💰","Zekât"],["kazaBtn","📋","Kaza"],["dlistBtn","🤲","Dua listem"],["risaleBtn","📚","Risale-i Nur"],["hadisBtn","📜","Kırk Hadis"],["okuBtn","📖","Kur'an oku"],["gunlerBtn","🌙","Dini günler"],["ilimBtn","🎓","İlim · Öğretmen"],["bdsBtn","⏱️","5 dk Siyer"]].map(([id,i,l])=>`<button class="card" id="${id}" style="text-align:center;justify-items:center;padding:12px 6px"><span style="font-size:24px">${i}</span><b style="font-size:13px">${l}</b></button>`).join("")}</div>`}
+function vAraclar(){return `<div class="cards" style="margin-top:12px;grid-template-columns:repeat(auto-fill,minmax(96px,1fr))">${[["kibleBtn","🧭","Kıble"],["aylikBtn","📅","Aylık vakit"],["zekatBtn","💰","Zekât"],["kazaBtn","📋","Kaza"],["dlistBtn","🤲","Dua listem"],["risaleBtn","📚","Risale-i Nur"],["hadisBtn","📜","Kırk Hadis"],["okuBtn","📖","Kur'an oku"],["gunlerBtn","🌙","Dini günler"],["ilimBtn","🎓","İlim · Öğretmen"],["bdsBtn","⏱️","5 dk Siyer"],["bildBtn","🔔","Bildirimlerim"],["widgetBtn","📱","Ana ekran widget'ı"]].map(([id,i,l])=>`<button class="card" id="${id}" style="text-align:center;justify-items:center;padding:12px 6px;position:relative"><span style="font-size:24px">${i}</span><b style="font-size:13px">${l}</b></button>`).join("")}</div>`}
 function vBildirimDavet(){if(store.get("mk_push_on",false)||store.get("mk_push_gizle",false))return"";
   return `<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(205 70% 50%) 16%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">🔔 BİLDİRİMLER</div><div class="small">Vakit, sabah evradı, Cuma ve Kur'an hatırlatmaları uygulama kapalıyken de telefonuna gelsin.${IS_IOS&&!IS_APP?" <b>iPhone'da önce Ana Ekrana Ekle.</b>":""}</div><div class="ctrl"><button class="pill acc" id="davetAc">🔔 Bildirimleri aç</button><button class="pill ghost" id="davetGizle">Sonra</button></div></div>`}
 function vDuaListe(){
@@ -1778,7 +1815,7 @@ function bBugunExtra(){
   bSaatKart();
   const go=(t,s)=>{tab=t;if(t==="kulliyat")kulSeg=s;if(t==="dinle"){dinleSeg=s;openSeries=null}renderView();toTop()};
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
-  on("#aylikBtn",aylikAc);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));on("#vcPay",()=>{const v=vecGunun(0);if(v)paylas(vecMetin(v))});on("#vcSes",()=>{const v=vecGunun(0);if(v)playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)});
+  on("#aylikBtn",aylikAc);on("#bildBtn",bildirimAc);on("#widgetBtn",widgetRehber);setTimeout(bildirimRozet,0);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));on("#vcPay",()=>{const v=vecGunun(0);if(v)paylas(vecMetin(v))});on("#vcSes",()=>{const v=vecGunun(0);if(v)playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)});
   on("#okuBtn",()=>{kuranMod="oku";store.set("mk_kmod2","oku");openSure=null;go("dinle","kuran")});
   on("#dlistBtn",()=>{bugSeg="dualar";duaSeg2="liste";renderView();setTimeout(()=>{const s=document.querySelector("[data-dseg2]");if(s)s.scrollIntoView({block:"start"})},50)});
   on("#davetAc",async()=>{if(await pushEnable())renderView()});on("#davetGizle",()=>{store.set("mk_push_gizle",true);renderView()});
