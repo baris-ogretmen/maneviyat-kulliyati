@@ -19,6 +19,25 @@ self.addEventListener('push', function(e){
   if (d.etiket) { opt.tag = d.etiket; opt.renotify = false; }
   e.waitUntil(Promise.all([
     self.registration.showNotification(d.baslik || d.title || 'Değişim Koleji', opt),
+    bildirimSakla({ t: Date.now(), b: d.baslik || d.title || '', g: opt.body, u: opt.data.url }),
     (self.navigator && self.navigator.setAppBadge) ? self.registration.getNotifications().then(function(l){ return self.navigator.setAppBadge(l.length||1); }).catch(function(){}) : Promise.resolve()
   ]));
 });
+
+/* Sürüm 37: gelen bildirimleri uygulamadaki "Bildirimlerim" listesi için sakla */
+function bildirimSakla(x){
+  return new Promise(function(res){
+    try{
+      var q = indexedDB.open('maneviyat-kasa', 1);
+      q.onupgradeneeded = function(){ try{ q.result.createObjectStore('kv'); }catch(e){} };
+      q.onerror = function(){ res(); };
+      q.onsuccess = function(){
+        try{
+          var db = q.result, st = db.transaction('kv','readwrite').objectStore('kv'), g = st.get('sw_bildirim');
+          g.onsuccess = function(){ var a = g.result || []; a.unshift(x); st.put(a.slice(0,200), 'sw_bildirim'); res(); };
+          g.onerror = function(){ res(); };
+        }catch(e){ res(); }
+      };
+    }catch(e){ res(); }
+  });
+}
