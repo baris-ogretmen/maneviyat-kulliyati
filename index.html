@@ -1124,8 +1124,8 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sSar" ${SET.kilitSar?"checked":""} style="width:20px;height:20px">Kilit ekranında önceki/sonraki yerine 15 sn geri · 30 sn ileri göster</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
-  <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 37</div>
+  <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için · ilçe için: İstanbul/Kadıköy)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 38</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal",kilitSar:$("#sSar").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1256,11 +1256,35 @@ const VAKIT_RENK={seher:["#2a1f6b","#8a4fbf"],sabah:["#d0573a","#f0a23a"],kusluk
 const VAKIT_TILE={"İmsak":"#8a6cf0","Güneş":"#f5a33b","Öğle":"#3d98ec","İkindi":"#ec8a34","Akşam":"#ec5866","Yatsı":"#7d6af0"};
 let TIMES=store.get("mk_times",null),timesLoading=false;
 const hm=s=>{const [h,m]=String(s).slice(0,5).split(":").map(Number);const d=new Date();d.setHours(h,m,0,0);return d};
+// --- Diyanet vakitleri: ezanvakti (Diyanet'in birebir tablosu, aylık) → olmazsa aladhan yedeği ---
+const EV="https://ezanvakti.emushaf.net";
+const trAscii=x=>String(x||"").replace(/[İIı]/g,"I").replace(/i/g,"I").replace(/[Şş]/g,"S").replace(/[Ğğ]/g,"G").replace(/[Üü]/g,"U").replace(/[Öö]/g,"O").replace(/[Çç]/g,"C").toUpperCase().replace(/\s+/g," ").trim();
+const dKisa=d=>String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear();
+async function diyanetIlce(city){
+  const ck=store.get("mk_dy_ilce",{});const key=trAscii(city);if(ck[key])return ck[key];
+  let [il,ilce]=city.split("/").map(x=>trAscii(x));if(!ilce)ilce=il;
+  let id=null;if(il==="ISTANBUL"&&ilce==="ISTANBUL")id="9541";
+  if(!id){const sh=await (await fetch(EV+"/sehirler/2")).json();const s=sh.find(x=>trAscii(x.SehirAdiEn||x.SehirAdi)===il);if(!s)return null;
+    const il2=await (await fetch(EV+"/ilceler/"+s.SehirID)).json();const z=il2.find(x=>trAscii(x.IlceAdiEn||x.IlceAdi)===ilce)||il2.find(x=>trAscii(x.IlceAdiEn||x.IlceAdi)===il)||il2[0];id=z&&String(z.IlceID)}
+  if(id){ck[key]=id;store.set("mk_dy_ilce",ck)}return id}
+async function diyanetAy(city){
+  const ay=store.get("mk_dy_ay",null),bk=dKisa(new Date());
+  if(ay&&ay.city===city&&ay.g&&ay.g[bk]&&Object.keys(ay.g).length>3&&Date.now()-(ay.at||0)<7*864e5)return ay;
+  try{const id=await diyanetIlce(city);if(!id)throw 0;const arr=await (await fetch(EV+"/vakitler/"+id)).json();
+    if(!Array.isArray(arr)||!arr.length)throw 0;const g={};const c=s=>String(s).slice(0,5);
+    arr.forEach(x=>{g[x.MiladiTarihKisa]={imsak:c(x.Imsak),gunes:c(x.Gunes),ogle:c(x.Ogle),ikindi:c(x.Ikindi),aksam:c(x.Aksam),yatsi:c(x.Yatsi)}});
+    const o={city,id,at:Date.now(),g};store.set("mk_dy_ay",o);return o}catch(e){return ay&&ay.city===city&&ay.g&&ay.g[bk]?ay:null}}
 async function loadTimes(){
   const today=todayKey(),city=(SET.city||"Istanbul").trim();
-  if(TIMES&&TIMES.date===today&&TIMES.city===city)return;if(timesLoading)return;timesLoading=true;
-  try{const r=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=Turkey&method=13`);const j=await r.json();
-    if(j&&j.data&&j.data.timings){const t=j.data.timings;TIMES={date:today,city,lat:+(j.data.meta&&j.data.meta.latitude)||41.0082,lon:+(j.data.meta&&j.data.meta.longitude)||28.9784,t:{imsak:t.Fajr,gunes:t.Sunrise,ogle:t.Dhuhr,ikindi:t.Asr,aksam:t.Maghrib,yatsi:t.Isha}};store.set("mk_times",TIMES);if(tab==="bugun")renderView();vakitOto()}}catch(e){}
+  if(TIMES&&TIMES.date===today&&TIMES.city===city&&TIMES.kaynak==="diyanet")return;if(timesLoading)return;timesLoading=true;
+  const eski=TIMES&&TIMES.city===city?TIMES:null;let lat=eski&&eski.lat,lon=eski&&eski.lon;
+  try{const ay=await diyanetAy(city),bt=ay&&ay.g[dKisa(new Date())];
+    if(bt){TIMES={date:today,city,lat:lat||41.0082,lon:lon||28.9784,t:bt,kaynak:"diyanet"};store.set("mk_times",TIMES);if(tab==="bugun")renderView();vakitOto()}}catch(e){}
+  if(!(TIMES&&TIMES.date===today&&TIMES.city===city&&TIMES.kaynak==="diyanet")||!lat){
+  try{const r=await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city.split("/")[0])}&country=Turkey&method=13`);const j=await r.json();
+    if(j&&j.data&&j.data.timings){const t=j.data.timings;const la=+(j.data.meta&&j.data.meta.latitude)||41.0082,lo=+(j.data.meta&&j.data.meta.longitude)||28.9784;
+      if(TIMES&&TIMES.date===today&&TIMES.city===city&&TIMES.kaynak==="diyanet"){TIMES.lat=la;TIMES.lon=lo;store.set("mk_times",TIMES)}
+      else{TIMES={date:today,city,lat:la,lon:lo,t:{imsak:t.Fajr.slice(0,5),gunes:t.Sunrise.slice(0,5),ogle:t.Dhuhr.slice(0,5),ikindi:t.Asr.slice(0,5),aksam:t.Maghrib.slice(0,5),yatsi:t.Isha.slice(0,5)},kaynak:"yedek"};store.set("mk_times",TIMES);if(tab==="bugun")renderView();vakitOto()}}}catch(e){}}
   timesLoading=false;
 }
 function timesNow(){
@@ -1536,7 +1560,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=37;
+const SURUM=38;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1799,11 +1823,16 @@ function vDuaListe(){
   <div class="bigcard"><input type="text" id="dlAd" placeholder="Kim için? (ör. Annem, hasta komşum)"><input type="text" id="dlNot" placeholder="Niyet (isteğe bağlı: şifa, hidayet, sınav…)"><button class="pill acc" id="dlEkle" style="justify-self:start">➕ Listeye ekle</button></div>
   ${DLIST.length?`<div class="list" style="margin-top:10px">${DLIST.map(d=>`<div class="nrow" style="align-items:center"><button class="chk-b ${d.son===todayKey()?"on":""}" data-dlok="${d.id}" aria-label="Bugün dua ettim">${d.son===todayKey()?"✓":""}</button><span class="tx"><b style="display:block">${esc(d.ad)}</b><span>${esc(d.not||"")}${d.say?" · "+d.say+" gün dua edildi":""}</span></span><button class="x" data-dldel="${d.id}" aria-label="Sil">×</button></div>`).join("")}</div>`:`<div class="empty" style="margin-top:10px">Liste boş.</div>`}`}
 function aylikAc(){openModal(`<h3>📅 ${esc(SET.city||"İstanbul")} · bu ayın vakitleri</h3><div id="ayl" class="small muted">Yükleniyor…</div><button class="pill ghost" id="mNo">Kapat</button>`,()=>{$("#mNo").onclick=closeModal});
-  const d=new Date();fetch(`https://api.aladhan.com/v1/calendarByCity/${d.getFullYear()}/${d.getMonth()+1}?city=${encodeURIComponent(SET.city||"Istanbul")}&country=Turkey&method=13`).then(r=>r.json()).then(j=>{
-    const c=s=>String(s).slice(0,5),td=d.getDate();
+  const d=new Date(),td=d.getDate(),city=(SET.city||"Istanbul").trim();
+  const tablo=(rows,not)=>{const el=$("#ayl");if(el)el.outerHTML=`<div style="max-height:62vh;overflow:auto"><table class="vt"><thead><tr><th>Gün</th><th>İmsak</th><th>Güneş</th><th>Öğle</th><th>İkindi</th><th>Akşam</th><th>Yatsı</th></tr></thead><tbody>${rows}</tbody></table></div><div class="small muted">${not}</div>`;
+    const b=document.querySelector(".vt .bugun");if(b)b.scrollIntoView({block:"center"})};
+  diyanetAy(city).then(ay=>{if(ay&&ay.g){const bk=dKisa(d);
+      const rows=Object.keys(ay.g).map(k=>{const t=ay.g[k],p=k.split(".");return `<tr${k===bk?' class="bugun"':""}><td>${+p[0]}.${+p[1]}</td><td>${t.imsak}</td><td>${t.gunes}</td><td>${t.ogle}</td><td>${t.ikindi}</td><td>${t.aksam}</td><td>${t.yatsi}</td></tr>`}).join("");
+      tablo(rows,"Kaynak: Diyanet İşleri Başkanlığı vakit tablosu (30 gün).");return}
+    return fetch(`https://api.aladhan.com/v1/calendarByCity/${d.getFullYear()}/${d.getMonth()+1}?city=${encodeURIComponent(city.split("/")[0])}&country=Turkey&method=13`).then(r=>r.json()).then(j=>{
+    const c=s=>String(s).slice(0,5);
     const rows=j.data.map(x=>{const t=x.timings,day=+x.date.gregorian.day;return `<tr${day===td?' class="bugun"':""}><td>${day}</td><td>${c(t.Fajr)}</td><td>${c(t.Sunrise)}</td><td>${c(t.Dhuhr)}</td><td>${c(t.Asr)}</td><td>${c(t.Maghrib)}</td><td>${c(t.Isha)}</td></tr>`}).join("");
-    const el=$("#ayl");if(el)el.outerHTML=`<div style="max-height:62vh;overflow:auto"><table class="vt"><thead><tr><th>Gün</th><th>İmsak</th><th>Güneş</th><th>Öğle</th><th>İkindi</th><th>Akşam</th><th>Yatsı</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-    const b=document.querySelector(".vt .bugun");if(b)b.scrollIntoView({block:"center"})
+    tablo(rows,"Diyanet tablosuna ulaşılamadı; yaklaşık hesap gösteriliyor (±1 dk olabilir).")})
   }).catch(()=>{const el=$("#ayl");if(el)el.textContent="Vakitler alınamadı. İnternet bağlantını kontrol et."})}
 function zekatAc(){const z=store.get("mk_zekat",{});const f=[["altinFiyat","Altının gram fiyatı (TL)"],["nakit","Nakit ve banka (TL)"],["altin","Altın (gram)"],["doviz","Döviz, hisse vb. (TL karşılığı)"],["ticari","Ticaret malı (TL)"],["alacak","Tahsili umulan alacak (TL)"],["borc","Borçlar (TL)"]];
   openModal(`<h3>💰 Zekât hesapla</h3>${f.map(([k,l])=>`<label class="small muted" style="display:grid;gap:4px">${l}<input type="number" inputmode="decimal" data-zk="${k}" value="${z[k]||""}"></label>`).join("")}<div id="zkOut" class="soz"></div><div class="small muted">Diyanet İşleri Başkanlığı'na göre nisap 80,18 gram altın değerindedir; ihtiyaç fazlası olup üzerinden bir kamerî yıl geçen servetin kırkta biri (%2,5) verilir. Özel durumlar için müftülüğe danış.</div><button class="pill ghost" id="mNo">Kapat</button>`,()=>{
