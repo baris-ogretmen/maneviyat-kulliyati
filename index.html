@@ -629,6 +629,7 @@ const DUALAR={
   {n:"Yûnus Aleyhisselâmın Duası",c:"Sıkıntı anında",ar:"لَا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ",r:"Lâ ilâhe illâ ente sübhâneke innî küntü mine'z-zâlimîn.",m:"Senden başka ilah yoktur. Seni tenzih ederim. Ben gerçekten kendine zulmedenlerden oldum.",src:"Enbiyâ 21/87",zid:"yunus"}
  ],
  kuran:[
+  {n:"Ankebût Sûresi 41. Âyet",c:"Tefekkür · tevekkül",ar:"مَثَلُ الَّذِينَ اتَّخَذُوا مِنْ دُونِ اللَّهِ أَوْلِيَاءَ كَمَثَلِ الْعَنْكَبُوتِ اتَّخَذَتْ بَيْتًا ۖ وَإِنَّ أَوْهَنَ الْبُيُوتِ لَبَيْتُ الْعَنْكَبُوتِ ۖ لَوْ كَانُوا يَعْلَمُونَ",r:"Meselü'llezîne'ttehazû min dûni'llâhi evliyâe ke-meseli'l-ankebût, ittehazet beytâ, ve inne evhene'l-buyûti le-beytü'l-ankebût, lev kânû ya'lemûn.",m:"Allah'ı bırakıp başka dostlar edinenlerin durumu, kendine ev edinen örümceğin durumu gibidir. Hâlbuki evlerin en dayanıksızı örümcek evidir. Keşke bilselerdi!",src:"Ankebût 29/41",ay:[[29,41]],tam:true},
   {n:"Rabbenâ Âtinâ",c:"Her dua sonunda",ar:"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",r:"Rabbenâ âtinâ fi'd-dünyâ haseneten ve fi'l-âhireti haseneten ve kınâ azâbe'n-nâr.",m:"Rabbimiz, bize dünyada da iyilik ver, âhirette de iyilik ver ve bizi ateş azabından koru. (Ses kaydında Bakara 201. âyetin tamamı okunur: “Onlardan kimi de: ‘Rabbimiz! …’ der.”)",src:"Bakara 2/201",ay:[[2,201]]},
   {n:"Rabbenağfirlî",c:"Namaz sonu",ar:"رَبَّنَا اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ يَوْمَ يَقُومُ الْحِسَابُ",r:"Rabbenağfir lî ve li-vâlideyye ve li'l-mü'minîne yevme yekûmü'l-hisâb.",m:"Rabbimiz, hesap gününde beni, anne babamı ve mü'minleri bağışla.",src:"İbrâhîm 14/41",ay:[[14,41]],tam:1},
   {n:"Rabbişrah Lî Sadrî",c:"Derse, işe başlarken",ar:"رَبِّ اشْرَحْ لِي صَدْرِي ۝ وَيَسِّرْ لِي أَمْرِي ۝ وَاحْلُلْ عُقْدَةً مِّن لِّسَانِي ۝ يَفْقَهُوا قَوْلِي",r:"Rabbi'şrah lî sadrî, ve yessir lî emrî, vahlul ukdeten min lisânî, yefkahû kavlî.",m:"Rabbim, göğsümü aç, işimi kolaylaştır, dilimdeki düğümü çöz ki sözümü anlasınlar.",src:"Tâhâ 20/25-28",ay:[[20,25],[20,26],[20,27],[20,28]],tam:1},
@@ -1195,7 +1196,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için · ilçe için: İstanbul/Kadıköy)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 42</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 43</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal",kilitSar:$("#sSar").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1630,7 +1631,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=42;
+const SURUM=43;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
