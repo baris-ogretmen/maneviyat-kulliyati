@@ -442,6 +442,9 @@ h2{letter-spacing:-.01em}
 .dua.renkli h3{color:#fff!important}.dua.renkli .cnt{color:rgba(255,255,255,.85)!important}.dua.renkli .ar{color:#fff!important}.dua.renkli .read{color:#ffe9a8}.dua.renkli .mean{color:#fff;font-weight:600;font-size:15px}.dua.renkli .src{color:rgba(255,255,255,.75)}
 .dua.renkli .pill{background:rgba(255,255,255,.2);color:#fff;border:0}
 .sigbas{margin:0 0 12px;padding:14px 16px;border-radius:20px;text-align:center;font-weight:800;font-size:17px;color:#fff;background:linear-gradient(135deg,#1d3b5c,#2e7d5f);display:grid;gap:2px}.sigbas small{font-weight:500;font-size:12px;opacity:.85}
+#cvOv .sekadim{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}#cvOv .sekadim span{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;background:rgba(255,255,255,.18)}#cvOv .sekadim span.ok{background:#fff;color:#2b4c9b}#cvOv .sekadim span.su{outline:3px solid #fff;background:rgba(255,255,255,.35)}
+#cvOv .sekbtn{width:100%;border:0;border-radius:26px;padding:22px 10px;margin:6px 0 10px;display:grid;justify-items:center;gap:2px;background:linear-gradient(135deg,#2b4c9b,#5b8def);color:#fff;box-shadow:0 8px 22px rgba(43,76,155,.35);cursor:pointer;-webkit-tap-highlight-color:transparent}
+#cvOv .sekbtn b{font-size:56px;line-height:1}#cvOv .sekbtn small{opacity:.9;font-size:13px}#cvOv .sekbtn:active{transform:scale(.98)}
 </style>
 </head>
 <body>
@@ -1212,7 +1215,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için · ilçe için: İstanbul/Kadıköy)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 45</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 46</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal",kilitSar:$("#sSar").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1647,7 +1650,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=45;
+const SURUM=46;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -2102,32 +2105,73 @@ function cvCiz(){const o=$("#cvOv");if(!o)return;const D=cvVeri();o.style.setPro
     `<div class="cvgrid">${CV_BOL.map(b=>`<button class="cvtile" style="${cvRenk(b)}" data-cvgo="${b.id}"><span class="cvic">${b.ic}</span><b>${b.ad}</b><small>${b.alt}</small></button>`).join("")}</div>
     <div class="small muted" style="margin:14px 2px 0">Her cümlenin altında okunuşu ve anlamı var. Okunuş harekeye göre otomatik yazılır; asıl metin Arapçasıdır.</div></div>`}
   else if(CVS.yer==="babs"){const ok=store.get("mk_cv_okunan",{});
-    h=cvUst("🛡️ Cevşenü'l-Kebîr","ana")+`<div class="cvbody"><div class="cvhero" style="${cvRenk(CV_BOL[0])}"><b>Cevşenü'l-Kebîr</b><small>Okumak istediğin bâba dokun. Okuduğun bâblar işaretlenir.</small></div>
+    h=cvUst("🛡️ Cevşenü'l-Kebîr","ana")+`<div class="cvbody"><div class="cvhero" style="${cvRenk(CV_BOL[0])}"><b>Cevşenü'l-Kebîr</b><small>Okumak istediğin bâba dokun. Okuduğun bâblar işaretlenir.</small><div class="cvnav" style="justify-content:flex-start;flex-wrap:wrap"><button class="cvplay" data-cv="tamami">▶ Tamamını dinle (101 bâb)</button>${(son&&son.b==="cevsen"&&son.n>1)?`<button class="cvchip" data-cv="tamdevam">↻ ${son.n}. bâbdan devam</button>`:""}</div></div>
     <div class="cvbabs">${(D.cevsen_kebir||[]).map((x,i)=>`<button class="cvbab ${ok[i+1]?"ok":""}" style="--h:${(i*37)%360}" data-cvbab="${i+1}">${i+1}${ok[i+1]?"<i>✓</i>":""}</button>`).join("")}</div></div>`}
   else if(CVS.yer==="bab"){const L=D.cevsen_kebir||[],n=CVS.bab,x=L[n-1];if(!x){CVS.yer="babs";return cvCiz()}
     store.set("mk_cv_son",{b:"cevsen",n});
     const p=cvHizala(x[0],x[1]);
     h=cvUst(`${n}. Bâb`,"babs")+`<div class="cvbody"><div class="cvhero" style="background:linear-gradient(135deg,hsl(${(n*37)%360} 55% 32%),hsl(${(n*37+40)%360} 60% 48%))"><b>Cevşenü'l-Kebîr · ${n}. Bâb</b><small>${n===101?"Hâtime duası":"On isim ve sıfat"}</small>
-      <div class="cvnav"><button class="cvchip" data-cvbab="${Math.max(1,n-1)}" ${n<=1?"disabled":""}>◀ ${n-1||""}</button><button class="cvplay" data-cv="dinle">▶ Dinle</button><button class="cvchip" data-cvbab="${Math.min(L.length,n+1)}" ${n>=L.length?"disabled":""}>${n<L.length?n+1:""} ▶</button></div></div>${cvAyarlar()}
+      <div class="cvnav"><button class="cvchip" data-cvbab="${Math.max(1,n-1)}" ${n<=1?"disabled":""}>◀ ${n-1||""}</button><button class="cvplay" data-cv="dinle">▶ Bu bâbı dinle</button><button class="cvchip" data-cvbab="${Math.min(L.length,n+1)}" ${n>=L.length?"disabled":""}>${n<L.length?n+1:""} ▶</button></div></div>${cvAyarlar()}
       ${p?p.map(([a,t],i)=>cvSatir(a,t,i===p.length-1)).join(""):cvBol(x[0]).map((a,i,arr)=>cvSatir(a,"",i===arr.length-1)).join("")+(CVA.meal?`<div class="cvl"><div class="cvm" style="white-space:pre-line">${esc(x[1])}</div></div>`:"")}
-      <button class="cvbitir" data-cv="bitir">${n<L.length?"✓ Okudum · "+(n+1)+". bâba geç":"✓ Cevşen'i bitirdim · Allah kabul etsin"}</button></div>`}
+      <button class="cvchip" data-cv="sona" style="width:100%;margin:4px 0 8px;padding:12px">▶ Bu bâbdan Cevşen'in sonuna kadar dinle</button><button class="cvbitir" data-cv="bitir">${n<L.length?"✓ Okudum · "+(n+1)+". bâba geç":"✓ Cevşen'i bitirdim · Allah kabul etsin"}</button></div>`}
   else if(CVS.yer==="oku"&&CVS.bol==="ihtiyac"){const K=CVS.kat;const list=DUALAR.ihtiyac.map((d,i)=>[d,i]).filter(([d])=>d.k===K);
     h=cvUst("💚 İhtiyaç Duaları","ana")+`<div class="cvbody"><div class="cvhero" style="${cvRenk(CV_BOL[8])}"><b>Ne için dua etmek istersin?</b><small>Kur'an'dan ve Peygamberimizden duâlar, kaynaklarıyla.</small></div>
       <div class="cvkat">${IHT_KAT.map(([k,i,l])=>`<button class="cvchip ${k===K?"on":""}" data-cvkat="${k}">${i} ${l}</button>`).join("")}</div>
       <div id="cvDua">${list.map(([d,i])=>duaCard(d,"ihtiyac|"+i)).join("")}</div></div>`}
+  else if(CVS.yer==="oku"&&CVS.bol==="sekine"){store.set("mk_cv_son",{b:"sekine"});const A=SEK.a,bit=A>=6;
+    h=cvUst("🕊️ Sekîne Duası","ana")+`<div class="cvbody"><div class="cvhero" style="${cvRenk(CV_BOL[1])}"><b>Sekîne · 19 kez</b><small>Besmeleden sonra Altı İsim ile her âyet 19 kez okunur. Sonunda Altı İsim ve Altı Âyet birlikte bir kez okunur.</small>
+      <div class="sekadim">${SEK_AY.map((x,i)=>`<span class="${i<A?"ok":i===A?"su":""}">${i<A?"✓":i+1}</span>`).join("")}<span class="${bit?"su":""}">★</span></div></div>${cvAyarlar()}
+      ${bit?`<div class="cvl" style="text-align:center"><b>Son adım: Altı İsim ve Altı Âyet birlikte bir kez</b></div>${cvSatir(SEK_ISIM[0],SEK_ISIM[1],false)}${SEK_AY.map(x=>cvSatir(x[0],x[1],true)).join("")}
+        <div class="cvnav" style="justify-content:center;flex-wrap:wrap"><button class="cvbitir" data-cv="sdinle" style="width:auto;padding:12px 22px">▶ Birlikte dinle</button><button class="cvchip" data-cv="ssifir">↺ Baştan başla</button></div>`
+      :`<div class="small muted" style="margin:0 2px 6px">${A+1}. âyet · ${SEK_AY[A][2]}</div>${cvSatir(SEK_ISIM[0],SEK_ISIM[1],false)}${cvSatir(SEK_AY[A][0],SEK_AY[A][1],true)}
+        <button class="sekbtn" data-cv="skart"><b>${SEK.c}</b><small>/ 19 · okudukça dokun</small></button>
+        <div class="cvnav" style="justify-content:center;flex-wrap:wrap"><button class="cvplay" data-cv="sdinle" style="background:var(--accent);color:var(--accent-ink)">▶ 19 kez dinle</button>${A>0?`<button class="cvchip" data-cv="sgeri">‹ Önceki âyet</button>`:""}<button class="cvchip" data-cv="ssifir">↺ Sıfırla</button></div>`}
+      <div class="cvnot">Okuma şekli: Besmele çekilir. Altı İsim ve birinci âyet 19 kez, sonra Altı İsim ve ikinci âyet 19 kez okunur; altı âyet böyle tamamlanır. En sonunda Altı İsim ve Altı Âyet birlikte bir kez okunur.</div></div>`}
   else if(CVS.yer==="oku"){const b=CV_BOL.find(x=>x.id===CVS.bol);const L=D[b.k]||[];store.set("mk_cv_son",{b:b.id});
     h=cvUst(b.ic+" "+b.ad,"ana")+`<div class="cvbody"><div class="cvhero" style="${cvRenk(b)}"><b>${b.ad}</b><small>${b.alt}</small><div class="cvnav"><button class="cvplay" data-cv="dinle">▶ Dinle</button></div></div>${cvAyarlar()}
       ${L.map(([a,t])=>{const tl=String(t).split("\n").map(s=>s.trim()).filter(Boolean);if(!a)return `<div class="cvnot">${esc(t)}</div>`;return cvSatir(a,tl.join("\n"),true)}).join("")}</div>`}
   o.innerHTML=h;o.scrollTop=0;cvBagla(o)}
+const SEK_ISIM=["يَا فَرْدُ يَا حَيُّ يَا قَيُّومُ يَا حَكَمُ يَا عَدْلُ يَا قُدُّوسُ","Ey Ferd, ey Hay, ey Kayyûm, ey Hakem, ey Adl, ey Kuddûs!"];
+const SEK_AY=[
+ ["فَسَيَكْفِيكَهُمُ اللّٰهُ وَهُوَ السَّمِيعُ الْعَلِيمُ","Allah onlara karşı sana yetecektir. O, işitendir, bilendir.","Bakara 2/137",null],
+ ["قُلِ اللّٰهُ ثُمَّ ذَرْهُمْ فِي خَوْضِهِمْ يَلْعَبُونَ","“Allah” de, sonra bırak onları daldıkları batakta oynasınlar.","En'âm 6/91",null],
+ ["وَإِنْ يَمْسَسْكَ اللّٰهُ بِضُرٍّ فَلَا كَاشِفَ لَهُ إِلَّا هُوَ وَإِنْ يُرِدْكَ بِخَيْرٍ فَلَا رَادَّ لِفَضْلِهِ يُصِيبُ بِهِ مَنْ يَشَاءُ مِنْ عِبَادِهِ وَهُوَ الْغَفُورُ الرَّحِيمُ","Eğer Allah sana bir zarar dokundurursa, onu O'ndan başka giderecek yoktur. Sana bir hayır dilerse, O'nun lütfunu geri çevirecek de yoktur. O, lütfunu kullarından dilediğine eriştirir. O, bağışlayandır, merhametlidir.","Yûnus 10/107",[10,107]],
+ ["وَمَا مِنْ دَابَّةٍ فِي الْأَرْضِ إِلَّا عَلَى اللّٰهِ رِزْقُهَا وَيَعْلَمُ مُسْتَقَرَّهَا وَمُسْتَوْدَعَهَا كُلٌّ فِي كِتَابٍ مُبِينٍ","Yeryüzünde hiçbir canlı yoktur ki rızkı Allah'a ait olmasın. O, onun duracağı yeri de emanet bırakılacağı yeri de bilir. Hepsi apaçık bir kitaptadır.","Hûd 11/6",[11,6]],
+ ["إِنِّي تَوَكَّلْتُ عَلَى اللّٰهِ رَبِّي وَرَبِّكُمْ مَا مِنْ دَابَّةٍ إِلَّا هُوَ آخِذٌ بِنَاصِيَتِهَا إِنَّ رَبِّي عَلَى صِرَاطٍ مُسْتَقِيمٍ","Ben, benim de Rabbim, sizin de Rabbiniz olan Allah'a dayandım. Hiçbir canlı yoktur ki O, onun perçeminden tutmuş olmasın. Şüphesiz Rabbim dosdoğru yoldadır.","Hûd 11/56",[11,56]],
+ ["وَكَأَيِّنْ مِنْ دَابَّةٍ لَا تَحْمِلُ رِزْقَهَا اللّٰهُ يَرْزُقُهَا وَإِيَّاكُمْ وَهُوَ السَّمِيعُ الْعَلِيمُ","Nice canlılar var ki rızkını taşıyamaz. Onları da sizi de Allah rızıklandırır. O, işitendir, bilendir.","Ankebût 29/60",[29,60]]];
+let SEK=Object.assign({a:0,c:0},store.get("mk_sekine",{}));
+function skKaydet(){store.set("mk_sekine",SEK)}
+function skArt(){if(SEK.a>=6)return;SEK.c++;try{navigator.vibrate&&navigator.vibrate(18)}catch(e){}
+  if(SEK.c>=19){SEK.a++;SEK.c=0;toast(SEK.a<6?"✓ "+SEK.a+". âyet tamam · sıradaki âyete geçtin":"✓ Altı âyet tamam · son adım: hepsi birlikte bir kez")}skKaydet();const o=$("#cvOv"),y=o?o.scrollTop:0;cvCiz();if(o)o.scrollTop=y}
+function skParca(i,k,top){const x=SEK_AY[i],art=makeArt("سكينة","Sekîne",210),bas=k?"Sekîne · "+(i+1)+". âyet · "+k+"/"+top:"Sekîne · birlikte";const q=[ttsTrack(SEK_ISIM[0],"ar-SA",bas,"Altı İsim",art,"Cevşen")];
+  if(x[3]){const t=ayahTracks([x[3]],bas)[0];if(t){t.group="Cevşen";t.sub="Âyet · el-Afâsî";q.push(t)}}else q.push(ttsTrack(x[0],"ar-SA",bas,"Âyet",art,"Cevşen"));
+  if(k){q[0].sekA=i;q[0].sekK=k;q[q.length-1].sekA=i;q[q.length-1].sekK=k;q[q.length-1].sekAyet=1}return q}
+// Dinlerken sayaç da kendiliğinden ilerler
+setInterval(()=>{const t=Q[qi];if(!t||t.sekA==null||au.paused||t.sekA!==SEK.a)return;const c=t.sekK-1;if(c>SEK.c){SEK.c=c;skKaydet();if($("#cvOv")&&CVS.bol==="sekine"&&CVS.yer==="oku")cvCiz()}},1000);
+au.addEventListener("ended",()=>{const t=Q[qi];if(t&&t.sekAyet&&t.sekA===SEK.a&&t.sekK>SEK.c){SEK.c=t.sekK-1;skArt()}});
+function skDinle(){let q=[];const art=makeArt("سكينة","Sekîne",210);q.push(ttsTrack("بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيمِ","ar-SA","Sekîne · Besmele","Besmele",art,"Cevşen"));
+  if(SEK.a>=6){q.push(ttsTrack(SEK_ISIM[0],"ar-SA","Sekîne · birlikte","Altı İsim",art,"Cevşen"));SEK_AY.forEach((x,i)=>q=q.concat(skParca(i,0,0).slice(1)))}
+  else{for(let k=SEK.c+1;k<=19;k++)q=q.concat(skParca(SEK.a,k,19))}
+  if(SET.meal!==false&&SEK.a<6)q.push(ttsTrack(SEK_ISIM[1]+" "+SEK_AY[SEK.a][1],"tr-TR","Sekîne · anlamı","Türkçe",art,"Cevşen"));
+  playQueue(q,0);toast(SEK.a>=6?"Altı İsim ve Altı Âyet birlikte okunuyor":(SEK.a+1)+". âyet "+(19-SEK.c)+" kez okunacak");setTimeout(cvCiz,300)}
+function cvBabKuyruk(n){const D=cvVeri();const x=(D.cevsen_kebir||[])[n-1];if(!x)return[];const art=makeArt("جوشن",n+". bâb",(n*37)%360),q=[];
+  const ekle=(ar,tr)=>{chunkText(ar,170).forEach(c=>q.push(Object.assign(ttsTrack(c,"ar-SA","Cevşen "+n+". bâb","Cevşenü'l-Kebîr · "+n+"/101",art,"Cevşen"),{cvbab:n})));if(SET.meal!==false&&tr)chunkText(tr,180).forEach(c=>q.push(Object.assign(ttsTrack(c,"tr-TR","Cevşen "+n+". bâb · Anlamı","Türkçe",art,"Cevşen"),{cvbab:n})))};
+  const p=cvHizala(x[0],x[1]);if(p)p.forEach(([a,t])=>ekle(a,t));else ekle(x[0],x[1]);return q}
+function cvTamami(bas){const N=(cvVeri().cevsen_kebir||[]).length;let q=[];for(let n=bas||1;n<=N;n++)q=q.concat(cvBabKuyruk(n));if(q.length){playQueue(q,0);toast("Cevşen "+(bas||1)+". bâbdan sonuna kadar okunuyor · ekranı kilitleyebilirsin")}}
+let cvSonBab=0;setInterval(()=>{const t=Q[qi];if(t&&t.cvbab&&t.cvbab!==cvSonBab&&!au.paused){cvSonBab=t.cvbab;store.set("mk_cv_son",{b:"cevsen",n:t.cvbab});const ok=store.get("mk_cv_okunan",{});if(t.cvbab>1&&!ok[t.cvbab-1]){ok[t.cvbab-1]=1;store.set("mk_cv_okunan",ok)}}},1500);
 function cvKuyruk(){const D=cvVeri();const art=makeArt("جوشن","Cevşen",168),q=[];
   const ekle=(ar,tr,baslik,alt)=>{chunkText(ar,170).forEach(c=>q.push(ttsTrack(c,"ar-SA",baslik,alt,art,"Cevşen")));if(SET.meal!==false&&tr)chunkText(tr,180).forEach(c=>q.push(ttsTrack(c,"tr-TR",baslik+" · Anlamı","Türkçe",art,"Cevşen")))};
-  if(CVS.yer==="bab"){const x=D.cevsen_kebir[CVS.bab-1];const p=cvHizala(x[0],x[1]);if(p)p.forEach(([a,t])=>ekle(a,t,"Cevşen "+CVS.bab+". bâb","Cevşenü'l-Kebîr"));else ekle(x[0],x[1],"Cevşen "+CVS.bab+". bâb","Cevşenü'l-Kebîr")}
+  if(CVS.yer==="bab")return cvBabKuyruk(CVS.bab);
   else{const b=CV_BOL.find(x=>x.id===CVS.bol);(D[b.k]||[]).forEach(([a,t])=>{if(a)ekle(a,t,b.ad,"Cevşen")})}
   return q}
 function cvBagla(o){
   o.querySelectorAll("[data-cv]").forEach(b=>b.onclick=()=>{const v=b.dataset.cv;
     if(v==="kapat")return cvKapat();if(v==="ana"||v==="babs"){CVS.yer=v;return cvCiz()}
     if(v==="dur"){au.pause();stopSpeech&&stopSpeech();return setTimeout(cvCiz,100)}
+    if(v==="tamami"){cvTamami(1);return setTimeout(cvCiz,300)}
+    if(v==="tamdevam"){const so=store.get("mk_cv_son",null);cvTamami(so&&so.n||1);return setTimeout(cvCiz,300)}
+    if(v==="sona"){cvTamami(CVS.bab);return setTimeout(cvCiz,300)}
+    if(v==="skart"){skArt();return}if(v==="sdinle"){skDinle();return}if(v==="ssifir"){SEK={a:0,c:0};skKaydet();return cvCiz()}if(v==="sgeri"){if(SEK.a>0){SEK.a--;SEK.c=0;skKaydet()}return cvCiz()}
     if(v==="dinle"){const q=cvKuyruk();if(q.length){playQueue(q,0);toast("Okunuyor · ekranı kilitleyebilirsin");setTimeout(cvCiz,300)}return}
     if(v==="bitir"){const ok=store.get("mk_cv_okunan",{});ok[CVS.bab]=1;store.set("mk_cv_okunan",ok);const N=(cvVeri().cevsen_kebir||[]).length;if(CVS.bab<N){CVS.bab++;cvCiz()}else{toast("Allah kabul etsin 🤲");CVS.yer="babs";cvCiz()}}});
   o.querySelectorAll("[data-cvgo]").forEach(b=>b.onclick=()=>{const g=b.dataset.cvgo;CVS.bol=g;if(g==="cevsen"){if(b.dataset.cvbab){CVS.bab=+b.dataset.cvbab;CVS.yer="bab"}else CVS.yer="babs"}else CVS.yer="oku";cvCiz()});
