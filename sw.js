@@ -1,4 +1,4 @@
-/* Değişim Koleji — bildirim servis çalışanı (sw.js)
+/* Maneviyat Külliyatı — bildirim servis çalışanı (sw.js) · sürüm 47
    Okul sistemi dosyasıyla AYNI klasöre yükleyin. Önbellek tutmaz (güncellemeler hemen gelir).
    Görevi: telefona bildirim göstermek, bildirime dokununca uygulamayı açmak. */
 self.addEventListener('install', function(e){ self.skipWaiting(); });
@@ -15,14 +15,45 @@ self.addEventListener('notificationclick', function(e){
 self.addEventListener('push', function(e){
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch(x){ d = { baslik:'Değişim Koleji', govde: e.data ? e.data.text() : '' }; }
+  e.waitUntil(dinamikSec(d).then(function(d){
   var opt = { body: d.govde || d.body || '', icon: d.icon, badge: d.icon, data: { url: d.url || self.registration.scope } };
   if (d.etiket) { opt.tag = d.etiket; opt.renotify = false; }
-  e.waitUntil(Promise.all([
+  return Promise.all([
     self.registration.showNotification(d.baslik || d.title || 'Değişim Koleji', opt),
     bildirimSakla({ t: Date.now(), b: d.baslik || d.title || '', g: opt.body, u: opt.data.url }),
     (self.navigator && self.navigator.setAppBadge) ? self.registration.getNotifications().then(function(l){ return self.navigator.setAppBadge(l.length||1); }).catch(function(){}) : Promise.resolve()
-  ]));
+  ]);
+  }));
 });
+
+/* Sürüm 47: dinamik bildirim — uygulama hiç açılmasa bile her Risale/saatlik bildirimde
+   telefondaki havuzdan SIRADAKİ içerik seçilir; hepsi bitmeden hiçbiri tekrar etmez. */
+function kvAc(){return new Promise(function(res){try{var q=indexedDB.open('maneviyat-kasa',1);q.onupgradeneeded=function(){try{q.result.createObjectStore('kv');}catch(e){}};q.onerror=function(){res(null);};q.onsuccess=function(){res(q.result);};}catch(e){res(null);}});}
+function dinamikSec(d){
+  var b = String(d.baslik || d.title || '');
+  var kanal = /Maneviyat · Günün/.test(b) ? 'ri' : (/Maneviyat · Saat \d/.test(b) ? 'hep' : '');
+  if (!kanal) return Promise.resolve(d);
+  return kvAc().then(function(db){
+    if (!db) return d;
+    return new Promise(function(res){
+      try{
+        var st = db.transaction('kv','readwrite').objectStore('kv'), g = st.get('dyn_havuz');
+        g.onsuccess = function(){
+          var h = g.result; var L = h && h[kanal];
+          if (!L || !L.length) return res(d);
+          var c = st.get('dyn_i_' + kanal);
+          c.onsuccess = function(){
+            var i = (c.result || 0) % L.length; st.put(i + 1, 'dyn_i_' + kanal);
+            var x = L[i]; var y = {}; for (var k in d) y[k] = d[k];
+            y.govde = x[0]; y.url = x[1] || d.url; res(y);
+          };
+          c.onerror = function(){ res(d); };
+        };
+        g.onerror = function(){ res(d); };
+      }catch(e){ res(d); }
+    });
+  }).catch(function(){ return d; });
+}
 
 /* Sürüm 37: gelen bildirimleri uygulamadaki "Bildirimlerim" listesi için sakla */
 function bildirimSakla(x){
