@@ -454,6 +454,7 @@ h2{letter-spacing:-.01em}
 #arsOv .araic{font-size:22px;width:30px;text-align:center}#arsOv .arat{flex:1;min-width:0;display:grid;gap:2px}#arsOv .arat small{color:var(--muted);font-size:12px}#arsOv .go{color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap}
 #arsOv .arsyil{position:sticky;top:58px;z-index:1;display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 8px;padding:8px 14px;border-radius:14px;background:linear-gradient(135deg,#1d3b5c,#2e7d5f);color:#fff}#arsOv .arsyil b{font-size:20px}#arsOv .arsyil span{font-size:12px;opacity:.85}
 #arsOv .arsozet{display:flex;flex-wrap:wrap;gap:6px}#arsOv .arsozet span{background:var(--surface);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700}
+.ncard.bd .tx{display:block}.ncard.bd .bdbtn{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ncard.bd .bdbtn .pill{padding:6px 11px;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -1226,7 +1227,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için · ilçe için: İstanbul/Kadıköy)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 47</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 48</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal",kilitSar:$("#sSar").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1501,7 +1502,8 @@ function guardMeta(force){if(!guardOn||!("mediaSession" in navigator))return;if(
   try{navigator.mediaSession.metadata=new MediaMetadata({title:next[0]+" vaktine "+k,artist:z.t+" — "+z.s,album:VAKIT_AD[v]+" vakti · Maneviyat",artwork:[{src:makeArt(next[0],k,200),sizes:"512x512",type:"image/png"}]});navigator.mediaSession.playbackState="playing"}catch(e){}}
 function vakitTick(){
   try{const {next}=curVakit(),mins=(next[1]-new Date())/60000,day=todayKey();
-    [10,5].forEach(th=>{const key=day+next[0]+th;if(mins<=th&&mins>th-1.2&&!FIRED.has(key)){FIRED.add(key);if(SET.remind||guardOn||lockOn||!au.paused){chime();toast("🔔 "+next[0]+" vaktine "+th+" dakika");bildirimArsiv([{t:Date.now(),b:next[0]+" vaktine "+th+" dakika",g:gunSoz().t}]);try{if("Notification" in window&&Notification.permission==="granted")new Notification(next[0]+" vaktine "+th+" dakika",{body:gunSoz().t,icon:document.querySelector('link[rel="apple-touch-icon"]').href})}catch(e){}}}});
+    const on=+(SET.vonce||0),{t}=timesNow(),now=new Date();
+    [["imsak","Sabah"],["ogle","Öğle"],["ikindi","İkindi"],["aksam","Akşam"],["yatsi","Yatsı"]].forEach(([k,n])=>{const d=hm(t[k]);d.setMinutes(d.getMinutes()-on);const m=(now-d)/60000,key=day+k+on,msg=on?n+" vaktine "+on+" dakika":n+" vakti girdi";if(m>=0&&m<1.2&&!FIRED.has(key)){FIRED.add(key);if(SET.remind||guardOn||lockOn||!au.paused){chime();toast("🔔 "+msg);bildirimArsiv([{t:Date.now(),b:msg,g:gunSoz().t}]);try{if("Notification" in window&&Notification.permission==="granted")new Notification(msg,{body:gunSoz().t,icon:document.querySelector('link[rel="apple-touch-icon"]').href})}catch(e){}}}});
     guardMeta(false);
   }catch(e){}
 }
@@ -1576,7 +1578,7 @@ function vBugun(){
   const card=`<div class="vakit ${v==="yatsi"||v==="seher"?"gece":""}" style="background:linear-gradient(135deg,${c1},${c2})">
     <div class="vk-top"><span>ŞU AN</span><span>${esc((SET.city||"İstanbul"))}${approx?" · yaklaşık":""}</span></div>
     <div class="vk-ad">${VAKIT_AD[v]} vakti</div><div class="vk-sub">${esc(next[0])} vaktine ${kalan}</div>${ezanKutu()}${ramazanLine(list)}
-    <button id="remindBtn" class="vk-rem">${guardOn?"🔔 Vakit hatırlatıcı açık · kapat":"🔕 Vakitten 10 ve 5 dk önce hatırlat"}</button>
+    <button id="remindBtn" class="vk-rem">${guardOn?"🔔 Vakit hatırlatıcı açık · kapat":(+(SET.vonce||0)?"🔕 Vakitten "+SET.vonce+" dk önce hatırlat":"🔕 Vakit girince hatırlat")}</button>
     <div class="vk-times">${list.map(([n,d])=>`<div class="${n===VAKIT_LBL[v]?"cur":n===next[0]?"nx":""}" style="${n===VAKIT_LBL[v]?`background:#fff;color:${VAKIT_TILE[n]||c1};box-shadow:0 0 0 3px ${VAKIT_TILE[n]||c1}aa,0 8px 22px rgba(0,0,0,.35)`:`background:linear-gradient(165deg,${VAKIT_TILE[n]}e6,${VAKIT_TILE[n]}73)`}">${n===VAKIT_LBL[v]?'<i class="simdi">ŞİMDİ</i>':""}<span>${n}</span><b>${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</b></div>`).join("")}</div></div>`;
   const seg=`<div class="seg" style="margin-top:14px">${[["vakit","Bu vakit"],["amel","Amellerim"],["dualar","Tüm dualar"]].map(([k,l])=>`<button data-bseg="${k}" class="${bugSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
   let body="";
@@ -1661,7 +1663,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=47;
+const SURUM=48;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1729,13 +1731,54 @@ function bildirimArsiv(arr){if(!arr||!arr.length)return;const ks=new Set(BILD.ma
 async function bildirimSwOku(){try{const db=await idbAc();if(!db)return;const st=db.transaction("kv","readwrite").objectStore("kv");const q=st.get("sw_bildirim");q.onsuccess=()=>{const a=q.result||[];if(a.length){bildirimArsiv(a);try{db.transaction("kv","readwrite").objectStore("kv").put([],"sw_bildirim")}catch(e){}}}}catch(e){}}
 const bildirimOkunmamis=()=>BILD.filter(x=>!x.o).length;
 function bildirimRozet(){const b=$("#bildBtn");if(b){const n=bildirimOkunmamis();let r=b.querySelector(".brz");if(!r){r=document.createElement("span");r.className="brz";b.appendChild(r)}r.textContent=n;r.hidden=!n}}
-function bildirimAc(){const L=BILD.slice(0,200);const gun=t=>{const d=new Date(t),bg=new Date();bg.setHours(0,0,0,0);const df=Math.round((bg-new Date(d).setHours(0,0,0,0))/864e5);return df===0?"Bugün":df===1?"Dün":d.toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})};
-  const g={};L.forEach(x=>{(g[gun(x.t)]=g[gun(x.t)]||[]).push(x)});
-  openModal(`<h3>🔔 Bildirimlerim</h3><div class="small muted">Telefonuna gelen bütün bildirimler burada alt alta durur; kilit ekranından silinse de kaybolmaz.</div>
-   <div style="display:grid;gap:12px;max-height:56vh;overflow:auto">${L.length?Object.entries(g).map(([k,l])=>`<div><div class="small" style="font-weight:800;color:var(--accent);margin-bottom:6px">${esc(k)}</div><div style="display:grid;gap:6px">${l.map(x=>`<div class="ncard" style="background:${x.o?"var(--surface2)":"color-mix(in srgb,var(--accent) 16%,var(--surface2))"}"><span class="ts" style="color:var(--accent)">${iki(new Date(x.t).getHours())}:${iki(new Date(x.t).getMinutes())}</span><span class="tx"><b>${esc(x.b)}</b>${x.g?`<br>${esc(x.g)}`:""}</span></div>`).join("")}</div></div>`).join(""):`<div class="empty">Henüz bildirim yok. Vakit hatırlatmaları ve diğer bildirimler geldikçe burada birikir.</div>`}</div>
-   <div class="ctrl">${L.length?`<button class="pill ghost" id="bdTemiz">Hepsini temizle</button>`:""}<button class="pill acc" id="bdKapat">Kapat</button></div>`,()=>{
-    BILD.forEach(x=>x.o=1);store.set("mk_bildirim",BILD);bildirimRozet();
-    $("#bdKapat").onclick=closeModal;const t=$("#bdTemiz");if(t)t.onclick=()=>{const prev=BILD.slice();BILD=[];store.set("mk_bildirim",BILD);closeModal();undoBar("Bildirimler temizlendi",()=>{BILD=prev;store.set("mk_bildirim",BILD);bildirimRozet();toast("Geri alındı")})}})}
+let BFAV=store.get("mk_bild_fav",[]),bdSek="yeni";
+const bdKey=x=>x.t+"|"+x.b;
+const bdFav=x=>BFAV.some(f=>bdKey(f)===bdKey(x));
+function bdFavToggle(x){if(bdFav(x)){BFAV=BFAV.filter(f=>bdKey(f)!==bdKey(x));toast("Beğendiklerinden çıkarıldı")}else{BFAV.unshift({t:x.t,b:x.b,g:x.g,u:x.u});toast("❤️ Beğendiklerine eklendi · hiç silinmez")}store.set("mk_bild_fav",BFAV)}
+function bdMetin(x){return (x.b?x.b.replace(/^[^\wÇĞİÖŞÜçğıöşüâîû]*Maneviyat · /,"")+"\n":"")+(x.g||"")}
+async function bdPaylas(x){const t=bdMetin(x)+"\n\n— Maneviyat Külliyatı\n"+appUrl("#bugun");
+  try{if(navigator.share){await navigator.share({title:"Maneviyat Külliyatı",text:t});return}}catch(e){if(e&&e.name==="AbortError")return}
+  try{await navigator.clipboard.writeText(t);toast("Kopyalandı · WhatsApp'a yapıştırabilirsin")}catch(e){window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank","noopener")}}
+function bdSar(c,metin,maxW){const w=String(metin).split(/\s+/),L=[];let l="";w.forEach(k=>{const d=l?l+" "+k:k;if(c.measureText(d).width>maxW&&l){L.push(l);l=k}else l=d});if(l)L.push(l);return L}
+async function bdGorsel(x){const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");
+  const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,"#0f5e57");gr.addColorStop(.55,"#1d3b5c");gr.addColorStop(1,"#2b4c9b");g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.strokeStyle="rgba(240,214,144,.55)";g.lineWidth=4;g.strokeRect(46,46,W-92,H-92);g.strokeStyle="rgba(240,214,144,.25)";g.strokeRect(62,62,W-124,H-124);
+  g.fillStyle="#f0d690";g.font="700 34px Figtree,system-ui,sans-serif";g.textAlign="center";g.fillText("MANEVİYAT KÜLLİYATI",W/2,150);
+  const bas=(x.b||"").replace(/^[^\wÇĞİÖŞÜçğıöşüâîû]*Maneviyat · /,"");g.fillStyle="rgba(255,255,255,.8)";g.font="600 36px Figtree,system-ui,sans-serif";g.fillText(bas.slice(0,40),W/2,210);
+  let fs=58,L;do{g.font=`600 ${fs}px Figtree,system-ui,sans-serif`;L=bdSar(g,x.g||x.b,W-220);fs-=4}while(L.length*fs*1.4>H-520&&fs>30);
+  const lh=(fs+4)*1.42,y0=(H-L.length*lh)/2+40;g.fillStyle="#fff";L.forEach((l,i)=>g.fillText(l,W/2,y0+i*lh));
+  g.fillStyle="#f0d690";g.font="400 30px Figtree,system-ui,sans-serif";g.fillText("baris-ogretmen.github.io/site-1",W/2,H-110);
+  const blob=await new Promise(r=>c.toBlob(r,"image/png"));const f=new File([blob],"maneviyat.png",{type:"image/png"});
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Maneviyat Külliyatı"});return}}catch(e){if(e&&e.name==="AbortError")return}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="maneviyat.png";a.click();toast("Görsel indirildi")}
+function bdKart(x,i,favSek){const fv=bdFav(x);return `<div class="ncard bd" style="background:${x.o||favSek?"var(--surface2)":"color-mix(in srgb,var(--accent) 16%,var(--surface2))"}"><span class="ts" style="color:var(--accent)">${iki(new Date(x.t).getHours())}:${iki(new Date(x.t).getMinutes())}</span><span class="tx"><b>${esc(x.b)}</b>${x.g?`<br>${esc(x.g)}`:""}
+  <span class="bdbtn"><button class="pill ${fv?"acc":"ghost"}" data-bdfav="${i}">${fv?"❤️ Beğendin":"🤍 Beğen"}</button><button class="pill ghost" data-bdpay="${i}">⤴ Paylaş</button><button class="pill ghost" data-bdgor="${i}">🖼️ Görsel</button>${favSek?"":`<button class="pill ghost" data-bdsil="${i}" aria-label="Sil">✕</button>`}</span></span></div>`}
+function bildirimAc(yeniden){
+  // Okuduklarım silinsin: daha önce okunmuş (beğenilmemiş) bildirimler bu açılışta temizlenir
+  if(!yeniden&&store.get("mk_bd_otosil",true)){const once=BILD.length;BILD=BILD.filter(x=>!x.o||bdFav(x));if(BILD.length!==once)store.set("mk_bildirim",BILD)}
+  const fav=bdSek==="fav",L=fav?BFAV.slice(0,300):BILD.slice(0,200);const gun=t=>{const d=new Date(t),bg=new Date();bg.setHours(0,0,0,0);const df=Math.round((bg-new Date(d).setHours(0,0,0,0))/864e5);return df===0?"Bugün":df===1?"Dün":d.toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})};
+  const g={};L.forEach((x,i)=>{(g[gun(x.t)]=g[gun(x.t)]||[]).push([x,i])});
+  openModal(`<h3>🔔 Bildirimlerim</h3><div class="ctrl"><button class="pill ${fav?"ghost":"acc"}" id="bdYeni">Yeni (${BILD.length})</button><button class="pill ${fav?"acc":"ghost"}" id="bdFavS">❤️ Beğendiklerim (${BFAV.length})</button></div>
+   <div class="small muted">${fav?"Beğendiğin bildirimler burada hep saklanır, hiç silinmez.":store.get("mk_bd_otosil",true)?"Okuduğun bildirimler bir dahaki açışta kendiliğinden silinir. Saklamak istediğini 🤍 Beğen.":"Bütün bildirimler burada birikir."}</div>
+   <div style="display:grid;gap:12px;max-height:52vh;overflow:auto">${L.length?Object.entries(g).map(([k,l])=>`<div><div class="small" style="font-weight:800;color:var(--accent);margin-bottom:6px">${esc(k)}</div><div style="display:grid;gap:6px">${l.map(([x,i])=>bdKart(x,i,fav)).join("")}</div></div>`).join(""):`<div class="empty">${fav?"Henüz beğendiğin bildirim yok. Hoşuna gideni 🤍 Beğen'e basarak sakla.":"Yeni bildirim yok. Geldikçe burada birikir."}</div>`}</div>
+   <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bdOto" ${store.get("mk_bd_otosil",true)?"checked":""} style="width:20px;height:20px">Okuduklarım silinsin (beğendiklerim kalır)</label>
+   <div class="ctrl">${!fav&&L.length?`<button class="pill ghost" id="bdTemiz">Hepsini temizle</button>`:""}<button class="pill acc" id="bdKapat">Kapat</button></div>`,()=>{
+    if(!fav){BILD.forEach(x=>x.o=1);store.set("mk_bildirim",BILD);bildirimRozet()}
+    const al=i=>L[+i];
+    document.querySelectorAll("[data-bdfav]").forEach(b=>b.onclick=()=>{const x=al(b.dataset.bdfav);bdFavToggle(x);const sc=document.querySelector('[style*="max-height:52vh"]'),y=sc?sc.scrollTop:0;bildirimAc(true);const s2=document.querySelector('[style*="max-height:52vh"]');if(s2)s2.scrollTop=y});
+    document.querySelectorAll("[data-bdpay]").forEach(b=>b.onclick=()=>bdPaylas(al(b.dataset.bdpay)));
+    document.querySelectorAll("[data-bdgor]").forEach(b=>b.onclick=()=>bdGorsel(al(b.dataset.bdgor)));
+    document.querySelectorAll("[data-bdsil]").forEach(b=>b.onclick=()=>{const x=al(b.dataset.bdsil);BILD=BILD.filter(z=>bdKey(z)!==bdKey(x));store.set("mk_bildirim",BILD);b.closest(".ncard").remove()});
+    $("#bdYeni").onclick=()=>{bdSek="yeni";bildirimAc(true)};$("#bdFavS").onclick=()=>{bdSek="fav";bildirimAc(true)};
+    $("#bdOto").onchange=e=>{store.set("mk_bd_otosil",e.target.checked);toast(e.target.checked?"Okunanlar bir dahaki açışta silinecek":"Bildirimler birikecek")};
+    $("#bdKapat").onclick=closeModal;const t=$("#bdTemiz");if(t)t.onclick=()=>{const prev=BILD.slice();BILD=BILD.filter(bdFav);store.set("mk_bildirim",BILD);closeModal();undoBar("Bildirimler temizlendi",()=>{BILD=prev;store.set("mk_bildirim",BILD);bildirimRozet();toast("Geri alındı")})}})}
+// Bildirime dokunarak açınca: o bildirim beğen/paylaş kartıyla karşına gelir
+async function bdTiklananOku(){try{const db=await idbAc();if(!db)return;const st=db.transaction("kv","readwrite").objectStore("kv");const q=st.get("sw_tiklanan");q.onsuccess=()=>{const x=q.result;if(!x||!x.b)return;try{db.transaction("kv","readwrite").objectStore("kv").delete("sw_tiklanan")}catch(e){}
+  if(Date.now()-(x.t||0)>15*60e3)return;setTimeout(()=>bdTekAc(x),400)}}catch(e){}}
+function bdTekAc(x){const fv=()=>bdFav(x);openModal(`<h3>📬 ${esc((x.b||"").replace(/^[^\wÇĞİÖŞÜçğıöşüâîû]*Maneviyat · /,""))}</h3><div class="soz"><div class="soz-t" style="font-size:17px">${esc(x.g||"")}</div></div>
+  <div class="ctrl"><button class="pill ${fv()?"acc":"ghost"}" id="btFav">${fv()?"❤️ Beğendin":"🤍 Beğen"}</button><button class="pill acc" id="btPay">⤴ Paylaş</button><button class="pill ghost" id="btGor">🖼️ Görsel olarak paylaş</button></div><button class="pill ghost" id="mNo">Kapat</button>`,()=>{
+  $("#mNo").onclick=closeModal;$("#btPay").onclick=()=>bdPaylas(x);$("#btGor").onclick=()=>bdGorsel(x);$("#btFav").onclick=()=>{bdFavToggle(x);const b=$("#btFav");b.className="pill "+(fv()?"acc":"ghost");b.textContent=fv()?"❤️ Beğendin":"🤍 Beğen"}})}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")bdTiklananOku()});window.addEventListener("pageshow",bdTiklananOku);setTimeout(bdTiklananOku,1500);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){clearBadge();routeHash()}});
 window.addEventListener("focus",clearBadge);window.addEventListener("pageshow",()=>{clearBadge();routeHash()});
 window.addEventListener("hashchange",routeHash);
@@ -1760,19 +1803,19 @@ const HAT_ONERI=[
  {id:"oruc",saat:"21:30",gunler:[0,3],baslik:"🌙 Maneviyat · Yarın sünnet oruç günü",govde:"Pazartesi ve perşembe orucu sünnettir. Sahura kalkmayı niyet etmek ister misin?",url:"#bugun"}
 ];
 function vakitItems(){const {t}=timesNow();const sk=sehirKod(),city=SET.city||"İstanbul";
-  return [["imsak","Sabah","Sabah namazının vakti giriyor; güne secdeyle başla."],["ogle","Öğle","Dünya işlerine kısa bir ara: öğle namazı yaklaşıyor."],["ikindi","İkindi","Günün yorgunluğunda kalbini tazele: ikindi yaklaşıyor."],["aksam","Akşam","Güneş batıyor; akşam namazı ve akşam evradı vakti."],["yatsi","Yatsı","Günü yatsı namazıyla kapat."]].map(([k,n,g])=>{
-    const d=hm(t[k]);d.setMinutes(d.getMinutes()-10);
-    return{id:"vakit_"+k,saat:pad2(d.getHours())+":"+pad2(d.getMinutes()),gunler:[],baslik:"🕌 Maneviyat · "+n+" vaktine 10 dk",govde:g+" ("+city+")",url:appUrl("#bugun"),hedef:{sinif:sk},aktif:true}})}
+  const on=+(SET.vonce||0);
+  return [["imsak","Sabah","güne secdeyle başla."],["ogle","Öğle","dünya işlerine kısa bir ara ver."],["ikindi","İkindi","günün yorgunluğunda kalbini tazele."],["aksam","Akşam","akşam evradını da unutma."],["yatsi","Yatsı","günü yatsı namazıyla kapat."]].map(([k,n,g])=>{
+    const d=hm(t[k]);d.setMinutes(d.getMinutes()-on);g=(on?n+" namazına "+on+" dakika var; ":n+" namazı vakti girdi; ")+g;
+    return{id:"vakit_"+k,saat:pad2(d.getHours())+":"+pad2(d.getMinutes()),gunler:[],baslik:on?"🕌 Maneviyat · "+n+" vaktine "+on+" dk":"🕌 Maneviyat · "+n+" vakti",govde:g+" ("+city+")",url:appUrl("#bugun"),hedef:{sinif:sk},aktif:true}})}
 async function hatListe(sifre){const j=await kasaPost("/hatirlatma/liste",{sifre,uyg:UYG});return Array.isArray(j)?j:(j.liste||j.hatirlatmalar||[])}
 const hatTemiz=h=>({id:String(h.id||("h"+Date.now())),saat:h.saat||"08:00",gunler:(h.gunler||[]).map(Number),baslik:h.baslik||"🕌 Maneviyat",govde:h.govde||"",url:String(h.url||"#bugun").startsWith("#")?appUrl(h.url||"#bugun"):h.url,hedef:h.hedef||{},aktif:h.aktif!==false});
 const gunNo=d=>Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2020,0,1))/864e5);
-function risaleItems(){const saat=SET.rsaat||"08:30",out=[],kats=bkatSecili(),rk=kats.includes("risale")?["risale"]:kats;
-  for(let k=0;k<7;k++){const d=new Date();d.setDate(d.getDate()+k);const x=dynSec("risale",d,1,rk)[0];if(!x)continue;
-    out.push({id:"risale_g"+d.getDay(),saat,gunler:[d.getDay()],baslik:rk[0]==="risale"&&rk.length===1?"📚 Maneviyat · Günün Risale-i Nur dersi":"🌙 Maneviyat · Günün içeriği",govde:x.g,url:x.u,hedef:{},aktif:true})}
-  return out}
+function risaleItems(){const saat=SET.rsaat||"08:30",kats=bkatSecili(),rk=kats.includes("risale")?["risale"]:kats;const x=dynSec("risale",new Date(),1,rk)[0];if(!x)return[];
+  return [{id:"risale_g",saat,gunler:[],baslik:rk[0]==="risale"&&rk.length===1?"📚 Maneviyat · Günün Risale-i Nur dersi":"🌙 Maneviyat · Günün içeriği",govde:x.g,url:x.u,hedef:{},aktif:true}]}
 function otoItems(liste){const va=store.get("mk_hat_auto",true),ri=store.get("mk_hat_risale",true);
   const sa=store.get("mk_hat_saatlik",true);let l=liste.filter(h=>{const i=String(h.id);return !(va&&i.startsWith("vakit_"))&&!(ri&&i.startsWith("risale_g"))&&!i.startsWith("saat_")});
   if(va)l=l.concat(vakitItems());if(ri)l=l.concat(risaleItems());if(sa)l=l.concat(saatlikItems());return l}
+if(store.get("mk_hat_ver",0)<48){store.set("mk_hat_vakit_t","");store.set("mk_hat_ver",48)}
 async function vakitOto(){try{dynHavuzYaz();const va=store.get("mk_hat_auto",true),ri=store.get("mk_hat_risale",true);if(!va&&!ri&&!store.get("mk_hat_saatlik",true))return;
   const s=store.get("mk_kasa_sifre","");if(!s||store.get("mk_hat_vakit_t","")===todayKey())return;
   if(va&&(!TIMES||TIMES.date!==todayKey()))return;
@@ -2667,7 +2710,8 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <div class="ctrl"><button class="pill" id="hatGetir">📥 Kasadan getir</button><button class="pill ghost" id="hatYeni">➕ Ekle</button></div>
    <div id="hatList" style="display:grid;gap:10px"></div>
    <div class="small muted">Hazır öneriler:</div><div class="ctrl" id="hatOneri"></div>
-   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatAuto" ${store.get("mk_hat_auto",true)?"checked":""} style="width:20px;height:20px;flex:none">🕌 Namaz vakitlerinden 10 dk önce hatırlat (${esc(SET.city||"İstanbul")} saatleriyle; şifre hatırlanıyorsa uygulamayı her gün ilk açışında kendini günceller)</label>
+   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatAuto" ${store.get("mk_hat_auto",true)?"checked":""} style="width:20px;height:20px;flex:none">🕌 Namaz vakti bildirimi (${esc(SET.city||"İstanbul")} saatleriyle; şifre hatırlanıyorsa uygulamayı her gün ilk açışında kendini günceller)</label>
+   <label class="small muted" style="display:flex;gap:8px;align-items:center">Namaz bildirimi ne zaman gelsin? <select id="hatVonce" style="width:auto">${[[0,"Tam vaktinde"],[5,"5 dk önce"],[10,"10 dk önce"],[15,"15 dk önce"]].map(([v,l])=>`<option value="${v}" ${+(SET.vonce||0)===v?"selected":""}>${l}</option>`).join("")}</select></label>
    <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatRisale" ${store.get("mk_hat_risale",true)?"checked":""} style="width:20px;height:20px;flex:none">📚 Her gün Risale-i Nur dersi bildirimi (her gün farklı bir Söz, risale ya da defterindeki bir vecize; hepsi bitmeden hiçbiri tekrar etmez)</label>
    <label class="small muted" style="display:flex;gap:8px;align-items:center">Vecize bildiriminin saati <input type="time" id="hatRsaat" value="${esc(SET.rsaat||"08:30")}"></label>
    <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="hatSaatlik" ${store.get("mk_hat_saatlik",true)?"checked":""} style="width:20px;height:20px;flex:none">⏳ Saatlik manevi hatırlatma: her saat başı seçtiğin konulardan sıradaki içerik (${dynSira(bkatSecili()).length} içerik sırayla döner)</label>
@@ -2723,6 +2767,7 @@ function bAyarlar(){
   on("#hatGetir",async()=>{const s=sif();if(!s)return;try{HAT=await hatListe(s);hatRender();toast("📥 "+HAT.length+" hatırlatma getirildi")}catch(e){toast("Getirilemedi: "+e.message)}});
   on("#hatYeni",()=>{HAT.push({id:"h"+Date.now(),saat:"08:00",gunler:[],baslik:"🕌 Maneviyat · ",govde:"",url:"#bugun",hedef:{},aktif:true});hatRender();const b=[...document.querySelectorAll("#hatList [data-hf=baslik]")].pop();if(b){b.scrollIntoView({block:"center"});b.focus();b.setSelectionRange(b.value.length,b.value.length)}toast("Saat, gün, başlık ve metni yaz; sonra 💾 Kasaya kaydet")});
   const ha=$("#hatAuto");if(ha)ha.onchange=()=>store.set("mk_hat_auto",ha.checked);
+  const hv=$("#hatVonce");if(hv)hv.onchange=()=>{SET.vonce=+hv.value;store.set("mk_set",SET);store.set("mk_hat_vakit_t","");toast("Kaydedildi · “Kasaya kaydet” ile herkese işlenir")};
   const hr=$("#hatRisale");if(hr)hr.onchange=()=>{store.set("mk_hat_risale",hr.checked);};
   const hsa=$("#hatSaatlik");if(hsa)hsa.onchange=()=>store.set("mk_hat_saatlik",hsa.checked);bkatBagla();
   const sb=$("#hatSb"),ss=$("#hatSs");[sb,ss].forEach(x=>{if(x)x.onchange=()=>{SET.sbas=+sb.value;SET.sson=Math.max(+sb.value,+ss.value);store.set("mk_set",SET)}});
@@ -2942,9 +2987,9 @@ const HIKMET=()=>SOZLER.map(z=>[z.t,z.s]).concat(HIKMET_EK);
 function hikmetAt(d,h){const L=HIKMET();return L[((gunNo(d)*24+h)*7)%L.length]}
 const saatAralik=()=>[+(SET.sbas!=null?SET.sbas:8),+(SET.sson!=null?SET.sson:22)];
 function saatlikItems(){if(!store.get("mk_hat_saatlik",true))return[];const [b,e]=saatAralik(),out=[];
-  const kats=bkatSecili(),adet=Math.max(1,e-b+1);
-  for(let k=0;k<7;k++){const d=new Date();d.setDate(d.getDate()+k);const sec=dynSec("saat",d,adet,kats);for(let h=b;h<=e;h++){const x=sec[h-b];if(!x)continue;
-    out.push({id:"saat_"+d.getDay()+"_"+h,saat:pad2(h)+":00",gunler:[d.getDay()],baslik:"⏳ Maneviyat · Saat "+pad2(h)+":00",govde:x.g,url:x.u,hedef:{sube:"saatlik"},aktif:true})}}
+  const kats=bkatSecili(),adet=Math.max(1,e-b+1),sec=dynSec("saat",new Date(),adet,kats);
+  for(let h=b;h<=e;h++){const x=sec[h-b];if(!x)continue;
+    out.push({id:"saat_"+h,saat:pad2(h)+":00",gunler:[],baslik:"⏳ Maneviyat · Saat "+pad2(h)+":00",govde:x.g,url:x.u,hedef:{sube:"saatlik"},aktif:true})}
   return out}
 function vSaatKart(){const d=new Date(),[t,s]=hikmetAt(d,d.getHours());
   return `<div class="soz" style="margin-top:10px;background:color-mix(in srgb,hsl(265 55% 55%) 16%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">⏳ BU SAATİN HİKMETİ · ${pad2(d.getHours())}:00</div><div class="soz-t">${esc(t)}</div><div class="small muted">${esc(s)}</div><div class="ctrl"><button class="pill ghost" id="skPay">📤 Paylaş</button><button class="pill ghost" id="skSes">🔊 Dinle</button></div></div>`}
