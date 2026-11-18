@@ -1,4 +1,4 @@
-/* Maneviyat Külliyatı — bildirim servis çalışanı (sw.js) · sürüm 47
+/* Maneviyat Külliyatı — bildirim servis çalışanı (sw.js) · sürüm 48
    Okul sistemi dosyasıyla AYNI klasöre yükleyin. Önbellek tutmaz (güncellemeler hemen gelir).
    Görevi: telefona bildirim göstermek, bildirime dokununca uygulamayı açmak. */
 self.addEventListener('install', function(e){ self.skipWaiting(); });
@@ -6,10 +6,12 @@ self.addEventListener('activate', function(e){ e.waitUntil(self.clients.claim())
 self.addEventListener('notificationclick', function(e){
   e.notification.close();
   var url = (e.notification.data && e.notification.data.url) || self.registration.scope;
-  e.waitUntil(self.clients.matchAll({type:'window', includeUncontrolled:true}).then(function(list){
+  /* Sürüm 48: dokunulan bildirim uygulamada beğen/paylaş kartıyla açılsın */
+  var tik = { t: Date.now(), b: e.notification.title || '', g: e.notification.body || '' };
+  e.waitUntil(kvAc().then(function(db){ if(db){ try{ db.transaction('kv','readwrite').objectStore('kv').put(tik,'sw_tiklanan'); }catch(x){} } }).catch(function(){}).then(function(){ return self.clients.matchAll({type:'window', includeUncontrolled:true}).then(function(list){
     for (var i=0;i<list.length;i++){ var c=list[i]; if (c.url.indexOf(self.registration.scope)===0 && 'focus' in c) return c.focus(); }
     if (self.clients.openWindow) return self.clients.openWindow(url);
-  }));
+  }); }));
 });
 /* Sürüm 52: uygulama KAPALIYKEN gelen bildirimler (kasa sunucusundan) */
 self.addEventListener('push', function(e){
