@@ -1,4 +1,4 @@
-/* Maneviyat Külliyatı — bildirim servis çalışanı (sw.js) · sürüm 48
+/* Maneviyat Külliyatı — bildirim servis çalışanı (sw.js) · sürüm 50
    Okul sistemi dosyasıyla AYNI klasöre yükleyin. Önbellek tutmaz (güncellemeler hemen gelir).
    Görevi: telefona bildirim göstermek, bildirime dokununca uygulamayı açmak. */
 self.addEventListener('install', function(e){ self.skipWaiting(); });
@@ -33,6 +33,8 @@ self.addEventListener('push', function(e){
 function kvAc(){return new Promise(function(res){try{var q=indexedDB.open('maneviyat-kasa',1);q.onupgradeneeded=function(){try{q.result.createObjectStore('kv');}catch(e){}};q.onerror=function(){res(null);};q.onsuccess=function(){res(q.result);};}catch(e){res(null);}});}
 function dinamikSec(d){
   var b = String(d.baslik || d.title || '');
+  /* Sürüm 50: “Gece duası” kişiseldir; bu telefon sahibin telefonu değilse genel metin gösterilir */
+  if (/Gece duası/.test(b)) return kvAc().then(function(db){ if(!db) return d; return new Promise(function(res){ try{ var q=db.transaction('kv','readonly').objectStore('kv').get('sahip'); q.onsuccess=function(){ if(q.result) return res(d); var y={}; for(var k in d) y[k]=d[k]; y.govde='Darlık duasını ve Efendimizin sığınma dualarını oku. Geçmişlerimizin ruhuna bir Fâtiha okumayı unutma.'; res(y); }; q.onerror=function(){ res(d); }; }catch(e){ res(d); } }); }).catch(function(){ return d; });
   var kanal = /Maneviyat · Günün/.test(b) ? 'ri' : (/Maneviyat · Saat \d/.test(b) ? 'hep' : '');
   if (!kanal) return Promise.resolve(d);
   return kvAc().then(function(db){
