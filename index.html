@@ -463,6 +463,11 @@ h2{letter-spacing:-.01em}
 .nmz-b.ok{background:linear-gradient(135deg,#2e7d5f,#3fae84);border:0;color:#fff}.nmz-b.ok small{color:#e6fff3}
 .nmz-k{width:100%;border:0;border-radius:14px;padding:12px;font-weight:800;font-size:15px;background:linear-gradient(135deg,#2e7d5f,#3fae84);color:#fff;cursor:pointer}
 .soz.umut{background:linear-gradient(135deg,color-mix(in srgb,#f5c26b 22%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,#d98a1e 35%,transparent)}
+.ezan.cikiyor{background:linear-gradient(135deg,#8f0e17,#e0303a)!important;color:#fff;animation:ezNabiz 1.4s ease-in-out infinite;box-shadow:0 0 0 3px rgba(255,80,80,.45)}
+.ezan.cikiyor .ez-l,.ezan.cikiyor .ez-s,.ezan.cikiyor .ez-t{color:#fff!important}.ezan.cikiyor .ez-bar i{background:#fff}
+#ezChip.cikiyor{background:#d4252f!important;color:#fff!important}
+.hatuyari{display:grid;gap:8px;margin:0 0 12px;padding:14px 16px;border-radius:18px;background:color-mix(in srgb,#e0303a 14%,var(--surface));border:1px solid color-mix(in srgb,#e0303a 45%,transparent)}.hatuyari span{font-size:13px;color:var(--muted)}.hatuyari .pill{justify-self:start}
+@media (prefers-reduced-motion:reduce){.ezan.cikiyor{animation:none}}
 </style>
 </head>
 <body>
@@ -1235,7 +1240,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için · ilçe için: İstanbul/Kadıköy)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 50</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 51</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal",kilitSar:$("#sSar").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1608,7 +1613,7 @@ function vBugun(){
   else{body=`<div class="ctrl" style="margin:0 0 10px"><button class="pill" id="cvCevBtn">🛡️ Cevşen</button><button class="pill" id="cvDuaBtn">💚 İhtiyaç duaları</button></div><div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher"],["kuran","Kur'an'dan"],["siginma","Sığınma"],["rabbena","Rabbenâ"],["liste","Dua listem"]].map(([k,l])=>`<button data-dseg2="${k}" class="${duaSeg2===k?"on":""}">${l}</button>`).join("")}</div>${duaSeg2==="liste"?"":`<button class="pill acc" id="duaAll" style="margin-bottom:12px">▶ Tümünü sırayla dinle</button>`}`+(duaSeg2==="siginma"?`<div class="sigbas">🕌 Peygamber Efendimizin Sığınma Duaları<small>Her biri “Allâhümme innî eûzü bike…” ile başlar</small></div>`:"")+(duaSeg2==="liste"?vDuaListe():DUALAR[duaSeg2].map((d,i)=>duaCard(d,duaSeg2+"|"+i)).join(""))}
   const gun=new Date().getDay(),cuma=(gun===5||(gun===4&&new Date().getHours()>=18))?`<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(150 60% 45%) 18%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:hsl(150 60% ${isDark()?60:32}%)">CUMA</div><div class="soz-t">Hayırlı Cumalar</div><div class="small muted">Kehf sûresini okumak ve bolca salavat getirmek sünnettir.</div><div class="ctrl"><button class="pill" id="kehfBtn">▶ Kehf sûresi</button><button class="pill ghost" id="salBtn">Salavat 100</button><button class="pill" data-gun="cuma">📖 Cuma rehberi</button></div></div>`:"";
   const gk=(window._gkTest||new Date().getHours()>=20)&&!geceOkudu()?`<button class="row" id="geceKart" style="border-radius:16px;margin-top:10px;background:linear-gradient(135deg,#1b2340,#3b2a5c);color:#fff"><span class="no" style="font-size:22px">🌙</span><span class="t"><b>Gece duası</b><span style="color:#e6dcff">Darlık duası · sığınma duaları · annenin ruhuna Fâtiha</span></span><span class="go" style="color:#fff">›</span></button>`:"";
-  return card+vNamazSatir(v)+gk+vTesbihat()+vKilitFix()+vAraclar()+vBildirimDavet()+vSimge()+vDevam()+vDevamHepsi(false)+cuma+(bugSeg==="vakit"?vNotKoru()+vMubarek()+vGunIlim()+vNotHatira():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
+  return vHatDurum()+card+vNamazSatir(v)+gk+vTesbihat()+vKilitFix()+vAraclar()+vBildirimDavet()+vSimge()+vDevam()+vDevamHepsi(false)+cuma+(bugSeg==="vakit"?vNotKoru()+vMubarek()+vGunIlim()+vNotHatira():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
 }
 function bBugun(){
   document.querySelectorAll("[data-bseg]").forEach(b=>b.onclick=()=>{bugSeg=b.dataset.bseg;renderView()});
@@ -1675,7 +1680,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=50;
+const SURUM=51;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1829,12 +1834,18 @@ function risaleItems(){const saat=SET.rsaat||"08:30",kats=bkatSecili(),rk=kats.i
 function otoItems(liste){const va=store.get("mk_hat_auto",true),ri=store.get("mk_hat_risale",true);
   const sa=store.get("mk_hat_saatlik",true);let l=liste.filter(h=>{const i=String(h.id);return !(va&&i.startsWith("vakit_"))&&!(va&&i.startsWith("cikis_"))&&!/^(cuma_gece|cuma_gun|mg_|mgo_|gece_dua)/.test(i)&&!(ri&&i.startsWith("risale_g"))&&!i.startsWith("saat_")});
   l=l.concat(ozelItems());if(va)l=l.concat(vakitItems()).concat(cikisItems());if(ri)l=l.concat(risaleItems());if(sa)l=l.concat(saatlikItems());return l}
-if(store.get("mk_hat_ver",0)<50){store.set("mk_hat_vakit_t","");store.set("mk_hat_ver",50)}
+if(store.get("mk_hat_ver",0)<51){store.set("mk_hat_vakit_t","");store.set("mk_hat_ver",51)}
 async function vakitOto(){try{dynHavuzYaz();const va=store.get("mk_hat_auto",true),ri=store.get("mk_hat_risale",true);if(!va&&!ri&&!store.get("mk_hat_saatlik",true))return;
   const s=store.get("mk_kasa_sifre","");if(!s||store.get("mk_hat_vakit_t","")===todayKey())return;
   if(va&&(!TIMES||TIMES.date!==todayKey()))return;
   const l=otoItems((await hatListe(s)).map(hatTemiz));
-  await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste:l});store.set("mk_hat_vakit_t",todayKey());HAT=l;store.set("mk_hat",HAT)}catch(e){}}
+  await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste:l});store.set("mk_hat_vakit_t",todayKey());HAT=l;store.set("mk_hat",HAT);store.set("mk_hat_kayit",{t:Date.now(),v:HAT_SURUM,n:l.length});if(tab==="bugun")renderView()}catch(e){store.set("mk_hat_hata",String(e&&e.message||e))}}
+const HAT_SURUM=51;
+async function hatSimdiGuncelle(){const s=store.get("mk_kasa_sifre","");if(!s){toast("Önce Ayarlar › Yönetici girişi ile kasa şifreni gir");tab="ayarlar";renderView();return}
+  try{if(!TIMES||TIMES.date!==todayKey()){await loadTimes()}const l=otoItems((await hatListe(s)).map(hatTemiz));await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste:l});
+    store.set("mk_hat_vakit_t",todayKey());HAT=l;store.set("mk_hat",HAT);store.set("mk_hat_kayit",{t:Date.now(),v:HAT_SURUM,n:l.length});toast("✅ Bildirimler güncellendi · "+l.length+" hatırlatma kasada");renderView()}catch(e){toast("Güncellenemedi: "+(e&&e.message||e))}}
+function vHatDurum(){if(!yonetici())return"";const k=store.get("mk_hat_kayit",null);if(k&&k.v>=HAT_SURUM)return"";
+  return `<div class="hatuyari"><b>⚠️ Bildirimler hâlâ eski listeyle geliyor</b><span>“Akşam vaktine 10 dk” gibi eski bildirimler bu yüzden geliyor. Bir dokunuşla yeni listeyi (tam vaktinde namaz, 20 dk kala uyarı, gece duası, Cuma, kandiller, umut sözleri) kasaya yükle.</span><button class="pill acc" id="hatGuncel">🔄 Bildirimleri şimdi güncelle</button></div>`}
 function hatRender(){const el=$("#hatList");if(!el)return;store.set("mk_hat",HAT);
   el.innerHTML=HAT.length?HAT.map((h,i)=>`<div class="hat" data-i="${i}">
    <div class="ctrl"><input type="time" data-hf="saat" value="${esc(h.saat||"08:00")}"><label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-hf="aktif" ${h.aktif!==false?"checked":""} style="width:20px;height:20px">Açık</label>${String(h.id).startsWith("vakit_")?'<span class="small muted">🕌 vakte göre, otomatik</span>':""}<button class="x" data-hdel="${i}" aria-label="Sil" style="margin-left:auto;font-size:22px">🗑️</button></div>
@@ -2646,7 +2657,7 @@ function bBugunExtra(){
   bSaatKart();
   const go=(t,s)=>{tab=t;if(t==="kulliyat")kulSeg=s;if(t==="dinle"){dinleSeg=s;openSeries=null}renderView();toTop()};
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
-  on("#aylikBtn",aylikAc);on("#tsbBtn",tesbihatAc);on("#geceBtn",geceDuaAc);on("#geceKart",geceDuaAc);on("#araAcBtn",araAc);on("#cvBtn",()=>cvAc());on("#cvDuaBtn",()=>cvAc("ihtiyac"));on("#cvCevBtn",()=>cvAc("cevsen"));on("#tsbHep",tesbihatAc);on("#tsbCal",()=>tsbCal(tsbSimdi()));on("#bildBtn",bildirimAc);on("#widgetBtn",widgetRehber);setTimeout(bildirimRozet,0);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));on("#vcPay",()=>{const v=vecGunun(0);if(v)paylas(vecMetin(v))});on("#vcSes",()=>{const v=vecGunun(0);if(v)playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)});
+  on("#aylikBtn",aylikAc);on("#tsbBtn",tesbihatAc);on("#geceBtn",geceDuaAc);on("#hatGuncel",hatSimdiGuncelle);on("#geceKart",geceDuaAc);on("#araAcBtn",araAc);on("#cvBtn",()=>cvAc());on("#cvDuaBtn",()=>cvAc("ihtiyac"));on("#cvCevBtn",()=>cvAc("cevsen"));on("#tsbHep",tesbihatAc);on("#tsbCal",()=>tsbCal(tsbSimdi()));on("#bildBtn",bildirimAc);on("#widgetBtn",widgetRehber);setTimeout(bildirimRozet,0);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));on("#vcPay",()=>{const v=vecGunun(0);if(v)paylas(vecMetin(v))});on("#vcSes",()=>{const v=vecGunun(0);if(v)playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)});
   on("#okuBtn",()=>{kuranMod="oku";store.set("mk_kmod2","oku");openSure=null;go("dinle","kuran")});
   on("#dlistBtn",()=>{bugSeg="dualar";duaSeg2="liste";renderView();setTimeout(()=>{const s=document.querySelector("[data-dseg2]");if(s)s.scrollIntoView({block:"start"})},50)});
   on("#davetAc",async()=>{if(await pushEnable())renderView()});on("#davetGizle",()=>{store.set("mk_push_gizle",true);renderView()});
@@ -2900,7 +2911,7 @@ function bAyarlar(){
   const sal=$("#saatlikAl");if(sal)sal.onchange=()=>{store.set("mk_saatlik_al",sal.checked);if(store.get("mk_push_on",false))pushSubscribe().then(()=>toast(sal.checked?"⏳ Saatlik hikmetler açık":"Saatlik hikmetler kapatıldı")).catch(()=>{})};
   const hs=$("#hatRsaat");if(hs)hs.onchange=()=>{SET.rsaat=hs.value||"08:30";store.set("mk_set",SET)};
   on("#hatKaydet",async()=>{const s=sif();if(!s)return;const liste=otoItems(HAT.map(hatTemiz));
-    try{await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste});HAT=liste;store.set("mk_hat_vakit_t",todayKey());hatRender();toast("✅ "+liste.length+" hatırlatma kasaya kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
+    try{await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste});HAT=liste;store.set("mk_hat_vakit_t",todayKey());store.set("mk_hat_kayit",{t:Date.now(),v:HAT_SURUM,n:liste.length});hatRender();toast("✅ "+liste.length+" hatırlatma kasaya kaydedildi")}catch(e){toast("Kaydedilemedi: "+e.message)}});
   on("#aKaydet",()=>{const c=$("#aCity").value.trim();if(c!==(SET.city||"")){TIMES=null;store.set("mk_hat_vakit_t","")}
     Object.assign(SET,{city:c,ad:$("#aAd").value.trim(),tema:$("#aTema").value,arz:parseFloat($("#aArz").value)||1,zhedef:Math.max(0,parseInt($("#aZh").value,10)||0),ton:"normal",...sesKaydetDegeri($("#aSes").value),meal:$("#aMeal").checked});
     store.set("mk_set",SET);applyTheme();setAccent();toast("Ayarlar kaydedildi");if(store.get("mk_push_on",false))pushSubscribe().catch(()=>{})});
@@ -3779,11 +3790,13 @@ function ezanYazi(ms){const {h,m,x}=ezanParca(ms);return h?`${h} saat ${m} dakik
 function ezanKisa(ms){const {h,m,x}=ezanParca(ms);return h?`${h} sa ${m} dk`:m?`${m} dk ${iki(x)} sn`:`${x} sn`}
 function ezanBuyuk(ms){const {h,m,x}=ezanParca(ms);const p=(n,u,k)=>`<span class="ezp${k?" k":""}"><b>${n}</b><i>${u}</i></span>`;return h?p(h,"saat")+p(iki(m),"dakika")+p(iki(x),"saniye",1):p(m,"dakika")+p(iki(x),"saniye")}
 const ezanEki=n=>({"İmsak":"İmsak vaktine","Güneş":"Güneşin doğmasına","Öğle":"Öğle ezanına","İkindi":"İkindi ezanına","Akşam":"Akşam ezanına","Yatsı":"Yatsı ezanına"}[n]||n+" vaktine");
-function ezanKutu(){const e=ezanBilgi();return `<div class="ezan${e.ms<15*60000?" yakin":""}" id="ezanKutu"><div class="ez-l">🕌 ${esc(ezanEki(e.ad))} kalan süre</div><div class="ez-t" id="ezanSayac">${ezanBuyuk(e.ms)}</div><div class="ez-bar"><i id="ezanBar" style="width:${e.pct.toFixed(1)}%"></i></div><div class="ez-s" id="ezanCumle">${esc(e.ad)} vakti saat <b>${e.saat}</b>'te giriyor · ${esc(ezanYazi(e.ms))} kaldı${e.ms<15*60000?" · abdest ve hazırlık vakti":""}</div></div>`}
-function ezanTick(){try{const e=ezanBilgi(),s=$("#ezanSayac"),b=$("#ezanBar"),k=$("#ezanKutu"),c=$("#ezChip"),cu=$("#ezanCumle");
-  if(s)s.innerHTML=ezanBuyuk(e.ms);if(b)b.style.width=e.pct.toFixed(1)+"%";if(k)k.classList.toggle("yakin",e.ms<15*60000);
-  if(cu)cu.innerHTML=`${esc(e.ad)} vakti saat <b>${e.saat}</b>'te giriyor · ${esc(ezanYazi(e.ms))} kaldı${e.ms<15*60000?" · abdest ve hazırlık vakti":""}`;
-  if(c){c.hidden=tab==="bugun";c.textContent="🕌 "+e.ad+" "+e.saat+" · "+ezanKisa(e.ms)+" kaldı";c.classList.toggle("yakin",e.ms<15*60000)}
+function ezanKutu(){const e=ezanBilgi(),cb=cikisBilgi(e);setTimeout(ezanTick,0);return `<div class="ezan${cb?" cikiyor":e.ms<15*60000?" yakin":""}" id="ezanKutu"><div class="ez-l">${cb?"⏰ "+cb.ad+" vakti çıkıyor":"🕌 "+esc(ezanEki(e.ad))+" kalan süre"}</div><div class="ez-t" id="ezanSayac">${ezanBuyuk(e.ms)}</div><div class="ez-bar"><i id="ezanBar" style="width:${e.pct.toFixed(1)}%"></i></div><div class="ez-s" id="ezanCumle">${esc(e.ad)} vakti saat <b>${e.saat}</b>'te giriyor · ${esc(ezanYazi(e.ms))} kaldı${e.ms<15*60000?" · abdest ve hazırlık vakti":""}</div></div>`}
+const CIKAN={"Güneş":["Sabah","sabahN"],"İkindi":["Öğle","ogleN"],"Akşam":["İkindi","ikindiN"],"Yatsı":["Akşam","aksamN"],"İmsak":["Yatsı","yatsiN"]};
+function cikisBilgi(e){const c=CIKAN[e.ad],dk=cikisDk()||20;if(!c||e.ms>dk*60000||e.ms<=0)return null;if(c[0]==="Yatsı"&&!SET.cikisYatsi)return null;if(amelToday()[c[1]])return null;return{ad:c[0],k:c[1]}}
+function ezanTick(){try{const e=ezanBilgi(),s=$("#ezanSayac"),b=$("#ezanBar"),k=$("#ezanKutu"),c=$("#ezChip"),cu=$("#ezanCumle"),cb=cikisBilgi(e);
+  if(s)s.innerHTML=ezanBuyuk(e.ms);if(b)b.style.width=e.pct.toFixed(1)+"%";if(k){k.classList.toggle("yakin",e.ms<15*60000&&!cb);k.classList.toggle("cikiyor",!!cb);const l=k.querySelector(".ez-l");if(l)l.textContent=cb?"⏰ "+cb.ad+" vakti çıkıyor":"🕌 "+ezanEki(e.ad)+" kalan süre"}
+  if(cu)cu.innerHTML=cb?`${esc(e.ad)} ezanına ${esc(ezanYazi(e.ms))} kaldı · <b>${esc(cb.ad.toLocaleLowerCase("tr"))} namazını kılmadıysan şimdi kıl</b>`:`${esc(e.ad)} vakti saat <b>${e.saat}</b>'te giriyor · ${esc(ezanYazi(e.ms))} kaldı${e.ms<15*60000?" · abdest ve hazırlık vakti":""}`;
+  if(c){c.hidden=tab==="bugun";c.textContent=cb?"⏰ "+cb.ad+" vakti çıkıyor · "+ezanKisa(e.ms):"🕌 "+e.ad+" "+e.saat+" · "+ezanKisa(e.ms)+" kaldı";c.classList.toggle("yakin",e.ms<15*60000);c.classList.toggle("cikiyor",!!cb)}
   if(ezanSonAd&&ezanSonAd!==e.ad&&tab==="bugun"){const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))&&$("#modal").hidden)renderView()}ezanSonAd=e.ad}catch(x){}}
 
 /* ---------- Sohbet araması: yalnız aranan isme uyan, alakalı sonuçlar ---------- */
