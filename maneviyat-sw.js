@@ -3,6 +3,7 @@
 // Widget'ı düzenlerken Parameter alanına şehir yazabilirsin (ör. Ankara ya da İstanbul/Kadıköy). Boşsa İstanbul.
 // Sürüm 2: Vakitler doğrudan Diyanet İşleri Başkanlığı tablosundan gelir (birebir aynı dakika).
 // Sürüm 3: Vakit çıkmaya 20 dakika kala widget kırmızıya döner, kalan süre ve “kılmadıysan şimdi kıl” yazar.
+// Sürüm 4: Vakit girdiği anda yenilenmeyi ister; küçük widget'ta “ardından …” satırı.
 
 const SEHIR = ((args.widgetParameter || "").trim()) || "Istanbul";
 const APP_URL = "https://baris-ogretmen.github.io/maneviyat-kulliyati/";
@@ -104,7 +105,11 @@ async function durum() {
   const CIKAN = { "Güneş": "Sabah", "İkindi": "Öğle", "Akşam": "İkindi", "Yatsı": "Akşam" };
   const kalanDk = (sonraki.tarih - simdi) / 60000;
   const cikan = CIKAN[sonraki.ad] && kalanDk <= CIKIS_DK ? CIKAN[sonraki.ad] : null;
-  return { liste, sonraki, simdiki, simdi, cikan };
+  // sıradakinden sonraki vakit (widget geç yenilenirse de doğru bilgi görünsün)
+  const i = liste.findIndex(x => x.ad === sonraki.ad && x.tarih.getTime() === sonraki.tarih.getTime());
+  let ardindan = i >= 0 && i < liste.length - 1 ? liste[i + 1] : null;
+  if (!ardindan) { const vy = (await vakitleriAl(yarin)) || v; ardindan = sonraki.ad === "İmsak" ? { ad: "Güneş", ikon: "🌅", saat: vy["Güneş"], tarih: saatTarih(yarin, vy["Güneş"]) } : { ad: "İmsak", ikon: "🌙", saat: vy["İmsak"], tarih: saatTarih(yarin, vy["İmsak"]) }; }
+  return { liste, sonraki, simdiki, simdi, cikan, ardindan };
 }
 
 function gradyan(ad) {
@@ -137,7 +142,7 @@ async function widgetYap() {
   }
   // Sıradaki vakitte widget kendini yeniler
   const kirmiziAn = d.sonraki.tarih.getTime() - CIKIS_DK * 60000;
-  const adaylar = [d.sonraki.tarih.getTime() + 30000, Date.now() + 30 * 60000];
+  const adaylar = [d.sonraki.tarih.getTime() + 5000, Date.now() + 20 * 60000];
   if (kirmiziAn > Date.now() + 30000) adaylar.push(kirmiziAn + 15000);
   w.refreshAfterDate = new Date(Math.min(...adaylar));
 
@@ -197,7 +202,7 @@ async function widgetYap() {
     });
   } else {
     w.addSpacer();
-    const alt = w.addText("Şu an " + d.simdiki.ad + " vakti");
+    const alt = w.addText("ardından " + d.ardindan.ad + " " + d.ardindan.saat);
     alt.font = Font.mediumSystemFont(10); alt.textColor = new Color("#ffffff", 0.8);
   }
   return w;
