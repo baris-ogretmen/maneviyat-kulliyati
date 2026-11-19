@@ -1240,7 +1240,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için · ilçe için: İstanbul/Kadıköy)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 51</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 52</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal",kilitSar:$("#sSar").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1680,7 +1680,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=51;
+const SURUM=52;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -1821,11 +1821,24 @@ const HAT_ONERI=[
  {id:"yatsi",saat:"22:45",gunler:[],baslik:"🌙 Maneviyat · Yatmadan önce",govde:"Âmenerrasûlü, Mülk sûresi ve üç İhlâs ile günü kapat.",url:"#uyku"},
  {id:"oruc",saat:"21:30",gunler:[0,3],baslik:"🌙 Maneviyat · Yarın sünnet oruç günü",govde:"Pazartesi ve perşembe orucu sünnettir. Sahura kalkmayı niyet etmek ister misin?",url:"#bugun"}
 ];
-function vakitItems(){const {t}=timesNow();const sk=sehirKod(),city=SET.city||"İstanbul";
-  const on=+(SET.vonce||0);
-  return [["imsak","Sabah","güne secdeyle başla."],["ogle","Öğle","dünya işlerine kısa bir ara ver."],["ikindi","İkindi","günün yorgunluğunda kalbini tazele."],["aksam","Akşam","akşam evradını da unutma."],["yatsi","Yatsı","günü yatsı namazıyla kapat."]].map(([k,n,g])=>{
-    const d=hm(t[k]);d.setMinutes(d.getMinutes()-on);g=(on?n+" namazına "+on+" dakika var; ":n+" namazı vakti girdi; ")+g;
-    return{id:"vakit_"+k,saat:pad2(d.getHours())+":"+pad2(d.getMinutes()),gunler:[],baslik:on?"🕌 Maneviyat · "+n+" vaktine "+on+" dk":"🕌 Maneviyat · "+n+" vakti",govde:g+" ("+city+")",url:appUrl("#bugun"),hedef:{sinif:sk},aktif:true}})}
+// Sürüm 52: önümüzdeki 7 günün her biri KENDİ Diyanet saatiyle kasaya yazılır.
+// Uygulama birkaç gün açılmasa bile namaz bildirimleri doğru dakikada gelir.
+const NAMAZ_SOZ={imsak:[["Kim sabah namazını kılarsa Allah'ın koruması altındadır.","Müslim, Mesâcid"],["Kim iki serin vakit namazını (sabah ve ikindi) kılarsa cennete girer.","Buhârî, Mevâkît"]],
+ ogle:[["Allah'a en sevimli amel, vaktinde kılınan namazdır.","Buhârî, Mevâkît"],["Kul, Rabbine en çok secdedeyken yakındır; secdede çokça dua edin.","Müslim, Salât"]],
+ ikindi:[["Kim iki serin vakit namazını (sabah ve ikindi) kılarsa cennete girer.","Buhârî, Mevâkît"],["Allah'a en sevimli amel, vaktinde kılınan namazdır.","Buhârî, Mevâkît"]],
+ aksam:[["Kapısının önünden akan bir nehirde günde beş kez yıkanan kimsede kir kalır mı? Beş vakit namaz da böyledir; Allah onlarla günahları siler.","Buhârî, Mevâkît; Müslim, Mesâcid"],["Kul, Rabbine en çok secdedeyken yakındır; secdede çokça dua edin.","Müslim, Salât"]],
+ yatsi:[["Kim yatsıyı cemaatle kılarsa gecenin yarısını, sabahı da cemaatle kılarsa bütün geceyi ibadetle geçirmiş gibidir.","Müslim, Mesâcid"],["Kapısının önünden akan bir nehirde günde beş kez yıkanan kimsede kir kalır mı? Beş vakit namaz da böyledir.","Buhârî, Mevâkît; Müslim, Mesâcid"]]};
+function gunVakitleri(d){try{const ay=store.get("mk_dy_ay",null),k=dKisa(d);if(ay&&ay.g&&ay.g[k]&&ay.city===(SET.city||"Istanbul").trim())return ay.g[k]}catch(e){}
+  if(dKisa(d)===dKisa(new Date())){try{return timesNow().t}catch(e){}}return null}
+function vakitItems(){const sk=sehirKod(),city=String(SET.city||"İstanbul").replace(/^istanbul$/i,"İstanbul"),on=+(SET.vonce||0),out=[];
+  for(let g=0;g<7;g++){const gun=new Date();gun.setDate(gun.getDate()+g);const t=gunVakitleri(gun);if(!t)continue;
+    [["imsak","Sabah"],["ogle","Öğle"],["ikindi","İkindi"],["aksam","Akşam"],["yatsi","Yatsı"]].forEach(([k,n])=>{
+      const [h,m]=String(t[k]).split(":").map(Number);const d=new Date(gun);d.setHours(h,m-on,0,0);
+      const z=NAMAZ_SOZ[k][(gunNo(gun))%NAMAZ_SOZ[k].length];
+      out.push({id:"vakit_"+k+"_"+gun.getDay(),saat:pad2(d.getHours())+":"+pad2(d.getMinutes()),gunler:[gun.getDay()],
+        baslik:on?"🕌 "+n+" ezanına "+on+" dakika":"🕌 "+n+" ezanı okunuyor · "+t[k],
+        govde:"“"+z[0]+"” ("+z[1]+") · "+city,url:appUrl("#bugun"),hedef:{sinif:sk},aktif:true})})}
+  return out}
 async function hatListe(sifre){const j=await kasaPost("/hatirlatma/liste",{sifre,uyg:UYG});return Array.isArray(j)?j:(j.liste||j.hatirlatmalar||[])}
 const hatTemiz=h=>({id:String(h.id||("h"+Date.now())),saat:h.saat||"08:00",gunler:(h.gunler||[]).map(Number),baslik:h.baslik||"🕌 Maneviyat",govde:h.govde||"",url:String(h.url||"#bugun").startsWith("#")?appUrl(h.url||"#bugun"):h.url,hedef:h.hedef||{},aktif:h.aktif!==false});
 const gunNo=d=>Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(2020,0,1))/864e5);
@@ -1834,18 +1847,20 @@ function risaleItems(){const saat=SET.rsaat||"08:30",kats=bkatSecili(),rk=kats.i
 function otoItems(liste){const va=store.get("mk_hat_auto",true),ri=store.get("mk_hat_risale",true);
   const sa=store.get("mk_hat_saatlik",true);let l=liste.filter(h=>{const i=String(h.id);return !(va&&i.startsWith("vakit_"))&&!(va&&i.startsWith("cikis_"))&&!/^(cuma_gece|cuma_gun|mg_|mgo_|gece_dua)/.test(i)&&!(ri&&i.startsWith("risale_g"))&&!i.startsWith("saat_")});
   l=l.concat(ozelItems());if(va)l=l.concat(vakitItems()).concat(cikisItems());if(ri)l=l.concat(risaleItems());if(sa)l=l.concat(saatlikItems());return l}
-if(store.get("mk_hat_ver",0)<51){store.set("mk_hat_vakit_t","");store.set("mk_hat_ver",51)}
+if(store.get("mk_hat_ver",0)<52){store.set("mk_hat_vakit_t","");store.set("mk_hat_ver",52)}
 async function vakitOto(){try{dynHavuzYaz();const va=store.get("mk_hat_auto",true),ri=store.get("mk_hat_risale",true);if(!va&&!ri&&!store.get("mk_hat_saatlik",true))return;
   const s=store.get("mk_kasa_sifre","");if(!s||store.get("mk_hat_vakit_t","")===todayKey())return;
   if(va&&(!TIMES||TIMES.date!==todayKey()))return;
+  try{await diyanetAy((SET.city||"Istanbul").trim())}catch(e){}
   const l=otoItems((await hatListe(s)).map(hatTemiz));
   await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste:l});store.set("mk_hat_vakit_t",todayKey());HAT=l;store.set("mk_hat",HAT);store.set("mk_hat_kayit",{t:Date.now(),v:HAT_SURUM,n:l.length});if(tab==="bugun")renderView()}catch(e){store.set("mk_hat_hata",String(e&&e.message||e))}}
-const HAT_SURUM=51;
+const HAT_SURUM=52;
+setTimeout(()=>{try{vakitOto()}catch(e){}},5000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")setTimeout(()=>{try{vakitOto()}catch(e){}},3000)});
 async function hatSimdiGuncelle(){const s=store.get("mk_kasa_sifre","");if(!s){toast("Önce Ayarlar › Yönetici girişi ile kasa şifreni gir");tab="ayarlar";renderView();return}
-  try{if(!TIMES||TIMES.date!==todayKey()){await loadTimes()}const l=otoItems((await hatListe(s)).map(hatTemiz));await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste:l});
+  try{if(!TIMES||TIMES.date!==todayKey()){await loadTimes()}try{await diyanetAy((SET.city||"Istanbul").trim())}catch(e){}const l=otoItems((await hatListe(s)).map(hatTemiz));await kasaPost("/hatirlatma/kaydet",{sifre:s,uyg:UYG,liste:l});
     store.set("mk_hat_vakit_t",todayKey());HAT=l;store.set("mk_hat",HAT);store.set("mk_hat_kayit",{t:Date.now(),v:HAT_SURUM,n:l.length});toast("✅ Bildirimler güncellendi · "+l.length+" hatırlatma kasada");renderView()}catch(e){toast("Güncellenemedi: "+(e&&e.message||e))}}
-function vHatDurum(){if(!yonetici())return"";const k=store.get("mk_hat_kayit",null);if(k&&k.v>=HAT_SURUM)return"";
-  return `<div class="hatuyari"><b>⚠️ Bildirimler hâlâ eski listeyle geliyor</b><span>“Akşam vaktine 10 dk” gibi eski bildirimler bu yüzden geliyor. Bir dokunuşla yeni listeyi (tam vaktinde namaz, 20 dk kala uyarı, gece duası, Cuma, kandiller, umut sözleri) kasaya yükle.</span><button class="pill acc" id="hatGuncel">🔄 Bildirimleri şimdi güncelle</button></div>`}
+function vHatDurum(){if(!yonetici())return"";const k=store.get("mk_hat_kayit",null);if(k&&k.v>=HAT_SURUM&&Date.now()-k.t<5*864e5)return"";
+  return `<div class="hatuyari"><b>⚠️ Bildirimler hâlâ eski listeyle geliyor</b><span>“Yatsı vaktine 10 dk” gibi yanlış saatli eski bildirimler bu yüzden geliyor. Bir dokunuşla yeni listeyi (tam vaktinde namaz, 20 dk kala uyarı, gece duası, Cuma, kandiller, umut sözleri) kasaya yükle.</span><button class="pill acc" id="hatGuncel">🔄 Bildirimleri şimdi güncelle</button></div>`}
 function hatRender(){const el=$("#hatList");if(!el)return;store.set("mk_hat",HAT);
   el.innerHTML=HAT.length?HAT.map((h,i)=>`<div class="hat" data-i="${i}">
    <div class="ctrl"><input type="time" data-hf="saat" value="${esc(h.saat||"08:00")}"><label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-hf="aktif" ${h.aktif!==false?"checked":""} style="width:20px;height:20px">Açık</label>${String(h.id).startsWith("vakit_")?'<span class="small muted">🕌 vakte göre, otomatik</span>':""}<button class="x" data-hdel="${i}" aria-label="Sil" style="margin-left:auto;font-size:22px">🗑️</button></div>
@@ -2562,9 +2577,11 @@ function bUmutKart(){const u=()=>umutGunun();const x=()=>{const z=window._umutSe
 // ===================== ⏰ Vakit çıkmadan uyarı ("İkindi ezanına 20 dakika kaldı, öğleyi kılmadıysan kıl") =====================
 const CIKIS=[["sabah","imsak","gunes","Sabah","Güneşin doğmasına","sabah namazını","sabahN"],["ogle","ogle","ikindi","Öğle","İkindi ezanına","öğleyi","ogleN"],["ikindi","ikindi","aksam","İkindi","Akşam ezanına","ikindiyi","ikindiN"],["aksam","aksam","yatsi","Akşam","Yatsı ezanına","akşamı","aksamN"],["yatsi","yatsi","imsak","Yatsı","İmsak vaktine","yatsıyı","yatsiN"]];
 const cikisDk=()=>SET.cikis==null?20:+SET.cikis;
-function cikisItems(){const dk=cikisDk();if(!dk)return[];const {t}=timesNow(),sk=sehirKod(),city=SET.city||"İstanbul";
-  return CIKIS.filter(c=>c[0]!=="yatsi"||SET.cikisYatsi).map(([id,bas,son,ad,sonAd,acc])=>{const d=hm(t[son]);d.setMinutes(d.getMinutes()-dk);
-    return{id:"cikis_"+id,saat:pad2(d.getHours())+":"+pad2(d.getMinutes()),gunler:[],baslik:"⏰ Maneviyat · "+ad+" vakti çıkıyor",govde:sonAd+" "+dk+" dakika kaldı; "+acc+" kılmadıysan şimdi kıl. ("+city+")",url:appUrl("#bugun"),hedef:{sinif:sk},aktif:true}})}
+function cikisItems(){const dk=cikisDk();if(!dk)return[];const sk=sehirKod(),city=String(SET.city||"İstanbul").replace(/^istanbul$/i,"İstanbul"),out=[];
+  for(let g=0;g<7;g++){const gun=new Date();gun.setDate(gun.getDate()+g);const t=gunVakitleri(gun);if(!t)continue;
+    CIKIS.filter(c=>c[0]!=="yatsi"||SET.cikisYatsi).forEach(([id,bas,son,ad,sonAd,acc])=>{const [h,m]=String(t[son]).split(":").map(Number);const d=new Date(gun);d.setHours(h,m-dk,0,0);
+      out.push({id:"cikis_"+id+"_"+gun.getDay(),saat:pad2(d.getHours())+":"+pad2(d.getMinutes()),gunler:[gun.getDay()],baslik:"⏰ "+ad+" vakti çıkıyor",govde:sonAd+" "+dk+" dakika kaldı; "+acc+" kılmadıysan şimdi kıl. ("+city+")",url:appUrl("#bugun"),hedef:{sinif:sk},aktif:true})})}
+  return out}
 const NAMAZ_K={sabah:"sabahN",ogle:"ogleN",ikindi:"ikindiN",aksam:"aksamN",yatsi:"yatsiN"};
 function namazIsaretle(k,deger){const g=todayKey();AM[g]=AM[g]||{};AM[g][k]=deger==null?(AM[g][k]?0:1):deger;store.set("mk_amel",AM)}
 function namazSeri(){let s=0;for(let i=0;i<400;i++){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");const o=AM[k]||{};if(Object.values(NAMAZ_K).every(x=>o[x]))s++;else if(i>0)break}return s}
