@@ -468,6 +468,27 @@ h2{letter-spacing:-.01em}
 #ezChip.cikiyor{background:#d4252f!important;color:#fff!important}
 .hatuyari{display:grid;gap:8px;margin:0 0 12px;padding:14px 16px;border-radius:18px;background:color-mix(in srgb,#e0303a 14%,var(--surface));border:1px solid color-mix(in srgb,#e0303a 45%,transparent)}.hatuyari span{font-size:13px;color:var(--muted)}.hatuyari .pill{justify-self:start}
 @media (prefers-reduced-motion:reduce){.ezan.cikiyor{animation:none}}
+
+/* v55 · Konu kutuları: her konu tek düğmenin altında */
+.kutular{display:grid;gap:10px;margin-top:14px}
+.kutu{background:var(--surface);border:1px solid var(--line);border-radius:18px;scroll-margin-top:90px;overflow:hidden}
+#view>.kutu{margin-top:10px}
+.kutuBas{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.kutuBas .ki{font-size:24px;width:32px;text-align:center;flex:none}
+.kutuBas .kt{flex:1;min-width:0}.kutuBas .kt b{display:block;font-size:16px;font-weight:700;line-height:1.25}.kutuBas .kt small{display:block;color:var(--muted);font-size:13px;margin-top:3px;line-height:1.3}
+.kutuBas .kok{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--surface2);font-size:18px;color:var(--muted);font-weight:700}
+.kutuBas .kok::before{content:"›"}
+.kutu.acik .kutuBas .kok::before{content:"✕";font-size:15px}
+.kutu.acik .kutuBas{border-bottom:1px solid var(--line)}
+.kutuIc{padding:12px}.kutu:not(.acik) .kutuIc{display:none}
+.kutuIc>.bigcard{box-shadow:none}
+.kutuKapat{all:unset;box-sizing:border-box;display:block;width:100%;text-align:center;margin-top:14px;padding:13px;border-radius:14px;background:var(--surface2);font-weight:700;cursor:pointer}
+.konuGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.konuGrid button{all:unset;box-sizing:border-box;display:grid;justify-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:var(--surface);border:1px solid var(--line);text-align:center;font-size:12px;font-weight:600;line-height:1.2;cursor:pointer}
+.konuGrid button i{font-style:normal;font-size:22px}
+.konuGrid button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.bildKart{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:14px;padding:16px;margin:12px 0 4px;border-radius:18px;cursor:pointer;background:linear-gradient(135deg,#1d3b5c,#2e7d5f);color:#fff}
+.bildKart .ki{font-size:30px}.bildKart b{display:block;font-size:17px}.bildKart small{display:block;opacity:.9;font-size:13px;margin-top:2px}.bildKart .go{margin-left:auto;font-size:22px}
 </style>
 </head>
 <body>
@@ -1048,9 +1069,32 @@ function tintCards(){let i=0;document.querySelectorAll("#view .cards > .card").f
   let d=0;document.querySelectorAll("#view .dua").forEach(c=>{const h=HUES[d++%HUES.length];c.style.background=`color-mix(in srgb,hsl(${h} 60% 50%) ${isDark()?13:8}%,var(--surface))`;const q=c.querySelector(".cnt");if(q)q.style.color=`hsl(${h} 70% ${isDark()?66:34}%)`});
   let z=0;document.querySelectorAll("#view .chip").forEach(c=>{const h=HUES[z++%HUES.length];c.style.background=`color-mix(in srgb,hsl(${h} 60% 50%) ${isDark()?16:10}%,var(--surface))`});
   let j=0;document.querySelectorAll("#view [data-hoca]").forEach(b=>{const h=HUES[j++%HUES.length];b.style.background=`color-mix(in srgb,hsl(${h} 65% 50%) ${isDark()?24:16}%,var(--surface))`})}
+// ===================== 🗂️ Konu kutuları (v55)
+const KUTU={};
+function kutu(id,ikon,bas,alt,ic){if(!ic||!String(ic).trim())return"";const a=!!KUTU[id];
+  return `<div class="kutu${a?" acik":""}" data-kutu="${id}"><button type="button" class="kutuBas" data-kutuac="${id}"><span class="ki">${ikon}</span><span class="kt"><b>${bas}</b>${alt?`<small>${alt}</small>`:""}</span><span class="kok" aria-hidden="true"></span></button><div class="kutuIc">${ic}<button type="button" class="kutuKapat" data-kutuac="${id}">✕ Kapat</button></div></div>`}
+function kutuAc(id){Object.keys(KUTU).forEach(k=>KUTU[k]=0);KUTU[id]=1;renderView();setTimeout(()=>{const k=document.querySelector(`.kutu[data-kutu="${id}"]`);if(k)k.scrollIntoView({block:"start"})},60)}
+// Sayfadaki ana başlıkları (h2) birer kutuya çevirir: başlık düğme olur, altındaki her şey içine girer
+function kutula(root){const h=[...root.children].filter(e=>e.tagName==="H2");if(!h.length)return;let cur=null;
+  [...root.children].forEach(el=>{
+    if(el.tagName==="H2"){const t=el.textContent.trim(),id="k_"+tab+"_"+t.replace(/[^\p{L}\p{N}]+/gu,"").slice(0,40);
+      const m=t.match(/^(\p{Extended_Pictographic}(?:\u200d\p{Extended_Pictographic}|\ufe0f)*)\s*/u),ik=m?m[1]:"📂";
+      let bas=el.innerHTML;if(m)bas=bas.replace(m[1],"").trim();
+      const w=document.createElement("div");w.innerHTML=kutu(id,ik,bas,el.dataset.alt||"","<i></i>");const k=w.firstElementChild;el.replaceWith(k);
+      cur=k.querySelector(".kutuIc");cur.firstElementChild.remove()}
+    else if(el.classList.contains("kdur"))cur=null;
+    else if(cur&&!el.classList.contains("kutu"))cur.insertBefore(el,cur.lastElementChild)})}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-kutuac]");if(!b)return;e.preventDefault();
+  const id=b.dataset.kutuac,k=[...document.querySelectorAll(".kutu")].find(x=>x.dataset.kutu===id);if(!k)return;const ac=!k.classList.contains("acik");
+  if(ac)[...k.parentElement.children].forEach(o=>{if(o!==k&&o.classList.contains("acik")){o.classList.remove("acik");KUTU[o.dataset.kutu]=0}});
+  k.classList.toggle("acik",ac);KUTU[id]=ac?1:0;
+  if(ac||b.classList.contains("kutuKapat"))requestAnimationFrame(()=>k.scrollIntoView({block:"start",behavior:"smooth"}))});
+function kutuUygula(v){try{
+  if(tab==="ayarlar"||tab==="kulliyat"||(tab==="dinle"&&dinleSeg==="kuran"&&!openSure))kutula(v)}catch(e){}}
+
 function renderView(){
   $("#pageTitle").textContent=TITLES[tab];document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
-  setAccent();const v=$("#view");v.innerHTML=({bugun:vBugun,zikir:vZikir,dinle:vDinle,kutuphane:vKutup,kulliyat:vKulliyat,ayarlar:vAyarlar}[tab]||vBugun)();
+  setAccent();const v=$("#view");v.innerHTML=({bugun:vBugun,zikir:vZikir,dinle:vDinle,kutuphane:vKutup,kulliyat:vKulliyat,ayarlar:vAyarlar}[tab]||vBugun)();kutuUygula(v);
   ({bugun:bBugun,zikir:bZikir,dinle:bDinle,kutuphane:bKutup,kulliyat:bKulliyat,ayarlar:bAyarlar}[tab]||bBugun)();renderTotal();tintCards();addNoteBadges($("#view"));try{renkVer()}catch(e){}
 }
 
@@ -1112,10 +1156,10 @@ function vDinle(){
   if(dinleSeg==="kuran")return seg+kuranTop()+`
    <label class="small muted" for="kariSel">Hâfız</label>
    <select id="kariSel">${KARI.map(k=>`<option value="${k.id}" ${k.id===kari?"selected":""}>${esc(k.n)}</option>`).join("")}</select>
-   <h2>Hazır listeler</h2>
-   <div class="cards">${LISTELER.map((l,i)=>`<button class="card" data-list="${i}"><span class="tag">Liste · ${l.s.length} sûre</span><b>${esc(l.n)}</b><span>${esc(l.d)}</span></button>`).join("")}</div>
    ${(()=>{const set=new Set(Object.keys(DONE).filter(k=>k.startsWith("q_")).map(k=>k.split("_").pop()));const n=set.size;return `<div class="soz" style="margin-top:16px"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">HATİM İLERLEMESİ</div><div class="soz-t">${n} / 114 sûre dinlendi</div><div class="bar2" style="height:6px"><i style="width:${n/114*100}%"></i></div></div>`})()}
-   <h2>114 Sûre</h2>
+   <h2 data-alt="Seher · Cuma · Uyku öncesi · Hatim">🎧 Hazır listeler</h2>
+   <div class="cards">${LISTELER.map((l,i)=>`<button class="card" data-list="${i}"><span class="tag">Liste · ${l.s.length} sûre</span><b>${esc(l.n)}</b><span>${esc(l.d)}</span></button>`).join("")}</div>
+   <h2 data-alt="Bir sûreye dokun: Arapça, okunuş, Diyanet meali">📖 114 Sûre</h2>
    <input type="search" id="sSearch" placeholder="Sûre ara: Yâsîn, Mülk, 36…" style="margin-bottom:10px">
    <div class="list" id="sureList">${SURE_TR.map((n,i)=>{const k="q_"+kari+"_"+(i+1);return`<button class="row" data-sure="${i+1}" data-key="${k}"><span class="no">${i+1}</span><span class="t"><b>${esc(n)}</b><span>${AYET[i]} âyet</span>${progHTML(k)}</span>${mark(k)}<span class="ar">${SURE_AR[i]}</span></button>`}).join("")}</div>`;
   if(dinleSeg==="sohbet")return seg+vSohbet();
@@ -1240,7 +1284,7 @@ function settingsBox(){openModal(`<h3>Ayarlar</h3>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sTon" ${SET.ton!=="normal"?"checked":""} style="width:20px;height:20px">Dua okuyucusu kalın sesle okusun</label>
   <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="sMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
   <div class="small muted"><b style="color:var(--fg)">Şehir</b> (namaz vakitleri için · ilçe için: İstanbul/Kadıköy)</div><input type="text" id="sCity" placeholder="Istanbul" value="${esc(SET.city||"")}">
-  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 54</div>
+  <div class="small muted">Anahtarlar yalnızca bu telefonda saklanır. · Maneviyat Külliyatı sürüm 55</div>
   <div class="ctrl"><button class="pill acc" id="mOk">Kaydet</button><button class="pill ghost" id="mNo">Kapat</button></div>`,()=>{
   $("#mOk").onclick=()=>{Object.assign(SET,{piKey:$("#sPk").value.trim(),piSecret:$("#sPs").value.trim(),yt:$("#sYt").value.trim(),city:$("#sCity").value.trim(),meal:$("#sMeal").checked,ton:$("#sTon").checked?"kalin":"normal",kilitSar:$("#sSar").checked});TIMES=null;store.set("mk_set",SET);Object.keys(POD_EPS).forEach(k=>delete POD_EPS[k]);closeModal();toast("Ayarlar kaydedildi");if(openPod)loadEps(openPod)};$("#mNo").onclick=closeModal})}
 $("#gear").onclick=()=>{tab="ayarlar";renderView();toTop()};
@@ -1596,28 +1640,34 @@ function vBugun(){
     <button id="remindBtn" class="vk-rem">${guardOn?"🔔 Vakit hatırlatıcı açık · kapat":(+(SET.vonce||0)?"🔕 Vakitten "+SET.vonce+" dk önce hatırlat":"🔕 Vakit girince hatırlat")}</button>
     <div class="vk-times">${list.map(([n,d])=>`<div class="${n===VAKIT_LBL[v]?"cur":n===next[0]?"nx":""}" style="${n===VAKIT_LBL[v]?`background:#fff;color:${VAKIT_TILE[n]||c1};box-shadow:0 0 0 3px ${VAKIT_TILE[n]||c1}aa,0 8px 22px rgba(0,0,0,.35)`:`background:linear-gradient(165deg,${VAKIT_TILE[n]}e6,${VAKIT_TILE[n]}73)`}">${n===VAKIT_LBL[v]?'<i class="simdi">ŞİMDİ</i>':""}<span>${n}</span><b>${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}</b></div>`).join("")}</div></div>`;
   const seg=`<div class="seg" style="margin-top:14px">${[["vakit","Bu vakit"],["amel","Amellerim"],["dualar","Tüm dualar"]].map(([k,l])=>`<button data-bseg="${k}" class="${bugSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
-  let body="";
-  if(bugSeg==="vakit"){const s=gunSoz();
-    body=`<div class="soz"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">GÜNÜN SÖZÜ</div><div class="soz-t">${esc(s.t)}</div><div class="small muted">${esc(s.s)}</div></div>${vUmutKart()}${vSaatKart()}${vVecizeCard()}
-    <div class="ctrl" style="margin:12px 0"><button class="pill acc" id="yolBtn">🚌 Yol modunu başlat</button><button class="pill ghost" id="yolSet" aria-label="Yol modu ayarı">⚙</button>${v==="sabah"||v==="kusluk"||v==="seher"?`<button class="pill" data-evrad="sabah">🎧 Sabah evradını dinle</button>`:""}${v==="ikindi"||v==="aksam"||v==="yatsi"?`<button class="pill" data-evrad="aksam">🎧 Akşam evradını dinle</button>`:""}${v==="ogle"||v==="ikindi"?`<button class="pill" id="tesbihatBtn">Namaz tesbihatı</button>`:""}${v==="seher"?`<button class="pill" id="seherPlay">Seher tilaveti</button>`:""}${v==="yatsi"?`<button class="pill" id="mulkBtn">Mülk sûresi</button>`:""}</div>
+  let bSoz="",bVak="",bAmel="",bDua="";
+  {const s=gunSoz();
+    bSoz=`<div class="soz"><div class="small" style="font-weight:700;letter-spacing:.05em;color:var(--accent)">GÜNÜN SÖZÜ</div><div class="soz-t">${esc(s.t)}</div><div class="small muted">${esc(s.s)}</div></div>${vUmutKart()}${vSaatKart()}${vVecizeCard()}`;
+    bVak=`<div class="ctrl" style="margin:0 0 12px"><button class="pill acc" id="yolBtn">🚌 Yol modunu başlat</button><button class="pill ghost" id="yolSet" aria-label="Yol modu ayarı">⚙</button>${v==="sabah"||v==="kusluk"||v==="seher"?`<button class="pill" data-evrad="sabah">🎧 Sabah evradını dinle</button>`:""}${v==="ikindi"||v==="aksam"||v==="yatsi"?`<button class="pill" data-evrad="aksam">🎧 Akşam evradını dinle</button>`:""}${v==="ogle"||v==="ikindi"?`<button class="pill" id="tesbihatBtn">Namaz tesbihatı</button>`:""}${v==="seher"?`<button class="pill" id="seherPlay">Seher tilaveti</button>`:""}${v==="yatsi"?`<button class="pill" id="mulkBtn">Mülk sûresi</button>`:""}</div>
     <div class="note" style="margin:0 0 12px">${esc(VAKIT_NOT[v])}</div>
     <button class="pill acc" id="vakitAll" style="margin-bottom:12px">▶ Bu vaktin dualarını sırayla dinle</button>
     ${VAKIT_DUA[v].map(([s,i])=>duaCard(DUALAR[s][i],s+"|"+i)).join("")}`}
-  else if(bugSeg==="amel"){const a=amelToday(),cnt=AMEL.filter(([k])=>a[k]).length;
+  {const a=amelToday(),cnt=AMEL.filter(([k])=>a[k]).length;
     const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");const o=AM[k]||{};days.push({l:d.toLocaleDateString("tr-TR",{weekday:"short"}),n:AMEL.filter(([x])=>o[x]).length})}
     let streak=0;for(let i=0;;i++){const d=new Date();d.setDate(d.getDate()-i);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");const o=AM[k]||{};if(["sabahN","ogleN","ikindiN","aksamN","yatsiN"].every(x=>o[x]))streak++;else if(i>0||true){if(i===0)continue;break}if(i>400)break}
-    body=`<div class="kpis"><div class="kpi"><span class="small muted">Bugün</span><b>${cnt} / ${AMEL.length}</b></div><div class="kpi"><span class="small muted">5 vakit serisi</span><b>${streak} gün</b></div><div class="kpi"><span class="small muted">Bugün dinleme</span><b>${dkFmt(LST[todayKey()])}</b></div></div>
+    bAmel=`<div class="kpis"><div class="kpi"><span class="small muted">Bugün</span><b>${cnt} / ${AMEL.length}</b></div><div class="kpi"><span class="small muted">5 vakit serisi</span><b>${streak} gün</b></div><div class="kpi"><span class="small muted">Bugün dinleme</span><b>${dkFmt(LST[todayKey()])}</b></div></div>
     <div class="list" style="margin-top:12px">${AMEL.map(([k,l])=>`<button class="row amel ${a[k]?"ok":""}" data-amel="${k}"><span class="chk">${a[k]?"✓":""}</span><span class="t"><b>${esc(l)}</b></span></button>`).join("")}</div>
     <h2>Son 7 gün</h2><div class="stats">${days.map(d=>`<div><i style="height:${Math.max(3,d.n/AMEL.length*64)}px"></i>${esc(d.l)}</div>`).join("")}</div>
     <div class="note">Amellerin Allah'a en sevimli olanı, az da olsa devamlı olanıdır (Buhârî). Bugün bir adım yeter; yarın bir adım daha.</div>`+vKaza()}
-  else{body=`<div class="ctrl" style="margin:0 0 10px"><button class="pill" id="cvCevBtn">🛡️ Cevşen</button><button class="pill" id="cvDuaBtn">💚 İhtiyaç duaları</button></div><div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher"],["kuran","Kur'an'dan"],["siginma","Sığınma"],["rabbena","Rabbenâ"],["liste","Dua listem"]].map(([k,l])=>`<button data-dseg2="${k}" class="${duaSeg2===k?"on":""}">${l}</button>`).join("")}</div>${duaSeg2==="liste"?"":`<button class="pill acc" id="duaAll" style="margin-bottom:12px">▶ Tümünü sırayla dinle</button>`}`+(duaSeg2==="siginma"?`<div class="sigbas">🕌 Peygamber Efendimizin Sığınma Duaları<small>Her biri “Allâhümme innî eûzü bike…” ile başlar</small></div>`:"")+(duaSeg2==="liste"?vDuaListe():DUALAR[duaSeg2].map((d,i)=>duaCard(d,duaSeg2+"|"+i)).join(""))}
+  {bDua=`<div class="ctrl" style="margin:0 0 10px"><button class="pill" id="cvCevBtn">🛡️ Cevşen</button><button class="pill" id="cvDuaBtn">💚 İhtiyaç duaları</button></div><div class="seg">${[["sabah","Sabah-Akşam"],["seher","Seher"],["kuran","Kur'an'dan"],["siginma","Sığınma"],["rabbena","Rabbenâ"],["liste","Dua listem"]].map(([k,l])=>`<button data-dseg2="${k}" class="${duaSeg2===k?"on":""}">${l}</button>`).join("")}</div>${duaSeg2==="liste"?"":`<button class="pill acc" id="duaAll" style="margin-bottom:12px">▶ Tümünü sırayla dinle</button>`}`+(duaSeg2==="siginma"?`<div class="sigbas">🕌 Peygamber Efendimizin Sığınma Duaları<small>Her biri “Allâhümme innî eûzü bike…” ile başlar</small></div>`:"")+(duaSeg2==="liste"?vDuaListe():DUALAR[duaSeg2].map((d,i)=>duaCard(d,duaSeg2+"|"+i)).join(""))}
   const gun=new Date().getDay(),cuma=(gun===5||(gun===4&&new Date().getHours()>=18))?`<div class="soz" style="margin-top:12px;background:color-mix(in srgb,hsl(150 60% 45%) 18%,var(--surface))"><div class="small" style="font-weight:700;letter-spacing:.05em;color:hsl(150 60% ${isDark()?60:32}%)">CUMA</div><div class="soz-t">Hayırlı Cumalar</div><div class="small muted">Kehf sûresini okumak ve bolca salavat getirmek sünnettir.</div><div class="ctrl"><button class="pill" id="kehfBtn">▶ Kehf sûresi</button><button class="pill ghost" id="salBtn">Salavat 100</button><button class="pill" data-gun="cuma">📖 Cuma rehberi</button></div></div>`:"";
   const gk=(window._gkTest||new Date().getHours()>=20)&&!geceOkudu()?`<button class="row" id="geceKart" style="border-radius:16px;margin-top:10px;background:linear-gradient(135deg,#1b2340,#3b2a5c);color:#fff"><span class="no" style="font-size:22px">🌙</span><span class="t"><b>Gece duası</b><span style="color:#e6dcff">Darlık duası · sığınma duaları · annenin ruhuna Fâtiha</span></span><span class="go" style="color:#fff">›</span></button>`:"";
   const kk=(window._gkTest||new Date().getHours()>=22||new Date().getHours()<3)&&!kalkanBugun()?`<button class="row" id="kalkanKart" style="border-radius:16px;margin-top:10px;background:linear-gradient(135deg,#0f2a3d,#1f5a6b);color:#fff"><span class="no" style="font-size:22px">🛡️</span><span class="t"><b>Gece kalkanı</b><span style="color:#d6f1f5">Telefonu dışarı bırak · abdest · Mülk sûresi</span></span><span class="go" style="color:#fff">›</span></button>`:"";
-  return vHatDurum()+card+vNamazSatir(v)+gk+kk+vTesbihat()+vKilitFix()+vAraclar()+vBildirimDavet()+vSimge()+vDevam()+vDevamHepsi(false)+cuma+(bugSeg==="vakit"?vNotKoru()+vMubarek()+vGunIlim()+vNotHatira():"")+seg+body+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
+  bugSeg="vakit";
+  return vHatDurum()+card+vNamazSatir(v)+gk+kk+cuma+vMubarek()+vTesbihat()+vKilitFix()+vBildirimDavet()+vSimge()+vDevam()+`<div class="kutular">`
+   +kutu("bk_soz","🌅","Günün sözleri","Günün sözü · umut · âyet · sünnet · Risale dersi",bSoz+vGunIlim()+vNotKoru()+vNotHatira())
+   +kutu("bk_vakit","🤲",VAKIT_AD[v]+" duaları","Bu vaktin evradı · sırayla dinle · yol modu",bVak)
+   +kutu("bk_dua","📿","Tüm dualar","Cevşen · ihtiyaç · seher · sığınma · Rabbenâ · listem",bDua)
+   +kutu("bk_amel","📋","Amellerim ve kaza","Günlük amel · 5 vakit serisi · kaza takibi",bAmel)
+   +kutu("bk_devam","▶️","Kaldığım yerler","Yarım kalan dinlemelerin",vDevamHepsi(false))
+   +kutu("bk_arac","🧰","Araçlar","Ara · kıble · zekât · aylık vakit · Bildirimlerim · widget",vAraclar())+`</div>`+`<div class="ctrl" style="margin-top:16px;justify-content:center"><button class="pill ghost" id="shareBtn">Sevdiklerinle paylaş</button></div>`;
 }
 function bBugun(){
-  document.querySelectorAll("[data-bseg]").forEach(b=>b.onclick=()=>{bugSeg=b.dataset.bseg;renderView()});
   document.querySelectorAll("[data-dseg2]").forEach(b=>b.onclick=()=>{duaSeg2=b.dataset.dseg2;renderView()});
   bNamazSatir();bUmutKart();
   document.querySelectorAll("[data-amel]").forEach(b=>b.onclick=()=>{const k=todayKey();AM[k]=AM[k]||{};AM[k][b.dataset.amel]=AM[k][b.dataset.amel]?0:1;store.set("mk_amel",AM);renderView()});
@@ -1632,11 +1682,11 @@ function bBugun(){
   const sp=$("#seherPlay");if(sp)sp.onclick=()=>{playQueue(LISTELER[0].s.map(n=>sureTrack(n)).map(t=>(t.group="Seher",t)),0)};
   const mb=$("#mulkBtn");if(mb)mb.onclick=()=>playQueue([sureTrack(67)],0);
   $("#shareBtn").onclick=share;
-  $("#kibleBtn").onclick=kibleAc;$("#kazaBtn").onclick=()=>{bugSeg="amel";renderView();setTimeout(()=>{const h=[...document.querySelectorAll("#view h2")].find(x=>x.textContent.includes("Kaza"));if(h)h.scrollIntoView({block:"start"})},50)};
+  $("#kibleBtn").onclick=kibleAc;$("#kazaBtn").onclick=()=>{kutuAc("bk_amel");setTimeout(()=>{const h=[...document.querySelectorAll("#view h2")].find(x=>x.textContent.includes("Kaza"));if(h)h.scrollIntoView({block:"start"})},120)};
   const so=$("#simgeOk");if(so)so.onclick=()=>{store.set("mk_simge_ok",true);renderView()};
   const kb=$("#kehfBtn");if(kb)kb.onclick=()=>playQueue([sureTrack(18)],0);
   const sb=$("#salBtn");if(sb)sb.onclick=()=>{zs.cur="salavat";zs.counts.salavat=0;zs.targets.salavat=100;zs.chain=false;saveZ();tab="zikir";renderView();toTop()};
-  if(bugSeg==="amel")bKaza();
+  bKaza();
   const dv=$("#devamBtn");if(dv)dv.onclick=()=>{const r=RECENT.find(x=>x.ctx&&x.ctx.type!=="radio");if(r)openCtx(r.ctx)};
   bBugunExtra();try{bYeniBugun();bKilitFix();bNotKoru()}catch(e){}
   bindDua($("#view"));
@@ -1644,7 +1694,7 @@ function bBugun(){
 
 /* --- Külliyat --- */
 function vKulliyat(){
-  const seg=`<div class="seg">${[["soz","Sözler"],["kissa","📖 Kıssalar"],["ilim","🎓 İlim"],["cocuk","👨‍👩‍👧 Çocuk Eğitimi"],["gunler","🌙 Günler"],["alim","Âlimler"],["risale","Risale-i Nur"],["hadis","Kırk Hadis"],["esma","Esmâ"],["ilahi","İlahiler"],["film","Film"]].map(([k,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}">${l}</button>`).join("")}</div>`;
+  const seg=`<div class="konuGrid">${[["soz","💬","Sözler"],["kissa","📖","Kıssalar"],["ilim","🎓","İlim"],["cocuk","👨‍👩‍👧","Çocuk"],["gunler","🌙","Günler"],["alim","🕌","Âlimler"],["risale","📚","Risale-i Nur"],["hadis","📜","Kırk Hadis"],["esma","✨","Esmâ"],["ilahi","🎵","İlahiler"],["film","🎬","Film"]].map(([k,i,l])=>`<button data-kseg="${k}" class="${kulSeg===k?"on":""}"><i>${i}</i>${l}</button>`).join("")}</div>`;
   if(kulSeg==="kissa")return seg+vKissa();
   if(kulSeg==="ilim")return seg+vIlim();
   if(kulSeg==="gunler")return seg+vGunler();
@@ -1652,14 +1702,14 @@ function vKulliyat(){
   if(kulSeg==="alim")return seg+vAlimler();
   if(kulSeg==="risale")return seg+vRisale();
   if(kulSeg==="hadis")return seg+vHadis();
-  if(kulSeg==="soz")return seg+`<h2 style="margin-top:4px">Âyetler, hadisler, Yunus Emre</h2>${SOZLER.map(x=>`<div class="soz" style="margin-bottom:10px"><div class="soz-t">${esc(x.t)}</div><div class="small muted">${esc(x.s)}</div></div>`).join("")}
-   <h2>Ashâb-ı Bedir</h2><div class="bigcard" style="background:color-mix(in srgb,hsl(38 70% 50%) 16%,var(--surface))"><div class="muted small">Bedir'de bulunan 313 sahabînin en bilinenleri. İsimleri anıldığında “radıyallâhu anhüm” denir. Tam listenin okunuşunu aşağıdan dinleyebilirsin.</div>
+  if(kulSeg==="soz")return seg+`<h2>💬 Âyetler, hadisler, Yunus Emre</h2>${SOZLER.map(x=>`<div class="soz" style="margin-bottom:10px"><div class="soz-t">${esc(x.t)}</div><div class="small muted">${esc(x.s)}</div></div>`).join("")}
+   <h2>⭐ Ashâb-ı Bedir</h2><div class="bigcard" style="background:color-mix(in srgb,hsl(38 70% 50%) 16%,var(--surface))"><div class="muted small">Bedir'de bulunan 313 sahabînin en bilinenleri. İsimleri anıldığında “radıyallâhu anhüm” denir. Tam listenin okunuşunu aşağıdan dinleyebilirsin.</div>
    <div class="bedir">${BEDIR.map(n=>`<span>${esc(n)}</span>`).join("")}</div>
    <div class="ctrl"><a class="pill acc" target="_blank" rel="noopener" href="${yt("Esmâ-i Ashâb-ı Bedir okunuşu")}">▶ Esmâ-i Ashâb-ı Bedir</a><button class="pill" data-qs="Ashab-ı Bedir">🎧 Sesli ara</button></div></div>
-   <h2>Hasan el-Bennâ'nın on tavsiyesi</h2><div class="list">${BENNA.map((t,i)=>`<div class="nrow"><span class="ts">${i+1}</span><span class="tx">${esc(t)}</span></div>`).join("")}</div>
-   <h2>Risale-i Nur Külliyatı</h2><div class="bigcard"><div class="muted small">Okuma yolculuğu, vecize defteri ve sesli dersler artık kendi sekmesinde.</div><button class="pill acc" data-kgo="risale" style="justify-self:start">📚 Risale-i Nur sekmesini aç</button>
+   <h2>🔟 Hasan el-Bennâ'nın on tavsiyesi</h2><div class="list">${BENNA.map((t,i)=>`<div class="nrow"><span class="ts">${i+1}</span><span class="tx">${esc(t)}</span></div>`).join("")}</div>
+   <h2>📚 Risale-i Nur Külliyatı</h2><div class="bigcard"><div class="muted small">Okuma yolculuğu, vecize defteri ve sesli dersler artık kendi sekmesinde.</div><button class="pill acc" data-kgo="risale" style="justify-self:start">📚 Risale-i Nur sekmesini aç</button>
    <div class="ctrl"><a class="pill acc" href="https://www.erisale.com" target="_blank" rel="noopener">Külliyatı oku (erisale.com)</a><button class="pill" data-qs="Risale-i Nur sesli">🎧 Sesli Risale-i Nur</button><button class="pill" data-qs="Risale-i Nur dersleri">🎧 Risale dersleri</button></div></div>
-   <h2>Zübeyir Gündüzalp</h2><div class="bigcard"><div class="muted small">Mektupları ve hayatı.</div><div class="ctrl"><button class="pill" data-qs="Zübeyir Gündüzalp">🎧 Sesli dinle</button><a class="pill ghost" target="_blank" rel="noopener" href="${yt("Zübeyir Gündüzalp mektupları")}">YouTube'da ara</a></div></div>`;
+   <h2>✉️ Zübeyir Gündüzalp</h2><div class="bigcard"><div class="muted small">Mektupları ve hayatı.</div><div class="ctrl"><button class="pill" data-qs="Zübeyir Gündüzalp">🎧 Sesli dinle</button><a class="pill ghost" target="_blank" rel="noopener" href="${yt("Zübeyir Gündüzalp mektupları")}">YouTube'da ara</a></div></div>`;
   if(kulSeg==="esma")return seg+`<button class="pill acc" id="esmaAll">▶ 99 ismi anlamlarıyla dinle</button><div class="note">Allah'ın 99 güzel ismi. Bir isme dokunursan zikirmatiğe alınır.</div><div class="list" style="margin-top:12px">${ESMA.map(([a,t,m],i)=>`<button class="row" data-esma="${i}"><span class="no">${i+1}</span><span class="t"><b>${esc(t)}</b><span>${esc(m)}</span></span><span class="ar">${esc(a)}</span></button>`).join("")}</div>`;
   if(kulSeg==="ilahi")return seg+`<h2 style="margin-top:4px">Siyer TV ilahileri</h2><div class="bigcard"><div class="muted small">Mevlid-i Şerif albümü (Kurtuluş Reçetesi) ve diğer Siyer TV eserleri. Müzik uygulamasında açılır, ekran kapalıyken çalar.</div><div class="ctrl"><a class="pill acc" target="_blank" rel="noopener" href="https://music.apple.com/tr/album/kurtulu%C5%9F-re%C3%A7etesi-vesilet%C3%BCn-necat-mevlidi-%C5%9Ferif-ep/1685812389">Apple Music'te albüm</a><a class="pill ghost" target="_blank" rel="noopener" href="https://music.apple.com/tr/artist/siyer-tv/1680043130">Tüm Siyer TV eserleri</a></div></div>
    <div class="list" style="margin-top:10px">${SIYER_ILAHI.map(([n,d])=>`<div class="nrow"><span class="tx"><b style="display:block">${esc(n)}</b><span>${esc(d)}</span></span><a class="pill ghost" style="padding:6px 10px;font-size:13px" target="_blank" rel="noopener" href="https://open.spotify.com/search/${encodeURIComponent(n+" Siyer Tv")}">Spotify</a><a class="pill ghost" style="padding:6px 10px;font-size:13px" target="_blank" rel="noopener" href="${yt(n+" Siyer TV")}">YouTube</a></div>`).join("")}</div>
@@ -1681,7 +1731,7 @@ function bKulliyat(){
 }
 
 /* ===================== Sürüm 12 · yeni modüller ===================== */
-const SURUM=54;
+const SURUM=55;
 const KASA_VARS="https://baris-kasa.barilkay466.workers.dev",UYG="maneviyat";
 const VAPID="BIXVUEpl8HJuKI61AtSnjS3WTdVvW7-TZeCZUTwJyw1Gd5hxFrUMvt95U_LHmEplAhaf9hqF0tS7zX3JRAcUfEk";
 const kasaUrl=()=>String(store.get("mk_kasa",KASA_VARS)||"").trim().replace(/\/+$/,"");
@@ -2743,7 +2793,7 @@ function bBugunExtra(){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
   on("#aylikBtn",aylikAc);on("#tsbBtn",tesbihatAc);on("#geceBtn",geceDuaAc);on("#kalkanBtn",geceKalkani);on("#kalkanKart",geceKalkani);on("#hatGuncel",hatSimdiGuncelle);on("#geceKart",geceDuaAc);on("#araAcBtn",araAc);on("#cvBtn",()=>cvAc());on("#cvDuaBtn",()=>cvAc("ihtiyac"));on("#cvCevBtn",()=>cvAc("cevsen"));on("#tsbHep",tesbihatAc);on("#tsbCal",()=>tsbCal(tsbSimdi()));on("#bildBtn",bildirimAc);on("#widgetBtn",widgetRehber);setTimeout(bildirimRozet,0);on("#zekatBtn",zekatAc);on("#risaleBtn",()=>go("kulliyat","risale"));on("#hadisBtn",()=>go("kulliyat","hadis"));on("#vcGo",()=>go("kulliyat","risale"));on("#vcPay",()=>{const v=vecGunun(0);if(v)paylas(vecMetin(v))});on("#vcSes",()=>{const v=vecGunun(0);if(v)playQueue(chunkText(v.t,180).map(c=>ttsTrack(c,"tr-TR","Günün vecizesi",v.s||"Risale-i Nur",makeArt("❝","Risale-i Nur",150),"Risale-i Nur")),0)});
   on("#okuBtn",()=>{kuranMod="oku";store.set("mk_kmod2","oku");openSure=null;go("dinle","kuran")});
-  on("#dlistBtn",()=>{bugSeg="dualar";duaSeg2="liste";renderView();setTimeout(()=>{const s=document.querySelector("[data-dseg2]");if(s)s.scrollIntoView({block:"start"})},50)});
+  on("#dlistBtn",()=>{duaSeg2="liste";kutuAc("bk_dua");setTimeout(()=>{const s=document.querySelector("[data-dseg2]");if(s)s.scrollIntoView({block:"start"})},50)});
   on("#davetAc",async()=>{if(await pushEnable())renderView()});on("#davetGizle",()=>{store.set("mk_push_gizle",true);renderView()});
   on("#dlEkle",()=>{const a=$("#dlAd").value.trim();if(!a){toast("İsim yaz");return}DLIST.push({id:"d"+Date.now(),ad:a,not:$("#dlNot").value.trim(),say:0,son:""});store.set("mk_dlist",DLIST);renderView()});
   document.querySelectorAll("[data-dlok]").forEach(b=>b.onclick=()=>{const d=DLIST.find(x=>x.id===b.dataset.dlok);if(!d)return;if(d.son===todayKey()){d.son="";d.say=Math.max(0,(d.say||0)-1)}else{d.son=todayKey();d.say=(d.say||0)+1}store.set("mk_dlist",DLIST);renderView()});
@@ -2907,7 +2957,9 @@ function yedekYukle(file){const r=new FileReader();r.onload=()=>{try{const j=JSO
 
 /* ---------- Ayarlar sayfası ---------- */
 function vAyarlar(){const perm=("Notification" in window)?Notification.permission:"yok",acik=store.get("mk_push_on",false)&&perm==="granted",ok=b=>b?"✅":"⛔";
+  const bdN=(()=>{try{return bildirimOkunmamis()}catch(e){return 0}})();
   return `<button class="pill ghost" id="ayGeri">‹ Geri</button>
+  <button class="bildKart" id="ayBild"><span class="ki">📬</span><span><b>Gelen bildirimlerim</b><small>${bdN?bdN+" yeni · ":""}${BILD.length} bildirim · ❤️ ${BFAV.length} beğendiğin · paylaş, sakla</small></span><span class="go">›</span></button>
   <h2>🔔 Bildirimler</h2>
   <div class="bigcard"><div class="muted small">Namaz vakti, sabah evradı, Cuma, Kur'an ve yatsı hatırlatmaları uygulama kapalıyken de telefonuna gelir.</div>
    ${IS_IOS&&!IS_APP?`<div class="note" style="margin:0"><b>iPhone'da önce:</b> Safari'de Paylaş ⬆️ → <b>Ana Ekrana Ekle</b> → ana ekrandaki hilal simgesinden aç, sonra bu düğmeye bas.</div>`:""}
@@ -2915,7 +2967,7 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="saatlikAl" ${store.get("mk_saatlik_al",true)?"checked":""} style="width:20px;height:20px">⏳ Saatlik hikmet bildirimlerini al</label>
    ${bkatHTML()}
    <div class="small muted">Bu cihaz: ${ok(perm==="granted")} izin · ${ok(IS_APP||!IS_IOS)} ana ekran · ${ok(acik)} abonelik</div></div>
-  <h2>🔔 Bildirim durumu</h2>
+  <h2>📡 Bildirim durumu</h2>
   <div class="bigcard"><div class="ctrl"><button class="pill" id="durumBtn">🔄 Durumu göster</button><button class="pill" id="kaydetBtn">📲 Bu cihazı kaydet</button><button class="pill" id="denemeBtn">🧪 Bana dene</button></div><div id="durumOut" class="small"></div></div>
   ${yonetici()?`<h2>⏰ Hatırlatmalar <span class="small muted">(yönetici)</span></h2>
   <div class="bigcard"><div class="muted small">Bu liste, uygulamayı ana ekrana ekleyip bildirimi açan herkese gider. Değiştirmek için kasa şifresi gerekir.</div>
@@ -2942,7 +2994,7 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <label class="small muted" style="display:grid;gap:4px">Dokununca açılacak bölüm<select id="anUrl"><option value="#bugun">Bugün</option><option value="#zikir">Zikir</option><option value="#kuran">Kur'an</option><option value="#risale">Risale-i Nur</option><option value="#hadis">Kırk Hadis</option><option value="#siyer">Siyer</option><option value="#uyku">Uyku</option></select></label>
    <div class="ctrl"><button class="pill acc" id="anGonder">📣 Herkese gönder</button><button class="pill ghost" id="anBana">🧪 Önce bana gönder</button></div></div>
 `:""}
-  <h2>Genel</h2>
+  <h2>⚙️ Genel</h2>
   <div class="bigcard">
    <label class="small muted" style="display:grid;gap:4px">Şehir (namaz vakitleri)<input type="text" id="aCity" value="${esc(SET.city||"")}" placeholder="Istanbul"></label>
    <label class="small muted" style="display:grid;gap:4px">Adın (isteğe bağlı)<input type="text" id="aAd" value="${esc(SET.ad||"")}" placeholder="Barış"></label>
@@ -2954,7 +3006,7 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <div class="small muted" style="margin-top:-4px">iPhone'da daha güzel bir ses için: Ayarlar → Erişilebilirlik → Seslendirilen İçerik → Sesler → Türkçe → “Gelişmiş/Premium” bir sesi indir, sonra burada seç (★).</div>
    <label style="display:flex;gap:10px;align-items:center;font-size:15px"><input type="checkbox" id="aMeal" ${SET.meal!==false?"checked":""} style="width:20px;height:20px">Dualarda Türkçe meali de sesli oku</label>
    <button class="pill acc" id="aKaydet" style="justify-self:start">💾 Kaydet</button></div>
-  <h2>Sohbet araması (isteğe bağlı)</h2>
+  <h2>🔎 Sohbet araması (isteğe bağlı)</h2>
   <div class="bigcard"><div class="small muted"><b style="color:var(--fg)">Podcast Index</b> bir hocanın tüm arşivini getirir (api.podcastindex.org'dan ücretsiz anahtar). <b style="color:var(--fg)">YouTube Data API</b> aramada videoları da listeler.</div>
    <input type="text" id="sPk" placeholder="Podcast Index API Key" value="${esc(SET.piKey||"")}" autocomplete="off" autocapitalize="off"><input type="text" id="sPs" placeholder="Podcast Index API Secret" value="${esc(SET.piSecret||"")}" autocomplete="off" autocapitalize="off"><input type="text" id="sYt" placeholder="YouTube API anahtarı" value="${esc(SET.yt||"")}" autocomplete="off" autocapitalize="off">
    <button class="pill" id="sKaydet" style="justify-self:start">💾 Kaydet</button></div>
@@ -2967,11 +3019,11 @@ function vAyarlar(){const perm=("Notification" in window)?Notification.permissio
    <input type="password" id="akSifre" placeholder="🔒 Kasa şifresi" value="${esc(store.get("mk_kasa_sifre",""))}" autocomplete="off">
    <textarea id="akYeni" placeholder="AIza… anahtarlarını yapıştır (her satıra bir tane)" autocomplete="off" autocapitalize="off"></textarea>
    <div class="ctrl"><button class="pill acc" id="akEkle">🔐 Kasaya ekle</button><button class="pill" id="akListe">📋 Kasadakileri göster</button><button class="pill" id="akTest">🧪 Yapay zekâyı test et</button></div><div class="small muted">Her biçimdeki anahtarı (AIza…, AQ.… vb.) yapıştırabilirsin. Birden çok anahtarı aralarında boşluk, virgül ya da satır olsa da tek seferde yapıştır; uygulama her birini ayırıp kasaya gönderir.</div><div id="akOut" class="small" style="display:grid;gap:6px"></div></div>
-  <div class="ctrl" style="justify-content:center;margin-top:22px"><button class="pill ghost" id="ygCikis">🔓 Yönetici modundan çık</button></div>`:`<div class="ctrl" style="justify-content:center;margin-top:22px"><button class="pill ghost" id="ygGiris" style="font-size:13px">🔐 Yönetici girişi</button></div>`}
+  <i class="kdur" hidden></i><div class="ctrl" style="justify-content:center;margin-top:22px"><button class="pill ghost" id="ygCikis">🔓 Yönetici modundan çık</button></div>`:`<i class="kdur" hidden></i><div class="ctrl" style="justify-content:center;margin-top:22px"><button class="pill ghost" id="ygGiris" style="font-size:13px">🔐 Yönetici girişi</button></div>`}
   <div class="small muted" style="text-align:center;margin-top:18px">Maneviyat Külliyatı · sürüm ${SURUM}</div>`}
 function bAyarlar(){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
-  on("#ygGiris",yoneticiGiris);on("#ygCikis",yoneticiCikis);
+  on("#ygGiris",yoneticiGiris);on("#ygCikis",yoneticiCikis);on("#ayBild",()=>bildirimAc());
   on("#ayGeri",()=>{tab=store.get("mk_tab","bugun");renderView()});
   on("#pushOn",async()=>{await pushEnable();renderView()});on("#pushOff",async()=>{await pushDisable();renderView()});
   on("#durumBtn",async()=>{const o=$("#durumOut");o.textContent="Soruluyor…";try{const r=await getPushReg();const s=r&&await r.pushManager.getSubscription();
